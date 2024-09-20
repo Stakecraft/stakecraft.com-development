@@ -1,15 +1,15 @@
 <script>
 import { RouterView } from 'vue-router'
-import { ref } from 'vue'
+import Header from './components/Header.vue'
+import { ref, provide } from 'vue'
+
 export default {
-  components: { RouterView },
+  components: { RouterView, Header },
   setup() {
     const theme = ref('light')
 
-    setTimeout(() => {
-      theme.value = 'dark'
-      console.log(theme.value)
-    }, 1000)
+    provide('theme', theme)
+    provide('setTheme', (newTheme) => (theme.value = newTheme))
 
     return { theme }
   }
@@ -21,7 +21,7 @@ export default {
 
 <template>
   <van-config-provider :theme="theme">
-    <header></header>
+    <Header></Header>
     <RouterView />
   </van-config-provider>
 </template>
