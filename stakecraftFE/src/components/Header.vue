@@ -11,8 +11,12 @@
       <li>Contacts</li>
     </ul>
     <ul class="rightItems">
-      <li class="externalLink">Services <img src="../assets/externalLink.png" /></li>
-      <li class="externalLink">Blog <img src="../assets/externalLink.png" /></li>
+      <li class="externalLink">
+        <a href="" target="_blank">Services <img src="../assets/externalLink.png" /></a>
+      </li>
+      <li class="externalLink">
+        <a href="" target="_blank">Blog <img src="../assets/externalLink.png" /></a>
+      </li>
       <li class="changeTheme">
         <ToggleTheme />
       </li>
@@ -73,13 +77,18 @@ export default {
   top: 8px !important;
 }
 
+.header,
+.header a {
+  font-family: Poppins, Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--van-text-color);
+}
+
 .header {
   justify-content: space-between;
   /* background-image: url('../assets/frame.svg');
   background-size: cover;*/
-  font-family: Poppins, Arial, Helvetica, sans-serif;
-  font-size: 16px;
-  font-weight: bold;
   height: 80px;
   align-items: center;
   position: fixed;
