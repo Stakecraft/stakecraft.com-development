@@ -72,22 +72,23 @@
 }
 
 .van-theme-dark {
-  --van-primary-color: #50515e;
+  --van-primary-color: #434343;
   --van-seconday-color: #35f6df;
   --van-toggleBtn-color: #f0f0f0;
   --van-text-color: var(--van-white);
-  --van-background: var(--van-black);
+  --van-background: #111216;
 }
 
 .van-theme-light {
-  --van-primary-color: #434343;
+  --van-primary-color: #50515e;
   --van-seconday-color: #35f6df;
   --van-toggleBtn-color: #d9d9d9;
   --van-text-color: var(--van-black);
-  --van-background: var(--van-gray-1);
+  --van-background: #f0f0f0;
 }
 
 body {
   color: var(--van-text-color);
   background-color: var(--van-background);
+  padding: 33px 72px;
 }

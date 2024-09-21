@@ -2,32 +2,51 @@
   <label class="switch">
     <input type="checkbox" @click="toggleTheme()" />
     <span class="slider round"></span>
+    <img :src="sunMoon" class="sunMoon" />
   </label>
 </template>
 
 <script>
-import { inject } from 'vue'
+import { inject, ref } from 'vue'
+import sunImage from '../assets/sun.png'
+import moonImage from '../assets/moon.png'
 
 export default {
   setup() {
     const theme = inject('theme')
     const setTheme = inject('setTheme')
+    const sunMoon = ref(sunImage)
 
     function toggleTheme() {
       setTheme(theme.value === 'light' ? 'dark' : 'light')
+      if (theme.value === 'dark') {
+        sunMoon.value = moonImage
+      } else {
+        sunMoon.value = sunImage
+      }
     }
 
-    return { toggleTheme, theme }
+    return { toggleTheme, theme, sunMoon }
   }
 }
 </script>
+
+<style>
+input ~ .sunMoon {
+  transform: translateX(30px);
+}
+
+input:checked ~ .sunMoon {
+  transform: translateX(0px);
+}
+</style>
 
 <style scoped>
 .switch {
   position: relative;
   display: inline-block;
-  width: 60px;
-  height: 34px;
+  width: 54.51px;
+  height: 23.62px;
 }
 
 /* Hide default HTML checkbox */
@@ -45,25 +64,32 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ccc;
+  background-color: var(--van-primary-color);
   -webkit-transition: 0.4s;
+  transition: 0.4s;
+}
+
+.sunMoon {
+  position: absolute;
+  top: 0;
+  bottom: 0;
   transition: 0.4s;
 }
 
 .slider:before {
   position: absolute;
   content: '';
-  height: 26px;
-  width: 26px;
+  height: 19.99px;
+  width: 19.99px;
   left: 4px;
-  bottom: 4px;
-  background-color: white;
+  bottom: 2px;
+  background-color: var(--van-toggleBtn-color);
   -webkit-transition: 0.4s;
   transition: 0.4s;
 }
 
 input:checked + .slider {
-  background-color: #2196f3;
+  background-color: var(--van-primary-color);
 }
 
 input:focus + .slider {
@@ -71,14 +97,14 @@ input:focus + .slider {
 }
 
 input:checked + .slider:before {
-  -webkit-transform: translateX(26px);
-  -ms-transform: translateX(26px);
-  transform: translateX(26px);
+  -webkit-transform: translateX(28px);
+  -ms-transform: translateX(28px);
+  transform: translateX(28px);
 }
 
 /* Rounded sliders */
 .slider.round {
-  border-radius: 34px;
+  border-radius: 19.99px;
 }
 
 .slider.round:before {
