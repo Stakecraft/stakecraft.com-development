@@ -1,5 +1,5 @@
 <template>
-  <div class="header" :class="theme">
+  <div class="header" :class="[theme, { blurred: isScrolled }]">
     <div class="leftItems">
       <img src="../assets/headerLogo.svg" class="headerLogo" />
     </div>
@@ -11,8 +11,8 @@
       <li>Contacts</li>
     </ul>
     <ul class="rightItems">
-      <li>Services</li>
-      <li>Blog</li>
+      <li class="externalLink">Services <img src="../assets/externalLink.png" /></li>
+      <li class="externalLink">Blog <img src="../assets/externalLink.png" /></li>
       <li class="changeTheme">
         <ToggleTheme />
       </li>
@@ -21,15 +21,28 @@
 </template>
 
 <script>
-import { inject } from 'vue'
+import { inject, onMounted, onBeforeUnmount, ref } from 'vue'
 import ToggleTheme from './ToggleTheme.vue'
 
 export default {
   components: { ToggleTheme },
   setup() {
     const theme = inject('theme')
+    const isScrolled = ref(false)
 
-    return { theme }
+    const handleScroll = () => {
+      isScrolled.value = window.scrollY > 0
+    }
+
+    onMounted(() => {
+      window.addEventListener('scroll', handleScroll)
+    })
+
+    onBeforeUnmount(() => {
+      window.removeEventListener('scroll', handleScroll)
+    })
+
+    return { theme, isScrolled }
   }
 }
 </script>
@@ -52,6 +65,14 @@ export default {
   flex-direction: row;
 }
 
+.blurred {
+  backdrop-filter: blur(10px);
+  background: var(--van-header-background);
+  padding: 0 28px;
+  border-radius: 20px;
+  top: 8px !important;
+}
+
 .header {
   justify-content: space-between;
   /* background-image: url('../assets/frame.svg');
@@ -59,8 +80,13 @@ export default {
   font-family: Poppins, Arial, Helvetica, sans-serif;
   font-size: 16px;
   font-weight: bold;
-  height: 20px;
+  height: 80px;
   align-items: center;
+  position: fixed;
+  left: 70px;
+  width: calc(100% - 140px);
+  transition: backdrop-filter 0.3s ease, background-color 0.3s ease;
+  top: 0;
 }
 
 .header li {
@@ -80,5 +106,13 @@ export default {
 }
 .rightItems li:last-child {
   margin-right: 0;
+}
+
+.externalLink {
+  display: flex;
+  align-items: center;
+}
+.externalLink img {
+  margin-left: 3px;
 }
 </style>
