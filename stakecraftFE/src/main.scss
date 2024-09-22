@@ -89,8 +89,19 @@
   --van-header-background: rgba(255, 255, 255, 0.06);
 }
 
+@font-face {
+  font-family: poppins;
+  src: url(./assets/Poppins-Regular.ttf);
+}
+
+@font-face {
+  font-family: generalSans;
+  src: url(./assets/GeneralSans.ttf);
+}
+
 body {
   color: var(--van-text-color);
   background-color: var(--van-background);
   padding: 0px 72px;
+  font-family: poppins, Arial, Helvetica, sans-serif;
 }

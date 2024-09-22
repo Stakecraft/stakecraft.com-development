@@ -79,7 +79,6 @@ export default {
 
 .header,
 .header a {
-  font-family: Poppins, Arial, Helvetica, sans-serif;
   font-size: 16px;
   font-weight: bold;
   color: var(--van-text-color);
