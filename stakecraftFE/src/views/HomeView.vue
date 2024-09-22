@@ -14,7 +14,7 @@
         advanced technical support.
       </div>
     </div>
-    <img src="../assets/mainImage.png" class="imageArea" />
+    <img class="imageArea" src="../assets/mainImage.png" />
   </main>
 </template>
 
@@ -25,6 +25,8 @@
   flex-direction: row;
   justify-content: center;
   align-items: center;
+  background: url('../assets/frame.svg');
+  background-size: contain;
 }
 
 .presentation {
@@ -32,6 +34,7 @@
   flex-direction: column;
   width: 608px;
   margin-right: 40px;
+  padding-left: 72px;
 }
 
 .titleArea {
@@ -52,5 +55,6 @@
 
 .imageArea {
   width: 630px;
+  padding-right: 72px;
 }
 </style>
