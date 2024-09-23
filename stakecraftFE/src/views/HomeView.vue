@@ -16,7 +16,21 @@
     </div>
     <img class="imageArea" src="../assets/mainImage.png" />
   </main>
+  <Mainnet />
+  <Testnet />
+  <Whychooseus />
 </template>
+
+<script>
+import Mainnet from '../components/Mainnet.vue'
+import Testnet from '../components/Testnet.vue'
+import Whychooseus from '../components/Whychooseus.vue'
+
+export default {
+  components: { Mainnet, Testnet, Whychooseus },
+  setup() {}
+}
+</script>
 
 <style scoped>
 .homeView {
