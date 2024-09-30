@@ -34,21 +34,22 @@ export default {
 
 <style scoped>
 .homeView {
-  margin-top: 95px;
+  margin-top: 80px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  background: url('../assets/frame.svg');
-  background-size: contain;
+  background: url('../assets/bg img.svg');
+  background-repeat: no-repeat;
+  background-position: right;
+  padding: 28px 72px 94px 72px;
 }
 
 .presentation {
   display: flex;
   flex-direction: column;
   width: 608px;
-  margin-right: 40px;
-  padding-left: 72px;
 }
 
 .titleArea {
@@ -69,6 +70,6 @@ export default {
 
 .imageArea {
   width: 630px;
-  padding-right: 72px;
+  height: 629.88px;
 }
 </style>
