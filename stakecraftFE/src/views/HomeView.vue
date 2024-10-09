@@ -2,23 +2,25 @@
 </script>
 
 <template>
-  <main class="homeView">
-    <div class="presentation">
-      <div class="titleArea">
-        <div class="titleLvl1">Trustworthy</div>
-        <div class="titleLvl2">Validator</div>
+  <div>
+    <main class="homeView">
+      <div class="presentation">
+        <div class="titleArea">
+          <div class="titleLvl1">Trustworthy</div>
+          <div class="titleLvl2">Validator</div>
+        </div>
+        <div class="websiteDescription">
+          Stakecraft validator offers services to make profit to users from staking their digital
+          assets, providing high reliability, security of user funds, transparent monitoring, and
+          advanced technical support.
+        </div>
       </div>
-      <div class="websiteDescription">
-        Stakecraft validator offers services to make profit to users from staking their digital
-        assets, providing high reliability, security of user funds, transparent monitoring, and
-        advanced technical support.
-      </div>
-    </div>
-    <img class="imageArea" src="../assets/mainImage.png" />
-  </main>
-  <Mainnet />
-  <Testnet />
-  <Whychooseus />
+      <img class="imageArea" src="../assets/mainImage.png" />
+    </main>
+    <Mainnet />
+    <Testnet />
+    <Whychooseus />
+  </div>
 </template>
 
 <script>
