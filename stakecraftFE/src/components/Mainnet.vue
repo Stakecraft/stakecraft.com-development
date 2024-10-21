@@ -66,7 +66,7 @@ export default {
         validator: ['BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g'],
         howToStake:
           'https://medium.com/coinmonks/how-to-stake-sol-with-solflare-wallet-f2b844e8c379',
-        explorer: 'https://stakewiz.com/validator/BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g'
+        explorer: ['https://stakewiz.com/validator/BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g']
       },
       {
         image: kavaImg,
@@ -76,8 +76,9 @@ export default {
         validator: ['kavavaloper1k760ypy9tzhp6l2rmg06sq4n74z0d3rejwwaa0'],
         howToStake:
           'https://medium.com/coinmonks/staking-your-kava-tokens-with-keplr-wallet-19f74e384e5a',
-        explorer:
+        explorer: [
           'https://www.mintscan.io/kava/validators/kavavaloper1k760ypy9tzhp6l2rmg06sq4n74z0d3rejwwaa0'
+        ]
       },
       {
         image: kusanaImg,
@@ -89,8 +90,9 @@ export default {
           'HKzQetwesWrSoCwidmTFxTDKhvGTtstXBSeWoZYeMtipdVH',
           'EQNMpUBms7Ht9AGSCxpyvzEwiBuSzm4HbzUqfKd8Adcc44p'
         ],
-        explorer:
-          'https://polkadot.js.org/apps/#/staking/query/EQNMpUBms7Ht9AGSCxpyvzEwiBuSzm4HbzUqfKd8Adcc44p',
+        explorer: [
+          'https://polkadot.js.org/apps/#/staking/query/EQNMpUBms7Ht9AGSCxpyvzEwiBuSzm4HbzUqfKd8Adcc44p'
+        ],
         howToStake:
           'https://medium.com/coinmonks/how-to-stake-kusama-with-polkadot-js-the-polkadot-browser-extension-befbf9ee6db0'
       },
@@ -100,8 +102,9 @@ export default {
         description:
           'Polkadot is a protocol that connects blockchains — allowing value and data to be sent across previously incompatible networks (Bitcoin and Ethereum, for example). It’s also designed to be fast and scalable. The DOT token is used for staking and governance.',
         validator: ['13ogHzWQksuwuw4dv6jph1GHGBxjSP8qzwRJzT69dhnhYEv2'],
-        explorer:
+        explorer: [
           'https://polkadot.subscan.io/account/13ogHzWQksuwuw4dv6jph1GHGBxjSP8qzwRJzT69dhnhYEv2'
+        ]
       },
       {
         image: bandProtocolImg,
@@ -109,8 +112,9 @@ export default {
         description:
           'Сross-chain data oracle platform that aggregates and connects real-world data and APIs to smart contracts.',
         validator: ['bandvaloper1unfg2zhnssl07tql8d85zc6rx7zsfs5qh206av'],
-        explorer:
-          'https://www.cosmoscan.io/validator/bandvaloper1unfg2zhnssl07tql8d85zc6rx7zsfs5qh206av#reports',
+        explorer: [
+          'https://www.cosmoscan.io/validator/bandvaloper1unfg2zhnssl07tql8d85zc6rx7zsfs5qh206av#reports'
+        ],
         howToStake:
           'https://medium.com/coinmonks/how-to-stake-band-protocol-band-in-cosmostation-wallet-bfd5a2f664bf'
       },
@@ -119,8 +123,9 @@ export default {
         title: 'Astar',
         description:
           'Astar is the Polkadot-native dApp hub supporting Ethereum, WebAssembly, dApp Staking, and Layer2 solutions',
-        explorer:
-          'https://astar.subscan.io/account/Wj14Wp8CD8D8K58hpxbuFSTmXyFeBvjfAoJqbHjrHRsm1pN?tab=transfer',
+        explorer: [
+          'https://astar.subscan.io/account/Wj14Wp8CD8D8K58hpxbuFSTmXyFeBvjfAoJqbHjrHRsm1pN?tab=transfer'
+        ],
         validator: ['Wj14Wp8CD8D8K58hpxbuFSTmXyFeBvjfAoJqbHjrHRsm1pN']
       },
       {
@@ -128,8 +133,9 @@ export default {
         title: 'Moonriver',
         description:
           'Сompanion network to Moonbeam and provides a permanently incentivized canary network. New code ships to Moonriver first, where it can be tested and verified under real economic conditions. Once proven, the same code ships to Moonbeam on Polkadot.',
-        explorer:
-          'https://moonriver.subscan.io/validator/0xb7Ab89933d2F16E6d183aAdcc5032bA17d6a5aEC?tab=reward',
+        explorer: [
+          'https://moonriver.subscan.io/validator/0xb7Ab89933d2F16E6d183aAdcc5032bA17d6a5aEC?tab=reward'
+        ],
         howToStake: 'https://stakecraft.medium.com/how-to-nominate-moonriver-61e46b26a68a',
         validator: ['0xb7Ab89933d2F16E6d183aAdcc5032bA17d6a5aEC']
       },
@@ -138,8 +144,10 @@ export default {
         title: 'Q Protocol',
         description:
           'Q COMBINES THE BENEFITS OF A PUBLIC, OPEN AND DECENTRALIZED LEDGER WITH THE TRANSPARENCY OF ENFORCEABLE PRIVATE CONTRACTS. WHETHER YOU WANT TO INTERACT WITH OTHER BUSINESSES, BUILD DECENTRALIZED APPLICATIONS OR SIMPLY SEND AND RECEIVE TOKENS: Q IS FOR YOU.',
-        explorer: 'https://hq.q.org/staking/validators/0x0C78C28FA19fEB59F370094E883e2C657d4030be',
-        validator: '0x0C78C28FA19fEB59F370094E883e2C657d4030be'
+        explorer: [
+          'https://hq.q.org/staking/validators/0x0C78C28FA19fEB59F370094E883e2C657d4030be'
+        ],
+        validator: ['0x0C78C28FA19fEB59F370094E883e2C657d4030be']
       },
       {
         image: graphImg,
@@ -147,8 +155,9 @@ export default {
         description:
           'The Graph is an indexing protocol for querying networks like Ethereum and IPFS. Anyone can build and publish open APIs, called subgraphs, making data easily accessible',
         validator: ['0x51637a35f7f054c98ed51904de939b9561d37885'],
-        explorer:
-          'https://graphscan.io/profile?id=0x51637a35f7f054c98ed51904de939b9561d37885#indexer-details',
+        explorer: [
+          'https://graphscan.io/profile?id=0x51637a35f7f054c98ed51904de939b9561d37885#indexer-details'
+        ],
         howToStake:
           'https://stakecraft.medium.com/how-to-become-a-delegator-on-the-graph-network-by-delegating-your-grt-using-the-graph-dapp-1c645c8bbc78'
       },
@@ -158,7 +167,7 @@ export default {
         description:
           'Polygon (MATIC) is a layer 2 scaling solution for Ethereum that aims to enhance scalability and improve user experience by providing faster and cheaper transactions. It achieves this by creating a network of sidechains that are interoperable with Ethereum, enabling developers to build decentralized applications (dApps) with increased efficiency and reduced costs.',
         validator: ['0x6215CF116c6a96872486cDC7cb50f52e515cCD15'],
-        explorer: 'https://staking.polygon.technology/validators/155'
+        explorer: ['https://staking.polygon.technology/validators/155']
       },
       {
         image: altairImg,
@@ -166,8 +175,9 @@ export default {
         description:
           'Altair is the network for users who want to test the bounds of asset financing. From art NFTs to undiscovered assets — Altair enables users to tokenize their most experimental assets and finance them. It is the next step for anyone looking to unlock financing for their assets.',
         validator: ['kANggnPRwtCMbmHevsBNGwrFMawfgy985W9w8Jmfh32faorcT'],
-        explorer:
+        explorer: [
           'https://altair.subscan.io/account/kANggnPRwtCMbmHevsBNGwrFMawfgy985W9w8Jmfh32faorcT'
+        ]
       },
       {
         image: centrifugeImg,
@@ -175,8 +185,9 @@ export default {
         description:
           'Centrifuge bridges real-world assets like invoices, real estate, and royalties to DeFi.',
         validator: ['4fenPSM8fGXRe86ZyCn4za1jQwVUSAk5Z4q1C2c1bEqo16db'],
-        explorer:
-          'https://centrifuge.subscan.io/account/4fenPSM8fGXRe86ZyCn4za1jQwVUSAk5Z4q1C2c1bEqo16db',
+        explorer: [
+          'https://centrifuge.subscan.io/account/4fenPSM8fGXRe86ZyCn4za1jQwVUSAk5Z4q1C2c1bEqo16db'
+        ],
         howToStake: 'https://medium.com/coinmonks/how-to-stake-cfg-with-polkadot-js-dc860199950e'
       },
       {
@@ -185,8 +196,9 @@ export default {
         description:
           'Ki Foundation’s mission is about bridging the gap between CeFi and DeFi. Based on Cosmos-SDK, with a Tendermint core. The bridge is built through an ecosystem of real life businesses, creating value and pouring it back to the Ki ecosystem through one single asset: The $XKI.',
         validator: ['kivaloper1emn7g3wkzdm59ndplscrzsk7hllms6wtwdq47q'],
-        explorer:
-          'https://www.mintscan.io/ki-chain/validators/kivaloper1emn7g3wkzdm59ndplscrzsk7hllms6wtwdq47q',
+        explorer: [
+          'https://www.mintscan.io/ki-chain/validators/kivaloper1emn7g3wkzdm59ndplscrzsk7hllms6wtwdq47q'
+        ],
         howToStake:
           'https://medium.com/coinmonks/how-to-stake-xki-ki-chain-tokens-with-ki-desktop-wallet-eb86e1f80236'
       },
@@ -195,8 +207,9 @@ export default {
         title: 'Agoric',
         description:
           'Agoric is an open-source development company launching an interoperable Proof-of-Stake chain and economy. A JavaScript-native smart contract platform offers developers a safe, reusable library of DeFi components to rapidly build and deploy on-chain.',
-        explorer:
-          'https://agoric.explorers.guru/validator/agoricvaloper1avjyymefy3wzepse09q3hrgnla3fjr72av43e9',
+        explorer: [
+          'https://agoric.explorers.guru/validator/agoricvaloper1avjyymefy3wzepse09q3hrgnla3fjr72av43e9'
+        ],
         validator: ['agoricvaloper1avjyymefy3wzepse09q3hrgnla3fjr72av43e9'],
         howToStake:
           'https://stakecraft.medium.com/staking-your-agoric-tokens-with-keplr-wallet-8ec2e8e8a9eb'
@@ -211,8 +224,9 @@ export default {
         description:
           'Aura Network is a scalable, agile and effortless Layer-1 blockchain with a comprehensive ecosystem built to accelerate global NFTs adoption.',
         validator: ['auravaloper19mr8r5t0p4yruxjj2x5ydey9jyxdqfjc3vgpal'],
-        explorer:
+        explorer: [
           'https://aurascan.io/validators/auravaloper19mr8r5t0p4yruxjj2x5ydey9jyxdqfjc3vgpal'
+        ]
       },
       {
         image: tgradeImg,
@@ -228,8 +242,9 @@ export default {
         description:
           'The first DeFi protocol unlocking liquidity of staked assets. Users can stake PoS tokens through Stafi and receive rTokens in return, which are available for trading while still earning staking rewards.',
         validator: ['34YZCBSy6UJKmcma1cJvUeEngyWswnQfqcEjaaMF16V7seUk'],
-        explorer:
-          'https://stafi.subscan.io/validator/34YZCBSy6UJKmcma1cJvUeEngyWswnQfqcEjaaMF16V7seUk',
+        explorer: [
+          'https://stafi.subscan.io/validator/34YZCBSy6UJKmcma1cJvUeEngyWswnQfqcEjaaMF16V7seUk'
+        ],
         howToStake: 'https://medium.com/coinmonks/how-to-stake-fis-with-polkadot-js-1b663c4760cd'
       },
       {
@@ -256,8 +271,9 @@ export default {
         description:
           'Interoperable smart contract network and a zone part of the Cosmos Network. Highly scalable, robust, secure and easy to deploy!',
         validator: ['junovaloper1345rra7x6uswe2z708zx3q7wj04e6wsykw2mk6'],
-        explorer:
-          'https://www.mintscan.io/juno/validators/junovaloper1345rra7x6uswe2z708zx3q7wj04e6wsykw2mk6',
+        explorer: [
+          'https://www.mintscan.io/juno/validators/junovaloper1345rra7x6uswe2z708zx3q7wj04e6wsykw2mk6'
+        ],
         howToStake:
           'https://stakecraft.medium.com/staking-your-juno-tokens-with-keplr-wallet-aa57499ecd25'
       },
@@ -267,8 +283,9 @@ export default {
         description:
           'Stargaze is a decentralized social protocol that integrates universal creator income (UCI), NFTs, and creator coins.',
         validator: ['starsvaloper1wvh8n82r4alqhxs45m8jtf536sqc5nzzgfzs7x'],
-        explorer:
-          'https://www.stargaze.zone/stake?validator=starsvaloper1wvh8n82r4alqhxs45m8jtf536sqc5nzzgfzs7x',
+        explorer: [
+          'https://www.stargaze.zone/stake?validator=starsvaloper1wvh8n82r4alqhxs45m8jtf536sqc5nzzgfzs7x'
+        ],
         howToStake:
           'https://stakecraft.medium.com/staking-your-stars-tokens-with-keplr-wallet-47c945570d39'
       },
@@ -278,8 +295,9 @@ export default {
         description:
           'Distributed (open source) blockchain music ecosystem born in December 2017, to create a decentralized and trustless hub that interconnects the various market players.',
         validator: ['bitsong1rgtyd3uj3m0rr684hy3590y3vjcm9enhulvj27'],
-        explorer:
-          'https://www.mintscan.io/bitsong/validators/bitsongvaloper1rgtyd3uj3m0rr684hy3590y3vjcm9enhamsm6r',
+        explorer: [
+          'https://www.mintscan.io/bitsong/validators/bitsongvaloper1rgtyd3uj3m0rr684hy3590y3vjcm9enhamsm6r'
+        ],
         howToStake:
           'https://medium.com/coinmonks/staking-your-bitsong-btsg-tokens-with-keplr-wallet-5688b8abbe33'
       },
@@ -293,8 +311,9 @@ export default {
         description:
           "Krest is Peaq’s sister network. It is the world's first and only simulation network for DePIN and the Economy of Things.",
         validator: ['5FCZ843QX87q14KGfDJadS2uXhBkmDmi7zmJMX2MMbVWafFh'],
-        explorer:
+        explorer: [
           'https://krest.stg.subscan.io/validator/5FCZ843QX87q14KGfDJadS2uXhBkmDmi7zmJMX2MMbVWafFh'
+        ]
       },
       {
         image: dydxImg,
@@ -306,8 +325,9 @@ export default {
         description:
           'BITSCRUNCH IS AN AI-POWERED, DECENTRALIZED NFT DATA PLATFORM THAT ENABLES DEVELOPERS TO BUILD RELIABLE NFT APPLICATIONS (DAPPS) QUICK AND EASY.',
         validator: ['0xA358597250d6CE69684960294F0260c66299c2cD'],
-        explorer:
+        explorer: [
           'https://app.bitscrunch.com/profile/0xa358597250d6ce69684960294f0260c66299c2cd/overview'
+        ]
       },
       {
         image: nearImg,
@@ -315,12 +335,13 @@ export default {
         description:
           'NEAR is the chain abstraction stack, empowering builders to create apps that scale to billions of users and across all blockchains.',
         validator: ['stakecraft.poolv1.near'],
-        explorer: 'https://nearscope.net/validator/stakecraft.poolv1.near/tab/dashboard'
+        explorer: ['https://nearscope.net/validator/stakecraft.poolv1.near/tab/dashboard']
       }
     ]
 
     const isModalVisible = ref(false)
     const selectedNetwork = ref(null)
+
     const showModal = (network) => {
       isModalVisible.value = true
       selectedNetwork.value = network
@@ -334,7 +355,7 @@ export default {
       showModal,
       closeModal,
       isModalVisible,
-      selectedNetwork,
+      selectedNetwork
     }
   }
 }
@@ -345,6 +366,7 @@ export default {
   background: #fff;
   padding: 15px 22px;
   box-sizing: border-box;
+  width: 300px;
   border: none;
   cursor: pointer;
   display: flex;
@@ -354,6 +376,11 @@ export default {
   border-radius: 20px;
   margin-bottom: 28px;
   flex: 0 1 auto;
+  transition: padding 0.5s;
+}
+
+.networks:hover {
+  padding-left: 30px;
 }
 
 .buttonsArea {
@@ -366,13 +393,7 @@ export default {
   justify-content: flex-start;
 }
 
-.networkImg {
-  width: 60px;
-  height: 60px;
-}
-
 .networkName {
-  width: 142px;
   font-family: poppins;
   font-size: 20px;
   font-weight: 700;
