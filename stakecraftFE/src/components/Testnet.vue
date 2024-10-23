@@ -2,14 +2,31 @@
   <div class="testNet mainAreas">
     <div class="titleHeader">TestNet</div>
     <div class="buttonsArea">
-      <button class="networks" @click="openModal" v-for="network in networks" :key="network.title">
-        <div class="networkImg">
-          <img :src="network.image" :alt="network.title" />
+      <button
+        class="networks"
+        @click="openNetworkDescription(index)"
+        v-for="(network, index) in networks"
+        :key="network.title"
+        :class="{ withHeight: showNetworkDescription[index] }"
+      >
+        <div class="networkPresentation">
+          <div class="networkImg">
+            <img :src="network.image" :alt="network.title" />
+          </div>
+          <div class="networkName">
+            {{ network.title }}
+          </div>
+          <button
+            class="add"
+            :class="{ around: showNetworkDescription[index] }"
+            v-if="network.description"
+          >
+            +
+          </button>
         </div>
-        <div class="networkName">
-          {{ network.title }}
+        <div class="description" v-if="network.description">
+          {{ network.description }}
         </div>
-        <button class="add">+</button>
       </button>
     </div>
     <partnerships />
@@ -27,14 +44,16 @@ import redbellyImg from '../assets/redbelly.png'
 import koiiImg from '../assets/koii.png'
 import availImg from '../assets/avail.png'
 import subsquidImg from '../assets/subsquid.png'
-
+import { ref } from 'vue'
 export default {
   components: { Partnerships },
   setup() {
     const networks = [
       {
         image: supraOrkasImg,
-        title: 'Supra Orkas'
+        title: 'Supra Orkas',
+        description:
+          'A next-generation cross-chain oracle solution designed to boost up the performance of smart contracts and blockchain apps. Providing a high level of decentralization, scalability, ultrafast and secure transactions'
       },
       {
         image: ssvImg,
@@ -54,11 +73,15 @@ export default {
       },
       {
         image: redbellyImg,
-        title: 'Redbelly'
+        title: 'Redbelly',
+        description:
+          'Redbelly - the only fully accountable layer 1 blockchain for Compliant Asset Tokenisation. Native to regulated assets, open, fast, scalable.'
       },
       {
         image: koiiImg,
-        title: 'Koii'
+        title: 'Koii',
+        description:
+          'Koii is a compute-sharing marketplace. Anyone can run a validator node on a personal device, making compute cheaper for everyone.'
       },
       {
         image: availImg,
@@ -66,13 +89,24 @@ export default {
       },
       {
         image: subsquidImg,
-        title: 'Subsquid'
+        title: 'Subsquid',
+        description:
+          'Web3 necessiware. Decentralized data lake and query engine for blazing-fast cross-chain indexing and queries. Secured by ZK proofs.'
       }
     ]
 
-    const openModal = () => {}
+    const showNetworkDescription = ref([])
 
-    return { networks, openModal }
+    const openNetworkDescription = (index) => {
+      if (!networks[index].description) return false
+      if (!showNetworkDescription.value[index]) {
+        showNetworkDescription.value[index] = true
+      } else {
+        showNetworkDescription.value[index] = !showNetworkDescription.value[index]
+      }
+    }
+
+    return { networks, openNetworkDescription, showNetworkDescription }
   }
 }
 </script>
@@ -90,15 +124,17 @@ export default {
   box-sizing: border-box;
   border: none;
   cursor: pointer;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
   margin-bottom: 26px;
   border-radius: 20px;
   width: 410px;
   padding: 0;
-  transition: 0.1s border;
+  max-height: 108px;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in, border 0.1s ease-in;
+}
+
+.networks.withHeight {
+  max-height: 1000px;
 }
 
 .networks:hover {
@@ -110,6 +146,22 @@ export default {
   margin-bottom: 24px;
 }
 
+.networkPresentation {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  height: 108px;
+}
+
+.description {
+  font-family: poppins;
+  font-size: 16px;
+  color: #eceaec;
+  margin: 0px 18px 20px 18px;
+}
+
 .buttonsArea {
   display: flex;
   flex-direction: row;
@@ -117,6 +169,7 @@ export default {
   flex-wrap: wrap;
   gap: 20px;
   justify-content: space-between;
+  align-items: flex-start;
 }
 
 .networkImg {
@@ -142,5 +195,10 @@ export default {
   font-size: 30px;
   margin-left: auto;
   margin-right: 18px;
+  transition: 0.3s linear transform;
+}
+
+.add.around {
+  transform: rotate(45deg);
 }
 </style>
