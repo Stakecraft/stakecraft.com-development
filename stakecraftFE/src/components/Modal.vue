@@ -65,7 +65,6 @@ export default {
     watch(
       () => props.network,
       (newValue) => {
-        console.log(props.network)
         network.value = newValue.selectedNetwork
       }
     )
@@ -169,6 +168,12 @@ export default {
   font-weight: 900;
   background: transparent;
   border: none;
+  cursor: pointer;
+  transition: 0.2s all;
+}
+
+.validatorArea button:active {
+  transform: scale(1.2);
 }
 
 .explorerLink,

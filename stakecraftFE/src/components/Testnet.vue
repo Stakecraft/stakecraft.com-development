@@ -87,7 +87,6 @@ export default {
 
 .networks {
   background: #111217;
-  padding: 20px 18px;
   box-sizing: border-box;
   border: none;
   cursor: pointer;
@@ -98,10 +97,17 @@ export default {
   margin-bottom: 26px;
   border-radius: 20px;
   width: 410px;
+  padding: 0;
+  transition: 0.1s border;
 }
 
-.networks:last-child {
-  margin-right: 0;
+.networks:hover {
+  background-image: linear-gradient(#111217, #111217), linear-gradient(to right, #09bac5, #9747ff);
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  margin-bottom: 24px;
 }
 
 .buttonsArea {
@@ -110,12 +116,13 @@ export default {
   box-sizing: border-box;
   flex-wrap: wrap;
   gap: 20px;
-  justify-content: flex-start;
+  justify-content: space-between;
 }
 
 .networkImg {
   width: 60px;
   height: 60px;
+  margin: 20px 0 20px 18px;
 }
 
 .networkName {
@@ -134,5 +141,6 @@ export default {
   border: none;
   font-size: 30px;
   margin-left: auto;
+  margin-right: 18px;
 }
 </style>
