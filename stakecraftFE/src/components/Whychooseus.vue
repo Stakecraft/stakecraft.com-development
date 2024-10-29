@@ -17,7 +17,6 @@ export default {
 
 <style scoped>
 .whychooseus {
-  margin-top: 0;
   padding-top: 96px;
   padding-bottom: 86px;
 }
