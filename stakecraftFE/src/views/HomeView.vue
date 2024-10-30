@@ -20,6 +20,7 @@
     <Mainnet />
     <Testnet />
     <Whychooseus />
+    <About />
   </div>
 </template>
 
@@ -27,9 +28,10 @@
 import Mainnet from '../components/Mainnet.vue'
 import Testnet from '../components/Testnet.vue'
 import Whychooseus from '../components/Whychooseus.vue'
+import About from '../components/About.vue'
 
 export default {
-  components: { Mainnet, Testnet, Whychooseus },
+  components: { Mainnet, Testnet, Whychooseus, About },
   setup() {}
 }
 </script>

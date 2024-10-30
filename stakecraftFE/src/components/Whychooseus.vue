@@ -7,22 +7,6 @@
       highest degree of responsibility, approaches management, timely installation of updates, and
       monitoring safety of user funds. Join us and enjoy earnings from staking your digital assets.
     </div>
-    <div class="statsArea">
-      <div v-for="stat in stats" class="statWrapper" :key="stat.title">
-        <div class="statsCover" />
-        <div class="statsImg">
-          <img :src="stat.image" :alt="stat.title" />
-        </div>
-        <div class="statsDetails">
-          <div class="statsNumber">
-            {{ stat.number }}
-          </div>
-          <div class="statsDescription">
-            {{ stat.title }}
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 <script>
@@ -84,74 +68,26 @@ export default {
   justify-content: space-between;
   margin-top: 38px;
   justify-content: center;
-  position: relative;
-  overflow: hidden;
-  background: url('../assets/stats_img.svg');
   z-index: 4;
-}
-
-.statsArea:after {
-  content: '';
-  top: 0;
-  right: 0;
-  position: absolute;
-  background: url('../assets/moving_vector.svg') center no-repeat;
-  background-size: cover;
-  /*animation: rotate 100s infinite linear;*/
-  width: 100%;
-  height: 100%;
-  z-index: 3;
+  justify-content: space-around;
 }
 
 .statWrapper {
   flex-grow: 1;
+  max-width: 410px;
+  max-height: 390px;
   display: flex;
   flex-direction: column;
   padding: 24px 0;
   justify-content: space-between;
   background: transparent;
   position: relative;
-  margin-left: 22px;
   border-radius: 22px;
+  background: #00dcd2;
 }
 
 .statWrapper:first-child {
   margin-left: 0;
-}
-
-.statWrapper:after {
-  content: '';
-  z-index: 100;
-  background: var(--van-background);
-  width: 22px;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  right: -22px;
-}
-
-.statsCover {
-  top: 0;
-  right: 0px;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  border: 10px solid var(--van-background); /* Outer square border */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.statsCover:after {
-  content: '';
-  top: 0;
-  right: 0px;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(255, 255, 255, 0); /* Transparent background */
-  border-radius: 22px;
-  overflow: hidden;
-  border: 10px solid var(--van-background);
 }
 
 /*.statWrapper:before {
@@ -216,5 +152,6 @@ export default {
   font-weight: 400;
   color: #111217;
   line-height: 24px;
+  margin-top: 6px;
 }
 </style>
