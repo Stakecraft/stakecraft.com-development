@@ -67,6 +67,7 @@ export default {
 .header > * {
   display: flex;
   flex-direction: row;
+  z-index: 9999;
 }
 
 .blurred {

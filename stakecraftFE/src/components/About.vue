@@ -5,6 +5,10 @@
         <div class="titleHeader">About</div>
         <div class="titleHeader">StakeCraft</div>
       </div>
+      <div class="shortDescription">
+        Our team has earned recognition in the crypto community as the reliable team that approaches
+        with the highest degree of responsibility to all tasks and monitors security of all data.
+      </div>
       <div class="ourCapabilities">
         <div class="title">Our Capabilities</div>
         <button
@@ -103,5 +107,25 @@ export default {
 .titleHeader {
   margin-bottom: 0;
   line-height: 72px;
+}
+
+.mainAreas {
+  display: flex;
+  flex-direction: row;
+}
+
+.shortDescription {
+  line-height: 24px;
+  font-family: poppins;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.ourCapabilities .title {
+  color: #00beb5;
+  line-height: 34px;
+  font-size: 26px;
+  font-family: generalSans;
+  font-weight: 600;
 }
 </style>

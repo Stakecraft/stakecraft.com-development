@@ -7,6 +7,22 @@
       highest degree of responsibility, approaches management, timely installation of updates, and
       monitoring safety of user funds. Join us and enjoy earnings from staking your digital assets.
     </div>
+    <div class="statsArea">
+      <div v-for="stat in stats" class="statWrapper" :key="stat.title">
+        <div class="statsCover" />
+        <div class="statsImg">
+          <img :src="stat.image" :alt="stat.title" />
+        </div>
+        <div class="statsDetails">
+          <div class="statsNumber">
+            {{ stat.number }}
+          </div>
+          <div class="statsDescription">
+            {{ stat.title }}
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 <script>
@@ -65,10 +81,7 @@ export default {
 
 .statsArea {
   display: flex;
-  justify-content: space-between;
   margin-top: 38px;
-  justify-content: center;
-  z-index: 4;
   justify-content: space-around;
 }
 
@@ -80,7 +93,6 @@ export default {
   flex-direction: column;
   padding: 24px 0;
   justify-content: space-between;
-  background: transparent;
   position: relative;
   border-radius: 22px;
   background: #00dcd2;
