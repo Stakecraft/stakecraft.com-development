@@ -1,6 +1,3 @@
-<script setup>
-</script>
-
 <template>
   <div>
     <main class="homeView">
@@ -21,6 +18,7 @@
     <Testnet />
     <Whychooseus />
     <About />
+    <LetsConnect />
   </div>
 </template>
 
@@ -29,9 +27,10 @@ import Mainnet from '../components/Mainnet.vue'
 import Testnet from '../components/Testnet.vue'
 import Whychooseus from '../components/Whychooseus.vue'
 import About from '../components/About.vue'
+import LetsConnect from '../components/LetsConnect.vue'
 
 export default {
-  components: { Mainnet, Testnet, Whychooseus, About },
+  components: { Mainnet, Testnet, Whychooseus, About, LetsConnect },
   setup() {}
 }
 </script>
