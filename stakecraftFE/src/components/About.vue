@@ -60,29 +60,37 @@
     <div class="team">
       <div class="teamRow1">
         <div class="member1">
-          <div class="memberTitle">Vasily Istomin</div>
-          <div class="memberDescription">
+          <div class="memberTextArea">
+            <div class="memberTitle">Vasily Istomin</div>
+            <div class="memberDescription">
             Project manager, business analysis, business planning, and customer relations. Crypto
             enthusiast.
+            </div>
           </div>
         </div>
         <div class="member2">
-          <div class="memberTitle">Stanislav Culcitchi</div>
-          <div class="memberDescription">
-            Network engineer with 6 years of experience, automatization and scripting specialist.
+          <div class="memberTextArea">
+            <div class="memberTitle">Stanislav Culcitchi</div>
+            <div class="memberDescription">
+              Network engineer with 6 years of experience, automatization and scripting specialist.
+            </div>
           </div>
         </div>
       </div>
       <div class="teamRow2">
         <div class="member1">
-          <div class="memberTitle">Alex Novacovschi</div>
-          <div class="memberDescription">DevOps engineer, blockchain expert, crypto enthusiast</div>
+          <div class="memberTextArea">
+            <div class="memberTitle">Alex Novacovschi</div>
+            <div class="memberDescription">DevOps engineer, blockchain expert, crypto enthusiast</div>
+          </div>
         </div>
         <div class="member2">
-          <div class="memberTitle">Alexander Lysenko</div>
-          <div class="memberDescription">
-            CEO at Hubcap SRL. Over 15 years of UNIX software system administration and DevOps
-            experience.
+          <div class="memberTextArea">
+            <div class="memberTitle">Alexander Lysenko</div>
+            <div class="memberDescription">
+              CEO at Hubcap SRL. Over 15 years of UNIX software system administration and DevOps
+              experience.
+            </div>
           </div>
         </div>
       </div>
@@ -110,7 +118,7 @@ export default {
 </script>
 
 <style scoped>
-.titleHeader  > * {
+.titleHeader > * {
   font-weight: 600;
 }
 
@@ -192,7 +200,8 @@ button {
   transform: rotate(45deg);
 }
 
-.teamRow1 > *, .teamRow2 > * {
+.teamRow1 > *,
+.teamRow2 > * {
   width: 272px;
   height: 299px;
   transition: 0.3s linear background;
@@ -220,8 +229,18 @@ button {
   background-image: url('../assets/alexN.svg');
 }
 
+.memberTextArea {
+  height: 35px;
+  overflow: hidden;
+  transition: 0.3s linear height;
+}
+
 .teamRow1 .member1:hover {
   background-image: url('../assets/vasilyHover.svg');
+}
+
+.teamRow1 .member1:hover .memberTextArea, .teamRow1 .member2:hover .memberTextArea,  .teamRow2 .member1:hover .memberTextArea, .teamRow2 .member2:hover .memberTextArea{
+  height: 130px;
 }
 
 .teamRow1 .member2:hover {
@@ -241,7 +260,7 @@ button {
   font-weight: 700;
   font-size: 20px;
   line-height: 26px;
-  color: #FFF;
+  color: #fff;
   margin-bottom: 4px;
 }
 
@@ -250,8 +269,7 @@ button {
   font-weight: 400;
   font-size: 16px;
   line-height: 24px;
-  color: #FFF;
+  color: #fff;
   width: 221.83px;
 }
-
 </style>
