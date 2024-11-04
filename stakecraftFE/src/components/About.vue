@@ -63,26 +63,7 @@
           <div class="memberTextArea">
             <div class="memberTitle">Vasily Istomin</div>
             <div class="memberDescription">
-              Project manager, business analysis, business planning, and customer relations. Crypto
-              enthusiast.
-            </div>
-          </div>
-        </div>
-        <div class="member2">
-          <div class="memberTextArea">
-            <div class="memberTitle">Stanislav Culcitchi</div>
-            <div class="memberDescription">
-              Network engineer with 6 years of experience, automatization and scripting specialist.
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="teamRow2">
-        <div class="member1">
-          <div class="memberTextArea">
-            <div class="memberTitle">Alex Novacovschi</div>
-            <div class="memberDescription">
-              DevOps engineer, blockchain expert, crypto enthusiast
+              Project manager, business analysis, business planning, and customer relations. Crypto enthusiast.
             </div>
           </div>
         </div>
@@ -90,8 +71,25 @@
           <div class="memberTextArea">
             <div class="memberTitle">Alexander Lysenko</div>
             <div class="memberDescription">
-              CEO at Hubcap SRL. Over 15 years of UNIX software system administration and DevOps
-              experience.
+              Over 15 years of UNIX software system administration and DevOps experience.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="teamRow2">
+        <div class="member1">
+          <div class="memberTextArea">
+            <div class="memberTitle">Stanislav Culcitchi</div>
+            <div class="memberDescription">
+              Network engineer with 6 years of experience, automatization and scripting specialist.
+            </div>
+          </div>
+        </div>
+        <div class="member2">
+          <div class="memberTextArea">
+            <div class="memberTitle">Alex Novacovschi</div>
+            <div class="memberDescription">
+              DevOps engineer, blockchain expert, crypto enthusiast.
             </div>
           </div>
         </div>
@@ -220,7 +218,7 @@ button {
 }
 
 .teamRow1 .member2 {
-  background-image: url('../assets/alexander.svg');
+  background-image: url('../assets/alexl.svg');
 }
 
 .teamRow2 .member1 {
@@ -229,7 +227,7 @@ button {
 }
 
 .teamRow2 .member2 {
-  background-image: url('../assets/alexN.svg');
+  background-image: url('../assets/alexn.svg');
 }
 
 .memberTextArea {
@@ -250,7 +248,7 @@ button {
 }
 
 .teamRow1 .member2:hover {
-  background-image: url('../assets/alexanderHover.svg');
+  background-image: url('../assets/alexlHover.svg');
 }
 
 .teamRow2 .member1:hover {
@@ -258,7 +256,7 @@ button {
 }
 
 .teamRow2 .member2:hover {
-  background-image: url('../assets/alexNHover.svg');
+  background-image: url('../assets/alexnHover.svg');
 }
 
 .memberTitle {

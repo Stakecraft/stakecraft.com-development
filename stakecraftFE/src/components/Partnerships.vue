@@ -1,7 +1,7 @@
 <template>
   <div id="partnership">
     <div class="content">
-      <div class="titleHeader">Partnership</div>
+      <div class="titleHeader">Partnerships</div>
 
       <div class="description">
         A next-generation cross-chain oracle solution designed to boost the performance of smart
@@ -22,23 +22,23 @@
 </template>
 
 <script>
-import QProtocol from '../assets/QProtocol.png'
-import Polygon from '../assets/Polygon.png'
-import Astar from '../assets/Astar.png'
+import qprotocol from '../assets/qprotocol.png'
+import polygon from '../assets/polygon.png'
+import astar from '../assets/astar.png'
 
 export default {
   setup() {
     const networks = [
       {
-        image: QProtocol,
+        image: qprotocol,
         title: 'Q Protocol'
       },
       {
-        image: Polygon,
+        image: polygon,
         title: 'Polygon'
       },
       {
-        image: Astar,
+        image: astar,
         title: 'Astar'
       }
     ]

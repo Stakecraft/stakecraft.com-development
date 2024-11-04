@@ -34,42 +34,21 @@
 </template>
 
 <script>
-import supraOrkasImg from '../assets/supraOrkas.png'
-import ssvImg from '../assets/ssv.png'
 import Partnerships from './Partnerships.vue'
-import obolImg from '../assets/obol.png'
-import autonityImg from '../assets/autonity.png'
-import berachainImg from '../assets/berachain.png'
 import redbellyImg from '../assets/redbelly.png'
 import koiiImg from '../assets/koii.png'
-import availImg from '../assets/avail.png'
-import subsquidImg from '../assets/subsquid.png'
+import supraoraclesImg from '../assets/supraoracles.png'
+import ssvImg from '../assets/subsquid.png'
 import { ref } from 'vue'
 export default {
   components: { Partnerships },
   setup() {
     const networks = [
       {
-        image: supraOrkasImg,
-        title: 'Supra Orkas',
+        image: supraoraclesImg,
+        title: 'Supra Oracles',
         description:
           'A next-generation cross-chain oracle solution designed to boost up the performance of smart contracts and blockchain apps. Providing a high level of decentralization, scalability, ultrafast and secure transactions'
-      },
-      {
-        image: ssvImg,
-        title: 'SSV'
-      },
-      {
-        image: obolImg,
-        title: 'Obol Network'
-      },
-      {
-        image: autonityImg,
-        title: 'Autonity'
-      },
-      {
-        image: berachainImg,
-        title: 'Berachain'
       },
       {
         image: redbellyImg,
@@ -79,13 +58,9 @@ export default {
       },
       {
         image: koiiImg,
-        title: 'Koii',
+        title: 'Koii Network',
         description:
           'Koii is a compute-sharing marketplace. Anyone can run a validator node on a personal device, making compute cheaper for everyone.'
-      },
-      {
-        image: availImg,
-        title: 'Avail'
       },
       {
         image: subsquidImg,

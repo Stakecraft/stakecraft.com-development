@@ -24,33 +24,28 @@
 <script>
 import solanaImg from '../assets/solana.png'
 import kavaImg from '../assets/kava.png'
-import kusanaImg from '../assets/kusana.png'
+import kusamaImg from '../assets/kusama.png'
 import polkadotImg from '../assets/polkadot.png'
-import bandProtocolImg from '../assets/bandProtocol.png'
-import astarImg from '../assets/Astar.png'
+import bandprotocolImg from '../assets/bandprotocol.png'
+import astarImg from '../assets/astar.png'
 import moonriverImg from '../assets/moonriver.png'
-import qprotocolImg from '../assets/QProtocol.png'
+import qprotocolImg from '../assets/qprotocol.png'
 import graphImg from '../assets/graph.png'
-import poligonMaticImg from '../assets/poligonMatic.png'
+import polygonImg from '../assets/polygon.png'
 import centrifugeImg from '../assets/centrifuge.png'
 import altairImg from '../assets/altair.png'
 import kifoundationImg from '../assets/kifoundation.png'
 import agoricImg from '../assets/agoric.png'
-import velasImg from '../assets/velas.png'
 import auraImg from '../assets/aura.png'
-import tgradeImg from '../assets/tgrade.png'
-import dockioImg from '../assets/dockio.png'
 import stafiImg from '../assets/stafi.png'
-import ixoImg from '../assets/ixo.png'
-import xxImg from '../assets/xx.png'
 import junoImg from '../assets/juno.png'
 import stargazeImg from '../assets/stargaze.png'
 import bitsongImg from '../assets/bitsong.png'
-import qwoynImg from '../assets/qwoyn.png'
-import krestImg from '../assets/krest.png'
-import dydxImg from '../assets/dydx.png'
 import bitscrunchImg from '../assets/bitscrunch.png'
 import nearImg from '../assets/near.png'
+import zetachainImg from '../assets/zetachain.png'
+import covalentImg from '../assets/covalent.png'
+import subqueryImg from '../assets/subquery.png'
 import modal from './Modal.vue'
 import { ref } from 'vue'
 
@@ -81,12 +76,11 @@ export default {
         ]
       },
       {
-        image: kusanaImg,
-        title: 'Kusana',
+        image: kusamaImg,
+        title: 'Kusama',
         description:
           "Early, experimental version of Polkadot that exists as an independent network. It intends to act as a sandbox for developers, allowing teams to deploy and test pre-release versions of their projects before launching them on Polkadot's mainnet.",
         validator: [
-          'Cs7UFcNBsBV4Y65GsM3bDzpvinMKFQZyt6x9TrhVhc8ps4E',
           'HKzQetwesWrSoCwidmTFxTDKhvGTtstXBSeWoZYeMtipdVH',
           'EQNMpUBms7Ht9AGSCxpyvzEwiBuSzm4HbzUqfKd8Adcc44p'
         ],
@@ -107,7 +101,7 @@ export default {
         ]
       },
       {
-        image: bandProtocolImg,
+        image: bandprotocolImg,
         title: 'Band Protocol',
         description:
           'Сross-chain data oracle platform that aggregates and connects real-world data and APIs to smart contracts.',
@@ -117,16 +111,6 @@ export default {
         ],
         howToStake:
           'https://medium.com/coinmonks/how-to-stake-band-protocol-band-in-cosmostation-wallet-bfd5a2f664bf'
-      },
-      {
-        image: astarImg,
-        title: 'Astar',
-        description:
-          'Astar is the Polkadot-native dApp hub supporting Ethereum, WebAssembly, dApp Staking, and Layer2 solutions',
-        explorer: [
-          'https://astar.subscan.io/account/Wj14Wp8CD8D8K58hpxbuFSTmXyFeBvjfAoJqbHjrHRsm1pN?tab=transfer'
-        ],
-        validator: ['Wj14Wp8CD8D8K58hpxbuFSTmXyFeBvjfAoJqbHjrHRsm1pN']
       },
       {
         image: moonriverImg,
@@ -162,8 +146,8 @@ export default {
           'https://stakecraft.medium.com/how-to-become-a-delegator-on-the-graph-network-by-delegating-your-grt-using-the-graph-dapp-1c645c8bbc78'
       },
       {
-        image: poligonMaticImg,
-        title: 'Poligon (MATIC)',
+        image: polygonImg,
+        title: 'Polygon',
         description:
           'Polygon (MATIC) is a layer 2 scaling solution for Ethereum that aims to enhance scalability and improve user experience by providing faster and cheaper transactions. It achieves this by creating a network of sidechains that are interoperable with Ethereum, enabling developers to build decentralized applications (dApps) with increased efficiency and reduced costs.',
         validator: ['0x6215CF116c6a96872486cDC7cb50f52e515cCD15'],
@@ -215,8 +199,14 @@ export default {
           'https://stakecraft.medium.com/staking-your-agoric-tokens-with-keplr-wallet-8ec2e8e8a9eb'
       },
       {
-        image: velasImg,
-        title: 'Velas'
+        image: zetachainImg,
+        title: 'Zetachain',
+        description:
+          'With its Universal EVM, ZetaChain is an L1 blockchain for chain abstraction. Build simple, secure, omnichain apps that span any chain from Ethereum and Cosmos to Bitcoin and beyond.',
+        validator: ['zetavaloper1qf8fgz3tf8fpanuyj9h937aq8x5p8f02akncqp'],
+        explorer: [
+          'https://hub.zetachain.com/staking/zetavaloper1qf8fgz3tf8fpanuyj9h937aq8x5p8f02akncqp'
+        ]
       },
       {
         image: auraImg,
@@ -229,12 +219,14 @@ export default {
         ]
       },
       {
-        image: tgradeImg,
-        title: 'Tgrade'
-      },
-      {
-        image: dockioImg,
-        title: 'Dock.io'
+        image: covalentImg,
+        title: 'Covalent',
+        description:
+          'Modular Data Infrastructure for AI',
+        validator: ['0xAE2f541b129E2597D1a70A206A7e03cB42D4b597'],
+        explorer: [
+          'https://www.covalenthq.com/staking/'
+        ]
       },
       {
         image: stafiImg,
@@ -248,21 +240,13 @@ export default {
         howToStake: 'https://medium.com/coinmonks/how-to-stake-fis-with-polkadot-js-1b663c4760cd'
       },
       {
-        image: ixoImg,
-        title: 'iXO'
-      },
-      {
-        image: xxImg,
-        title: 'XX network',
+        image: subqueryImg,
+        title: 'SubQuery',
         description:
-          'The xx network is a consumer-scale online platform which enables users to share information and exchange value without exposing data about themselves to organizations who could gather and abuse it.',
-        validator: [
-          '6WG1QfUpZrgysjzDYSthMzUSK8BPMh2ywBQnSwZe84GjTfqA',
-          '6a7YCnU1vSdhReB8cKWPmfvGEX4fj7Aagqqeers8KaWBs5P4'
-        ],
+          'Pioneering fast, flexible and scalable web3 infrastructure. Powering teams on ethereum, base, iotex_io, Polkadot, cosmos, avax, NEAR Protocol & 200+ more.',
+        validator: ['0x38C4ef1f4737B0457A1AD3891adfD44B552ec857'],
         explorer: [
-          'https://explorer.xx.network/#/staking/query/6WG1QfUpZrgysjzDYSthMzUSK8BPMh2ywBQnSwZe84GjTfqA',
-          'https://explorer.xx.network/#/staking/query/6a7YCnU1vSdhReB8cKWPmfvGEX4fj7Aagqqeers8KaWBs5P4'
+          'https://app.subquery.network/indexer/0x38C4ef1f4737B0457A1AD3891adfD44B552ec857'
         ]
       },
       {
@@ -300,24 +284,6 @@ export default {
         ],
         howToStake:
           'https://medium.com/coinmonks/staking-your-bitsong-btsg-tokens-with-keplr-wallet-5688b8abbe33'
-      },
-      {
-        image: qwoynImg,
-        title: 'Qwoyn'
-      },
-      {
-        image: krestImg,
-        title: 'Krest',
-        description:
-          "Krest is Peaq’s sister network. It is the world's first and only simulation network for DePIN and the Economy of Things.",
-        validator: ['5FCZ843QX87q14KGfDJadS2uXhBkmDmi7zmJMX2MMbVWafFh'],
-        explorer: [
-          'https://krest.stg.subscan.io/validator/5FCZ843QX87q14KGfDJadS2uXhBkmDmi7zmJMX2MMbVWafFh'
-        ]
-      },
-      {
-        image: dydxImg,
-        title: 'dYdX'
       },
       {
         image: bitscrunchImg,
