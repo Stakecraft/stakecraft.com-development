@@ -63,7 +63,7 @@ export default {
           'Koii is a compute-sharing marketplace. Anyone can run a validator node on a personal device, making compute cheaper for everyone.'
       },
       {
-        image: subsquidImg,
+        image: ssvImg,
         title: 'Subsquid',
         description:
           'Web3 necessiware. Decentralized data lake and query engine for blazing-fast cross-chain indexing and queries. Secured by ZK proofs.'

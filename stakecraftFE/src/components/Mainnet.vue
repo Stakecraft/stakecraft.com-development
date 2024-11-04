@@ -221,12 +221,9 @@ export default {
       {
         image: covalentImg,
         title: 'Covalent',
-        description:
-          'Modular Data Infrastructure for AI',
+        description: 'Modular Data Infrastructure for AI',
         validator: ['0xAE2f541b129E2597D1a70A206A7e03cB42D4b597'],
-        explorer: [
-          'https://www.covalenthq.com/staking/'
-        ]
+        explorer: ['https://www.covalenthq.com/staking/']
       },
       {
         image: stafiImg,
@@ -368,8 +365,8 @@ export default {
 }
 
 .networkImg img {
-  width: 100%;
-  height: 100%;
+  width: 60px;
+  height: 60px;
   object-fit: cover;
 }
 </style>
