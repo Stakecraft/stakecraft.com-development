@@ -1,5 +1,5 @@
 <template>
-  <div class="testNet mainAreas">
+  <div class="mainAreas" id="testnet">
     <div class="titleHeader">TestNet</div>
     <div class="buttonsArea">
       <button
@@ -112,7 +112,7 @@ export default {
 </script>
 
 <style scoped>
-.testNet {
+#testNet {
   color: #fff;
   padding-top: 96px;
   padding-bottom: 86px;

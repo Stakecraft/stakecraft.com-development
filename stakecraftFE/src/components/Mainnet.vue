@@ -1,5 +1,5 @@
 <template>
-  <div class="mainnet mainAreas">
+  <div class="mainAreas" id="mainnet">
     <div class="titleHeader">Mainnet</div>
     <div class="buttonsArea">
       <button

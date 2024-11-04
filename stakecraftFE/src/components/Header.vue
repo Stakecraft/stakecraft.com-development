@@ -4,18 +4,22 @@
       <img src="../assets/headerLogo.svg" class="headerLogo" />
     </div>
     <ul class="centerItems">
-      <li>Mainnet</li>
-      <li>Testnet</li>
-      <li>Partnership</li>
-      <li>About Us</li>
-      <li>Contacts</li>
+      <li><a href="#mainnet">Mainnet</a></li>
+      <li><a href="#testnet">Testnet</a></li>
+      <li><a href="#partnership">Partnership</a></li>
+      <li><a href="#aboutUs">About Us</a></li>
+      <li><a href="#contacts">Contacts</a></li>
     </ul>
     <ul class="rightItems">
       <li class="externalLink">
-        <a href="" target="_blank">Services <img src="../assets/externalLink.png" /></a>
+        <a href="https://services.stakecraft.com/" target="_blank"
+          >Services <img src="../assets/externalLink.png"
+        /></a>
       </li>
       <li class="externalLink">
-        <a href="" target="_blank">Blog <img src="../assets/externalLink.png" /></a>
+        <a href="https://stakecraft.medium.com/" target="_blank"
+          >Blog <img src="../assets/externalLink.png"
+        /></a>
       </li>
       <li class="changeTheme">
         <ToggleTheme />

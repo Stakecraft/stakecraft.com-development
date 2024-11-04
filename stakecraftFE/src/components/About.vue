@@ -1,5 +1,5 @@
 <template>
-  <div class="mainAreas">
+  <div class="mainAreas" id="aboutUs">
     <div class="about">
       <div class="titleHeader">
         <div>About</div>
@@ -63,8 +63,8 @@
           <div class="memberTextArea">
             <div class="memberTitle">Vasily Istomin</div>
             <div class="memberDescription">
-            Project manager, business analysis, business planning, and customer relations. Crypto
-            enthusiast.
+              Project manager, business analysis, business planning, and customer relations. Crypto
+              enthusiast.
             </div>
           </div>
         </div>
@@ -81,7 +81,9 @@
         <div class="member1">
           <div class="memberTextArea">
             <div class="memberTitle">Alex Novacovschi</div>
-            <div class="memberDescription">DevOps engineer, blockchain expert, crypto enthusiast</div>
+            <div class="memberDescription">
+              DevOps engineer, blockchain expert, crypto enthusiast
+            </div>
           </div>
         </div>
         <div class="member2">
@@ -240,7 +242,10 @@ button {
   background-image: url('../assets/vasilyHover.svg');
 }
 
-.teamRow1 .member1:hover .memberTextArea, .teamRow1 .member2:hover .memberTextArea,  .teamRow2 .member1:hover .memberTextArea, .teamRow2 .member2:hover .memberTextArea{
+.teamRow1 .member1:hover .memberTextArea,
+.teamRow1 .member2:hover .memberTextArea,
+.teamRow2 .member1:hover .memberTextArea,
+.teamRow2 .member2:hover .memberTextArea {
   height: 130px;
 }
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="partnershipsArea">
+  <div id="partnership">
     <div class="content">
       <div class="titleHeader">Partnership</div>
 
@@ -52,7 +52,7 @@ export default {
 .content {
   margin-right: 10%;
 }
-.partnershipsArea {
+#partnership {
   padding: 0 !important;
   margin-top: 116px;
   display: flex;
