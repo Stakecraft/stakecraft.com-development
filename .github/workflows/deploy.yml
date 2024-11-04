@@ -1,0 +1,27 @@
+name: deploy-to-dev-server
+run-name: ${{ github.actor }} is deploying code to dev environment
+on:
+  push:
+    branches:
+    - dev
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: pull diff and restast services
+        env:
+          SERVER_ENV:  ${{ secrets.SERVER_ENV }}
+          AUTH_CONFIG: ${{ secrets.AUTH_CONFIG }}
+        uses: fifsky/ssh-action@master
+        with:
+          command: |
+            cd ~/stakecraft.com/stakecraftFE/
+            git pull
+            cd stakecraftFE/
+            /usr/local/bin/npm run build
+            sudo nginx -s reload
+          host: ${{ secrets.HOST }}
+          user: ${{ secrets.USER }}
+          port: ${{ secrets.PORT }}
+          key:  ${{ secrets.PRIVATE_KEY }}
+          args: "-o StrictHostKeyChecking=no"
