@@ -118,6 +118,11 @@ export default {
 </script>
 
 <style scoped>
+#aboutUs {
+  background: var(--van-about-us-background);
+  padding-top: 100px;
+}
+
 .titleHeader > * {
   font-weight: 600;
 }
@@ -155,7 +160,7 @@ button {
 }
 
 .ourCapabilities .title {
-  color: #00beb5;
+  color: var(--van-ourCapabilities-title);
   line-height: 34px;
   font-size: 26px;
   font-family: generalSans;
@@ -168,6 +173,8 @@ button {
   overflow: hidden;
   margin-bottom: 18px;
   transition: 0.3s linear height;
+  background: var(--van-ourCapabilities-wrapper);
+  color:  var(--van-ourCapabilities-text);
 }
 
 .ourCapabilities .wrapper.withHeight {
@@ -195,6 +202,8 @@ button {
   font-size: 24px;
   align-self: flex-end;
   transition: 0.3s linear transform;
+  background: var(--van-ourCapabilities-wrapper);
+  color: var(--van-ourCapabilities-text);
 }
 
 .add.around {

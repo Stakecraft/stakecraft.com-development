@@ -16,6 +16,7 @@
   --van-orange-dark: #ed6a0c;
   --van-orange-light: #fffbe8;
   --van-green: #07c160;
+  --van-modal-btn-close: #1b1d25;
 
   // Gradient Colors
   --van-gradient-red: linear-gradient(to right, #ff6034, #ee0a24);
@@ -78,6 +79,17 @@
   --van-text-color: var(--van-white);
   --van-background: #111216;
   --van-header-background: rgba(255, 255, 255, 0.06);
+  --van-mainnet-network-background: #1B1D25;
+  --van-mainnet-color: #FFFFFF;
+  --van-modal-btn-close: #D9D9D9;
+  --van-modal-background: #7C7D84;
+  --modal-header-title: #fff;
+  --modal-right-arrow: #F5F5F5;
+  --van-testnet-background:  linear-gradient(180deg, #252732 0%, #1D1E27 100%);
+  --van-about-us-background: linear-gradient(180deg, #252732 0%, #1D1E27 100%);
+  --van-ourCapabilities-title: #35F6DF;
+  --van-ourCapabilities-wrapper: #111217;
+  --van-ourCapabilities-text: #fff;
 }
 
 .van-theme-light {
@@ -87,6 +99,17 @@
   --van-text-color: var(--van-black);
   --van-background: #f0f0f0;
   --van-header-background: rgba(255, 255, 255, 0.06);
+  --van-mainnet-network-background: #fff;
+  --van-mainnet-color: #111217;
+  --van-modal-btn-close: #1b1d25;
+  --van-modal-background: #f0f0f0;
+  --modal-header-title: #252732;
+  --modal-right-arrow: #252732;
+  --van-testnet-background:  linear-gradient(180deg, #252732 0%, #1D1E27 100%);
+  --van-about-us-background: #f0f0f0;
+  --van-ourCapabilities-title: #00beb5;
+  --van-ourCapabilities-wrapper: #fff;
+  --van-ourCapabilities-text: #000;
 }
 
 @font-face {

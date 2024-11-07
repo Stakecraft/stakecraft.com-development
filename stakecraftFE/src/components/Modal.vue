@@ -5,7 +5,9 @@
         <header class="modal-header">
           <div class="headerTitle">{{ network.title }}</div>
           <button type="button" class="btn-close" @click="close">
-            <img src="../assets/x_icon.svg" />
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13.8574 1.74023L1.85742 13.7402M1.85742 1.74023L13.8574 13.7402" stroke="var(--van-modal-btn-close)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </button>
         </header>
 
@@ -29,7 +31,10 @@
                     target="_blank"
                   >
                     <span>Check validator info in Explorer</span>
-                    <img src="../assets/arrow_right.svg" alt="->" />
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M0.845215 6.99996H12.5119M12.5119 6.99996L6.67855 1.16663M12.5119 6.99996L6.67855 12.8333" stroke="var(--modal-right-arrow)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+
                   </a>
                   <a
                     class="howToStake"
@@ -37,7 +42,9 @@
                     target="_blank"
                     v-if="network.howToStake"
                   >
-                    <img src="../assets/document.svg" />
+                    <svg width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8.51221 1.66663H2.67887C2.23685 1.66663 1.81292 1.84222 1.50036 2.15478C1.1878 2.46734 1.01221 2.89127 1.01221 3.33329V16.6666C1.01221 17.1087 1.1878 17.5326 1.50036 17.8451C1.81292 18.1577 2.23685 18.3333 2.67887 18.3333H12.6789C13.1209 18.3333 13.5448 18.1577 13.8574 17.8451C14.1699 17.5326 14.3455 17.1087 14.3455 16.6666V7.49996M8.51221 1.66663L14.3455 7.49996M8.51221 1.66663V7.49996H14.3455" stroke="var(--modal-right-arrow)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                     <span>How to stake Solana</span></a
                   >
                 </div>
@@ -91,7 +98,7 @@ export default {
 }
 
 .modal {
-  background: #f0f0f0;
+  background: var(--van-modal-background);
   box-shadow: 0px 0px 20px rgba(0, 0, 0, 20%);
   display: flex;
   flex-direction: column;
@@ -106,7 +113,7 @@ export default {
 }
 
 .modal-header {
-  color: #000;
+  color: var(--modal-header-title);;
 }
 
 .headerTitle {
@@ -119,7 +126,6 @@ export default {
 
 .btn-close {
   position: absolute;
-  color: #1b1d25;
   font-size: 24px;
   top: 24.74px;
   right: 28px;
@@ -183,7 +189,7 @@ export default {
   font-weight: 400;
   display: flex;
   align-items: center;
-  color: #252732;
+  color: var(--modal-header-title);
   margin-top: 27px;
 }
 
@@ -192,11 +198,11 @@ export default {
   text-decoration: underline;
 }
 
-.explorerLink img {
+.explorerLink svg {
   margin-left: 10px;
 }
 
-.howToStake img {
+.howToStake svg {
   margin-right: 10px;
 }
 

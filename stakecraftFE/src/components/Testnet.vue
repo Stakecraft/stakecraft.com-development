@@ -87,11 +87,11 @@ export default {
 </script>
 
 <style scoped>
-#testNet {
+#testnet {
   color: #fff;
   padding-top: 96px;
   padding-bottom: 86px;
-  background: linear-gradient(#252723, #1d1e27);
+  background: var(--van-testnet-background);
 }
 
 .networks {

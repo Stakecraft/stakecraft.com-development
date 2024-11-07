@@ -27,7 +27,6 @@ import kavaImg from '../assets/kava.png'
 import kusamaImg from '../assets/kusama.png'
 import polkadotImg from '../assets/polkadot.png'
 import bandprotocolImg from '../assets/bandprotocol.png'
-import astarImg from '../assets/astar.png'
 import moonriverImg from '../assets/moonriver.png'
 import qprotocolImg from '../assets/qprotocol.png'
 import graphImg from '../assets/graph.png'
@@ -326,7 +325,7 @@ export default {
 
 <style scoped>
 .networks {
-  background: #fff;
+  background: var(--van-mainnet-network-background);
   padding: 15px 22px;
   box-sizing: border-box;
   width: 300px;
@@ -340,6 +339,7 @@ export default {
   margin-bottom: 28px;
   flex: 0 1 auto;
   transition: padding 0.5s;
+  color: var(--van-mainnet-network-color);
 }
 
 .networks:hover {
