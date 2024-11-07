@@ -21,8 +21,7 @@
             <button class="add" :class="{ around: showDescription[0] }">+</button>
           </div>
           <div class="capabilityDescription">
-            A next-generation cross-chain oracle solution designed to boost the performance of smart
-            contracts and blockchain apps.
+            We use the latest infrastructure/hardware and our network is located within state of the art data centre facilities. 
           </div>
         </button>
 
@@ -36,8 +35,21 @@
             <button class="add" :class="{ around: showDescription[1] }">+</button>
           </div>
           <div class="capabilityDescription">
-            A next-generation cross-chain oracle solution designed to boost the performance of smart
-            contracts and blockchain apps.
+            Anyone can follow all our operations. Our activity is open to users. We believe this is the way it should be done.
+          </div>
+        </button>
+
+        <button
+          class="wrapper"
+          @click="openDescription(1)"
+          :class="{ withHeight: showDescription[1] }"
+        >
+          <div class="presentation">
+            <div class="capabilityTitle">Trustworthy team</div>
+            <button class="add" :class="{ around: showDescription[1] }">+</button>
+          </div>
+          <div class="capabilityDescription">
+            Through hard work, our team has earned recognition in the crypto community as the reliable team that approaches with the highest degree of responsibility to all tasks and monitors security of all data.
           </div>
         </button>
 
@@ -51,8 +63,7 @@
             <button class="add" :class="{ around: showDescription[index] }">+</button>
           </div>
           <div class="capabilityDescription">
-            A next-generation cross-chain oracle solution designed to boost the performance of smart
-            contracts and blockchain apps.
+            We focus on providing our clients with support to solve problems and keep their business running smoothly.
           </div>
         </button>
       </div>
