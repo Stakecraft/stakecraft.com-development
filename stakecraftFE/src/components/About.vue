@@ -46,7 +46,7 @@
         >
           <div class="presentation">
             <div class="capabilityTitle">Trustworthy team</div>
-            <button class="add" :class="{ around: showDescription[1] }">+</button>
+            <button class="add" :class="{ around: showDescription[2] }">+</button>
           </div>
           <div class="capabilityDescription">
             Through hard work, our team has earned recognition in the crypto community as the reliable team that approaches with the highest degree of responsibility to all tasks and monitors security of all data.
