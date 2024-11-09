@@ -1,6 +1,6 @@
 <template>
   <div>
-    <main class="homeView">
+    <div class="homeView">
       <div class="presentation">
         <div class="titleArea">
           <div class="titleLvl1">Trustworthy</div>
@@ -12,8 +12,8 @@
           advanced technical support.
         </div>
       </div>
-      <img class="imageArea" src="../assets/mainImage.png" />
-    </main>
+      <div class="imageArea" />
+    </div>
     <Mainnet />
     <Testnet />
     <Whychooseus />
@@ -47,6 +47,7 @@ export default {
   background-repeat: no-repeat;
   background-position: right;
   padding: 28px 72px 94px 72px;
+  gap: 20px;
 }
 
 .presentation {
@@ -72,7 +73,38 @@ export default {
 }
 
 .imageArea {
+  background-image: url('../assets/mainImage.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
   width: 630px;
   height: 629.88px;
+}
+
+@media only screen and (max-width: 900px) {
+  .homeView {
+    padding: 64px 19px 0 19px;
+    box-sizing: border-box;
+    display: block;
+  }
+
+  .presentation {
+    width: 100% !important;
+    margin-bottom: 30px;
+  }
+  .imageArea {
+    width: 100%;
+    height: 420px;
+  }
+
+  .titleArea div {
+    font-size: 56px;
+    line-height: 62px;
+  }
+
+  .websiteDescription {
+    font-size: 20px;
+    line-height: 30px;
+  }
 }
 </style>

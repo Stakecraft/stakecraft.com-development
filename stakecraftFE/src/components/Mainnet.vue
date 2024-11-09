@@ -369,4 +369,29 @@ export default {
   height: 60px;
   object-fit: cover;
 }
+
+@media only screen and (max-width: 900px) {
+  .buttonsArea {
+    width: 100vw !important;
+  }
+
+  .networks {
+    width: 159.5px;
+    height: 92px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .networkImg img {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+  }
+
+  .networkName {
+    margin: 0;
+    font-size: 16px;
+  }
+}
 </style>

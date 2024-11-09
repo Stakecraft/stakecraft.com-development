@@ -1,9 +1,9 @@
 <template>
   <div id="partnership">
-    <div class="content">
+    <div class="partnershipDetails">
       <div class="titleHeader">Partnerships</div>
 
-      <div class="description">
+      <div class="partnershipDescription">
         A next-generation cross-chain oracle solution designed to boost the performance of smart
         contracts and blockchain apps.
       </div>
@@ -49,7 +49,7 @@ export default {
 </script>
 
 <style scoped>
-.content {
+.partnershipDetails {
   margin-right: 10%;
 }
 #partnership {
@@ -64,7 +64,7 @@ export default {
   flex-grow: 1;
 }
 
-.description {
+.partnershipDescription {
   width: 552px;
 }
 
@@ -74,12 +74,33 @@ export default {
   margin-top: 12px;
 }
 
-.networkImg {
+.networkImg img {
   width: 80px;
   height: 80px;
 }
 
 .networks {
   text-align: center;
+}
+
+@media only screen and (max-width: 900px) {
+  .partnershipDescription {
+    width: auto;
+  }
+
+  .partnershipDetails {
+    margin: 0 0 27px 0;
+  }
+
+  #partnership {
+    flex-direction: column;
+    margin-top: 47px;
+  }
+
+  .networkImg,
+  .networkImg img {
+    width: 60px;
+    height: 60px;
+  }
 }
 </style>

@@ -74,7 +74,8 @@
           <div class="memberTextArea">
             <div class="memberTitle">Vasily Istomin</div>
             <div class="memberDescription">
-              Project manager, business analysis, business planning, and customer relations. Crypto enthusiast.
+              Project manager, business analysis, business planning, and customer relations. Crypto
+              enthusiast.
             </div>
           </div>
         </div>
@@ -185,7 +186,7 @@ button {
   margin-bottom: 18px;
   transition: 0.3s linear height;
   background: var(--van-ourCapabilities-wrapper);
-  color:  var(--van-ourCapabilities-text);
+  color: var(--van-ourCapabilities-text);
 }
 
 .ourCapabilities .wrapper.withHeight {
@@ -230,6 +231,7 @@ button {
   flex-direction: column;
   justify-content: flex-end;
   padding: 0 0 15px 23px;
+  background-repeat: no-repeat;
 }
 
 .teamRow1 .member1 {
@@ -295,5 +297,69 @@ button {
   line-height: 24px;
   color: #fff;
   width: 221.83px;
+}
+
+@media only screen and (max-width: 900px) {
+  #aboutUs {
+    padding-top: 0px;
+  }
+
+  .titleHeader > *:last-child {
+    margin: 0;
+  }
+
+  .titleHeader {
+    line-height: 52px;
+  }
+
+  .about {
+    max-width: unset;
+  }
+
+  .mainAreas {
+    flex-direction: column;
+  }
+
+  .team {
+    max-width: auto;
+    display: block;
+  }
+
+  .ourCapabilities .presentation {
+    font-size: 16px;
+    line-height: 24px;
+    padding: 16px 15px;
+    align-items: center;
+  }
+
+  .ourCapabilities .wrapper {
+    padding: 0;
+    margin: 0 0 15px 0;
+    box-sizing: border-box;
+  }
+
+  .ourCapabilities .wrapper.withHeight {
+    height: 164px;
+  }
+
+  .ourCapabilities .title {
+    margin-bottom: 18px;
+  }
+
+  .teamRow1 > *,
+  .teamRow2 > * {
+    width: calc(100vw - 8.5px);
+    height: calc(100vw - 8.5px);
+    margin: 0 0 25px 0 !important;
+    background-size: contain;
+    box-sizing: border-box;
+    padding: 0;
+  }
+
+  .memberTextArea {
+    box-sizing: border-box;
+    margin-left: 23px;
+    margin-bottom: 15px;
+  }
 }
 </style>

@@ -9,7 +9,6 @@
     </div>
     <div class="statsArea">
       <div v-for="stat in stats" class="statWrapper" :key="stat.title">
-        <div class="statsCover" />
         <div class="statsImg">
           <img :src="stat.image" :alt="stat.title" />
         </div>
@@ -165,5 +164,41 @@ export default {
   color: #111217;
   line-height: 24px;
   margin-top: 6px;
+}
+
+@media only screen and (max-width: 900px) {
+  .statsArea {
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .statWrapper {
+    max-width: 335px;
+    max-height: 132px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+  }
+
+  .statsImg img {
+    width: 100px !important;
+    height: 100px !important;
+  }
+
+  .statsNumber {
+    font-size: 36px;
+  }
+
+  .statsDescription {
+    font-size: 16px;
+  }
+
+  .statsDetails {
+    margin-left: 0;
+  }
+  .whychooseus {
+    padding-top: 56px;
+  }
 }
 </style>

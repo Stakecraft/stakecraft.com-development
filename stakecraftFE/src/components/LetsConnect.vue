@@ -1,7 +1,7 @@
 <template>
   <div class="testNet mainAreas" id="contacts">
     <div class="titleHeader">Let's Connect</div>
-    <div class="content">
+    <div class="contactsContent">
       <div class="email">
         <img src="../assets/email.svg" alt="email" />
         <span>support@stakecraft.com</span>
@@ -43,7 +43,7 @@ export default {
   background: linear-gradient(#252723, #1d1e27);
 }
 
-.content {
+.contactsContent {
   display: flex;
   justify-content: space-between;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
@@ -75,7 +75,7 @@ export default {
 
 .email {
   display: flex;
-  align-content: center;
+  align-items: center;
   justify-content: center;
 }
 
@@ -130,5 +130,37 @@ export default {
 
 .terms a:first-child {
   margin-right: 59px;
+}
+
+@media only screen and (max-width: 900px) {
+  .testNet {
+    padding-top: 58px;
+  }
+
+  .contactsContent {
+    flex-direction: column;
+  }
+
+  .email span {
+    font-size: 22px;
+  }
+
+  .email img {
+    width: 20px;
+  }
+
+  .email {
+    justify-content: flex-start;
+    margin-bottom: 28px;
+  }
+
+  .lastInfo {
+    padding-top: 28px;
+    display: block;
+  }
+
+  .terms {
+    margin-top: 36px;
+  }
 }
 </style>

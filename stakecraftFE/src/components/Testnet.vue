@@ -1,7 +1,7 @@
 <template>
-  <div class="mainAreas" id="testnet">
+  <div id="testnet">
     <div class="titleHeader">TestNet</div>
-    <div class="buttonsArea">
+    <div class="buttonsWrapper">
       <button
         class="networks"
         @click="openNetworkDescription(index)"
@@ -137,7 +137,7 @@ export default {
   margin: 0px 18px 20px 18px;
 }
 
-.buttonsArea {
+.buttonsWrapper {
   display: flex;
   flex-direction: row;
   box-sizing: border-box;
@@ -175,5 +175,22 @@ export default {
 
 .add.around {
   transform: rotate(45deg);
+}
+
+@media only screen and (max-width: 900px) {
+  .mainAreas {
+    margin: 0;
+    padding: 0;
+  }
+
+  #testnet {
+    box-sizing: border-box;
+    width: 100vw;
+    padding: 0 19px 48px 19px;
+  }
+
+  .networks {
+    width: auto;
+  }
 }
 </style>

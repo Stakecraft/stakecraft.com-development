@@ -70,6 +70,7 @@
   --van-radius-md: 4px;
   --van-radius-lg: 8px;
   --van-radius-max: 999px;
+  width: 100vw;
 }
 
 .van-theme-dark {
@@ -79,17 +80,21 @@
   --van-text-color: var(--van-white);
   --van-background: #111216;
   --van-header-background: rgba(255, 255, 255, 0.06);
-  --van-mainnet-network-background: #1B1D25;
-  --van-mainnet-color: #FFFFFF;
-  --van-modal-btn-close: #D9D9D9;
-  --van-modal-background: #7C7D84;
+  --van-mainnet-network-background: #1b1d25;
+  --van-mainnet-color: #ffffff;
+  --van-modal-btn-close: #d9d9d9;
+  --van-modal-background: #7c7d84;
   --modal-header-title: #fff;
-  --modal-right-arrow: #F5F5F5;
-  --van-testnet-background:  linear-gradient(180deg, #252732 0%, #1D1E27 100%);
-  --van-about-us-background: linear-gradient(180deg, #252732 0%, #1D1E27 100%);
-  --van-ourCapabilities-title: #35F6DF;
+  --modal-right-arrow: #f5f5f5;
+  --van-testnet-background: linear-gradient(180deg, #252732 0%, #1d1e27 100%);
+  --van-about-us-background: linear-gradient(180deg, #252732 0%, #1d1e27 100%);
+  --van-ourCapabilities-title: #35f6df;
   --van-ourCapabilities-wrapper: #111217;
   --van-ourCapabilities-text: #fff;
+  --van-dropdownMenu: url('./assets/menu.svg');
+  --van-dropdown-menu: #27282d;
+  --van-dropdown-text-color: #f0f0f0;
+  --van-dropdownMenu-x-btn: url('./assets/x-menu-btn.svg');
 }
 
 .van-theme-light {
@@ -105,11 +110,15 @@
   --van-modal-background: #f0f0f0;
   --modal-header-title: #252732;
   --modal-right-arrow: #252732;
-  --van-testnet-background:  linear-gradient(180deg, #252732 0%, #1D1E27 100%);
+  --van-testnet-background: linear-gradient(180deg, #252732 0%, #1d1e27 100%);
   --van-about-us-background: #f0f0f0;
   --van-ourCapabilities-title: #00beb5;
   --van-ourCapabilities-wrapper: #fff;
   --van-ourCapabilities-text: #000;
+  --van-dropdownMenu: url('./assets/menu_light.svg');
+  --van-dropdown-menu: #dadada;
+  --van-dropdown-text-color: #111217;
+  --van-dropdownMenu-x-btn: url('./assets/x-menu-btn-light.svg');
 }
 
 @font-face {
@@ -126,6 +135,7 @@ body {
   color: var(--van-text-color);
   background-color: var(--van-background);
   font-family: poppins, Arial, Helvetica, sans-serif;
+  width: 100vw;
 }
 
 .titleHeader {
@@ -138,4 +148,27 @@ body {
 
 .mainAreas {
   padding: 0 72px;
+}
+
+#app {
+  width: 100vw;
+}
+
+@media only screen and (max-width: 900px) {
+  html,
+  body,
+  #app {
+    width: 100% !important;
+  }
+
+  .titleHeader {
+    text-align: left;
+    font-size: 42px;
+    margin-bottom: 19px;
+    line-height: 72px;
+  }
+
+  .mainAreas {
+    padding: 0 19px;
+  }
 }
