@@ -24,8 +24,6 @@
 <script>
 import solanaImg from '../assets/solana.png'
 import kavaImg from '../assets/kava.png'
-import kusamaImg from '../assets/kusama.png'
-import polkadotImg from '../assets/polkadot.png'
 import bandprotocolImg from '../assets/bandprotocol.png'
 import moonriverImg from '../assets/moonriver.png'
 import qprotocolImg from '../assets/qprotocol.png'
@@ -41,10 +39,13 @@ import junoImg from '../assets/juno.png'
 import stargazeImg from '../assets/stargaze.png'
 import bitsongImg from '../assets/bitsong.png'
 import bitscrunchImg from '../assets/bitscrunch.png'
+import redbellyImg from '../assets/redbelly.png'
 import nearImg from '../assets/near.png'
 import zetachainImg from '../assets/zetachain.png'
 import covalentImg from '../assets/covalent.png'
 import subqueryImg from '../assets/subquery.png'
+import koiiImg from '../assets/koii.png'
+import supraoraclesImg from '../assets/supraoracles.png'
 import modal from './Modal.vue'
 import { ref } from 'vue'
 
@@ -58,9 +59,8 @@ export default {
         description:
           'Public base-layer blockchain protocol that optimizes for scalability. Its goal is to provide a platform that enables developers to create decentralized applications (dApps) without needing to design around performance bottlenecks.',
         validator: ['BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g'],
-        howToStake:
-          'https://medium.com/coinmonks/how-to-stake-sol-with-solflare-wallet-f2b844e8c379',
-        explorer: ['https://stakewiz.com/validator/BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g']
+        explorer: ['https://stakewiz.com/validator/BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g'],
+        howToStake: ['https://medium.com/coinmonks/how-to-stake-sol-with-solflare-wallet-f2b844e8c379']
       },
       {
         image: kavaImg,
@@ -68,36 +68,24 @@ export default {
         description:
           'The most trusted DeFi platform by financial institutions providing securely access a robust suite of DeFi products and services in one safe and seamless integration.',
         validator: ['kavavaloper1k760ypy9tzhp6l2rmg06sq4n74z0d3rejwwaa0'],
-        howToStake:
-          'https://medium.com/coinmonks/staking-your-kava-tokens-with-keplr-wallet-19f74e384e5a',
-        explorer: [
-          'https://www.mintscan.io/kava/validators/kavavaloper1k760ypy9tzhp6l2rmg06sq4n74z0d3rejwwaa0'
-        ]
+        howToStake: 'https://medium.com/coinmonks/staking-your-kava-tokens-with-keplr-wallet-19f74e384e5a',
+        explorer: ['https://www.mintscan.io/kava/validators/kavavaloper1k760ypy9tzhp6l2rmg06sq4n74z0d3rejwwaa0']
       },
       {
-        image: kusamaImg,
-        title: 'Kusama',
+        image: koiiImg,
+        title: 'Koii',
         description:
-          "Early, experimental version of Polkadot that exists as an independent network. It intends to act as a sandbox for developers, allowing teams to deploy and test pre-release versions of their projects before launching them on Polkadot's mainnet.",
-        validator: [
-          'HKzQetwesWrSoCwidmTFxTDKhvGTtstXBSeWoZYeMtipdVH',
-          'EQNMpUBms7Ht9AGSCxpyvzEwiBuSzm4HbzUqfKd8Adcc44p'
-        ],
-        explorer: [
-          'https://polkadot.js.org/apps/#/staking/query/EQNMpUBms7Ht9AGSCxpyvzEwiBuSzm4HbzUqfKd8Adcc44p'
-        ],
-        howToStake:
-          'https://medium.com/coinmonks/how-to-stake-kusama-with-polkadot-js-the-polkadot-browser-extension-befbf9ee6db0'
+          "Koii is a compute-sharing marketplace. Anyone can run a validator node on a personal device, making compute cheaper for everyone.",
+        validator: ['DJT1msZdLdN7zzMZo7DaBDjMZW7nPMvjbKNbHKWj9pUA'],
+        explorer: ['https://explorer.koii.live/address/DJT1msZdLdN7zzMZo7DaBDjMZW7nPMvjbKNbHKWj9pUA']
       },
       {
-        image: polkadotImg,
-        title: 'Polkadot',
+        image: supraoraclesImg,
+        title: 'Supra Oracles',
         description:
-          'Polkadot is a protocol that connects blockchains — allowing value and data to be sent across previously incompatible networks (Bitcoin and Ethereum, for example). It’s also designed to be fast and scalable. The DOT token is used for staking and governance.',
-        validator: ['13ogHzWQksuwuw4dv6jph1GHGBxjSP8qzwRJzT69dhnhYEv2'],
-        explorer: [
-          'https://polkadot.subscan.io/account/13ogHzWQksuwuw4dv6jph1GHGBxjSP8qzwRJzT69dhnhYEv2'
-        ]
+          'A next-generation cross-chain oracle solution designed to boost up the performance of smart contracts and blockchain apps. Providing a high level of decentralization, scalability, ultrafast and secure transactions.',
+        validator: ['0x93b153fe97b6b677b7af943cbb80cc8bbf7a7878e69ffe9a04fc7eebfc1d750f'],
+        explorer: ['https://suprascan.io/address/0x93b153fe97b6b677b7af943cbb80cc8bbf7a7878e69ffe9a04fc7eebfc1d750f']
       },
       {
         image: bandprotocolImg,
@@ -105,11 +93,8 @@ export default {
         description:
           'Сross-chain data oracle platform that aggregates and connects real-world data and APIs to smart contracts.',
         validator: ['bandvaloper1unfg2zhnssl07tql8d85zc6rx7zsfs5qh206av'],
-        explorer: [
-          'https://www.cosmoscan.io/validator/bandvaloper1unfg2zhnssl07tql8d85zc6rx7zsfs5qh206av#reports'
-        ],
-        howToStake:
-          'https://medium.com/coinmonks/how-to-stake-band-protocol-band-in-cosmostation-wallet-bfd5a2f664bf'
+        explorer: ['https://www.cosmoscan.io/validator/bandvaloper1unfg2zhnssl07tql8d85zc6rx7zsfs5qh206av#reports'],
+        howToStake: 'https://medium.com/coinmonks/how-to-stake-band-protocol-band-in-cosmostation-wallet-bfd5a2f664bf'
       },
       {
         image: moonriverImg,
@@ -292,8 +277,16 @@ export default {
         ]
       },
       {
+        image: redbellyImg,
+        title: 'Redbelly',
+        description:
+          'Redbelly - the only fully accountable layer 1 blockchain for Compliant Asset Tokenisation. Native to regulated assets, open, fast, scalable.',
+        validator: ['0xA'],
+        explorer: ['']
+      },
+      {
         image: nearImg,
-        title: 'Near',
+        title: 'Near Protocol',
         description:
           'NEAR is the chain abstraction stack, empowering builders to create apps that scale to billions of users and across all blockchains.',
         validator: ['stakecraft.poolv1.near'],

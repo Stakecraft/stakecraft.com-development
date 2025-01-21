@@ -38,7 +38,8 @@ import Partnerships from './Partnerships.vue'
 import redbellyImg from '../assets/redbelly.png'
 import koiiImg from '../assets/koii.png'
 import supraoraclesImg from '../assets/supraoracles.png'
-import ssvImg from '../assets/subsquid.png'
+import walrusImg from '../assets/walrus.png'
+import hyperlImg from '../assets/hyperliquid.png'
 import { ref } from 'vue'
 export default {
   components: { Partnerships },
@@ -63,10 +64,16 @@ export default {
           'Koii is a compute-sharing marketplace. Anyone can run a validator node on a personal device, making compute cheaper for everyone.'
       },
       {
-        image: ssvImg,
-        title: 'Subsquid',
+        image: walrusImg,
+        title: 'Walrus',
         description:
-          'Web3 necessiware. Decentralized data lake and query engine for blazing-fast cross-chain indexing and queries. Secured by ZK proofs.'
+          'A decentralized storage and data availability protocol designed specifically for large binary files, or "blobs".'
+      },
+      {
+        image: hyperlImg,
+        title: 'HyperLiquid',
+        description:
+          'Hyperliquid is a performant L1 optimized from the ground up. The vision is a fully onchain open financial system with user built applications interfacing with performant native components, all without compromising end user experience.'
       }
     ]
 
