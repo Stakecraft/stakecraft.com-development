@@ -17,6 +17,7 @@
       </button>
     </div>
     <modal v-show="isModalVisible" @close="closeModal" :network="{ selectedNetwork }" />
+    <solana-staking v-if="selectedNetwork?.title === 'Solana'" />
   </div>
 </template>
 
@@ -48,9 +49,11 @@ import koiiImg from '../assets/koii.png'
 import supraoraclesImg from '../assets/supraoracles.png'
 import modal from './Modal.vue'
 import { ref } from 'vue'
+import SolanaStaking from './SolanaStaking.vue'
 
 export default {
-  components: { modal },
+  // components: { modal },
+  components: { SolanaStaking },
   setup() {
     const networks = [
       {
@@ -162,7 +165,7 @@ export default {
         image: kifoundationImg,
         title: 'Ki Foundation',
         description:
-          'Ki Foundation’s mission is about bridging the gap between CeFi and DeFi. Based on Cosmos-SDK, with a Tendermint core. The bridge is built through an ecosystem of real life businesses, creating value and pouring it back to the Ki ecosystem through one single asset: The $XKI.',
+          'Ki Foundations mission is about bridging the gap between CeFi and DeFi. Based on Cosmos-SDK, with a Tendermint core. The bridge is built through an ecosystem of real life businesses, creating value and pouring it back to the Ki ecosystem through one single asset: The $XKI.',
         validator: ['kivaloper1emn7g3wkzdm59ndplscrzsk7hllms6wtwdq47q'],
         explorer: [
           'https://www.mintscan.io/ki-chain/validators/kivaloper1emn7g3wkzdm59ndplscrzsk7hllms6wtwdq47q'

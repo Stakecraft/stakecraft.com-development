@@ -118,7 +118,6 @@ export default {
 }
 </script>
 
-
 <style>
 .modal-backdrop {
   position: fixed;
