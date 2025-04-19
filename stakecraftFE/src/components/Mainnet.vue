@@ -4,7 +4,7 @@
     <div class="buttonsArea">
       <button
         class="networks"
-        @click="showModal(network)"
+        @click="showStakingModal(network)"
         v-for="network in networks"
         :key="network.title"
       >
@@ -16,11 +16,18 @@
         </div>
       </button>
     </div>
-    <modal v-show="isModalVisible" @close="closeModal" :network="{ selectedNetwork }" />
-    <solana-staking v-if="selectedNetwork?.title === 'Solana'" />
+    <modal
+      v-show="isStakingModalVisible"
+      @close="closeStakingModal"
+      :network="selectedNetwork"
+    />
+    <solana-staking 
+      v-if="selectedNetwork?.title === 'Solana'" 
+      :network="selectedNetwork"
+      @close="closeStakingModal"
+    />
   </div>
 </template>
-
 
 <script>
 import solanaImg from '../assets/solana.png'
@@ -63,7 +70,9 @@ export default {
           'Public base-layer blockchain protocol that optimizes for scalability. Its goal is to provide a platform that enables developers to create decentralized applications (dApps) without needing to design around performance bottlenecks.',
         validator: ['BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g'],
         explorer: ['https://stakewiz.com/validator/BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g'],
-        howToStake: ['https://medium.com/coinmonks/how-to-stake-sol-with-solflare-wallet-f2b844e8c379']
+        howToStake: [
+          'https://medium.com/coinmonks/how-to-stake-sol-with-solflare-wallet-f2b844e8c379'
+        ]
       },
       {
         image: kavaImg,
@@ -71,16 +80,21 @@ export default {
         description:
           'The most trusted DeFi platform by financial institutions providing securely access a robust suite of DeFi products and services in one safe and seamless integration.',
         validator: ['kavavaloper1k760ypy9tzhp6l2rmg06sq4n74z0d3rejwwaa0'],
-        howToStake: 'https://medium.com/coinmonks/staking-your-kava-tokens-with-keplr-wallet-19f74e384e5a',
-        explorer: ['https://www.mintscan.io/kava/validators/kavavaloper1k760ypy9tzhp6l2rmg06sq4n74z0d3rejwwaa0']
+        howToStake:
+          'https://medium.com/coinmonks/staking-your-kava-tokens-with-keplr-wallet-19f74e384e5a',
+        explorer: [
+          'https://www.mintscan.io/kava/validators/kavavaloper1k760ypy9tzhp6l2rmg06sq4n74z0d3rejwwaa0'
+        ]
       },
       {
         image: koiiImg,
         title: 'Koii',
         description:
-          "Koii is a compute-sharing marketplace. Anyone can run a validator node on a personal device, making compute cheaper for everyone.",
+          'Koii is a compute-sharing marketplace. Anyone can run a validator node on a personal device, making compute cheaper for everyone.',
         validator: ['DJT1msZdLdN7zzMZo7DaBDjMZW7nPMvjbKNbHKWj9pUA'],
-        explorer: ['https://explorer.koii.live/address/DJT1msZdLdN7zzMZo7DaBDjMZW7nPMvjbKNbHKWj9pUA']
+        explorer: [
+          'https://explorer.koii.live/address/DJT1msZdLdN7zzMZo7DaBDjMZW7nPMvjbKNbHKWj9pUA'
+        ]
       },
       {
         image: supraoraclesImg,
@@ -88,7 +102,9 @@ export default {
         description:
           'A next-generation cross-chain oracle solution designed to boost up the performance of smart contracts and blockchain apps. Providing a high level of decentralization, scalability, ultrafast and secure transactions.',
         validator: ['0x93b153fe97b6b677b7af943cbb80cc8bbf7a7878e69ffe9a04fc7eebfc1d750f'],
-        explorer: ['https://suprascan.io/address/0x93b153fe97b6b677b7af943cbb80cc8bbf7a7878e69ffe9a04fc7eebfc1d750f']
+        explorer: [
+          'https://suprascan.io/address/0x93b153fe97b6b677b7af943cbb80cc8bbf7a7878e69ffe9a04fc7eebfc1d750f'
+        ]
       },
       {
         image: bandprotocolImg,
@@ -96,8 +112,11 @@ export default {
         description:
           'Сross-chain data oracle platform that aggregates and connects real-world data and APIs to smart contracts.',
         validator: ['bandvaloper1unfg2zhnssl07tql8d85zc6rx7zsfs5qh206av'],
-        explorer: ['https://www.cosmoscan.io/validator/bandvaloper1unfg2zhnssl07tql8d85zc6rx7zsfs5qh206av#reports'],
-        howToStake: 'https://medium.com/coinmonks/how-to-stake-band-protocol-band-in-cosmostation-wallet-bfd5a2f664bf'
+        explorer: [
+          'https://www.cosmoscan.io/validator/bandvaloper1unfg2zhnssl07tql8d85zc6rx7zsfs5qh206av#reports'
+        ],
+        howToStake:
+          'https://medium.com/coinmonks/how-to-stake-band-protocol-band-in-cosmostation-wallet-bfd5a2f664bf'
       },
       {
         image: moonriverImg,
@@ -297,23 +316,27 @@ export default {
       }
     ]
 
-    const isModalVisible = ref(false)
+    const isStakingModalVisible = ref(false)
     const selectedNetwork = ref(null)
 
-    const showModal = (network) => {
-      isModalVisible.value = true
+    const showStakingModal = (network) => {
+      isStakingModalVisible.value = true
       selectedNetwork.value = network
     }
-    const closeModal = () => {
-      isModalVisible.value = false
+
+    const closeStakingModal = () => {
+      isStakingModalVisible.value = false
     }
+
+    console.log('networks', networks)
+    console.log('selectednetwork', selectedNetwork.value)
 
     return {
       networks,
-      showModal,
-      closeModal,
-      isModalVisible,
-      selectedNetwork
+      selectedNetwork,
+      showStakingModal,
+      isStakingModalVisible,
+      closeStakingModal
     }
   }
 }

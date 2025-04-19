@@ -28,7 +28,7 @@
         </div>
 
         <footer class="modal-footer">
-          <div v-if="network.validator.length > 0">
+          <div v-if="network.validator.length > 0" >
             <ul>
               <li v-for="(validator, index) in network.validator" v-bind:key="validator">
                 <div class="validatorArea">
