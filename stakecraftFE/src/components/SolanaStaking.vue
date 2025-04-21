@@ -53,6 +53,43 @@
                 <p>Epoch: {{ rewards.epoch }}</p>
               </div>
 
+              <div class="stake-info" v-if="stakeAccountInfo">
+                <h3>Stake Account Information</h3>
+                <p>Balance: {{ stakeAccountInfo.balance }} SOL</p>
+                <p>State: {{ stakeAccountInfo.state }}</p>
+                <p>Active Stake: {{ stakeAccountInfo.active }} SOL</p>
+                <p>Inactive Stake: {{ stakeAccountInfo.inactive }} SOL</p>
+                <p v-if="stakeAccountInfo.delegatedVoteAccountAddress">
+                  Delegated to: {{ stakeAccountInfo.delegatedVoteAccountAddress }}
+                </p>
+
+                <!-- Add progress bar for activation -->
+                <div v-if="stakeAccountInfo.state === 'activating'" class="activation-progress">
+                  <div class="progress-bar">
+                    <div
+                      class="progress-fill"
+                      :style="{
+                        width:
+                          (stakeAccountInfo.active /
+                            (stakeAccountInfo.active + stakeAccountInfo.inactive)) *
+                            100 +
+                          '%'
+                      }"
+                    ></div>
+                  </div>
+                  <p>
+                    Activation Progress:
+                    {{
+                      (
+                        (stakeAccountInfo.active /
+                          (stakeAccountInfo.active + stakeAccountInfo.inactive)) *
+                        100
+                      ).toFixed(2)
+                    }}%
+                  </p>
+                </div>
+              </div>
+
               <div
                 class="network-links"
                 v-if="network.explorer || network.howToStake || !walletConnected"
@@ -86,7 +123,8 @@ import {
   connectWallet,
   delegateStake,
   getStakeAccountInfo,
-  getStakeRewards
+  getStakeRewards,
+  createAndInitializeStakeAccount
 } from '../utils/SolanaStaking'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 
@@ -102,6 +140,7 @@ export default {
     const stakeAccountInfo = ref(null)
     const rewards = ref(null)
     const minimumStake = 0.01
+    const stakeAccountPublickey = ref(null)
 
     onMounted(() => {
       if (props.network?.validator?.[0]) {
@@ -120,11 +159,6 @@ export default {
       return hasValidAmount && hasValidAddress
     })
 
-    console.log('isValidStake', isValidStake.value)
-
-    console.log('stakeAmount', stakeAmount.value)
-    console.log('validatorAddress', validatorAddress.value)
-
     const handleConnectWallet = async () => {
       try {
         const publicKey = await connectWallet()
@@ -138,29 +172,31 @@ export default {
     const handleDelegateStake = async () => {
       if (!isValidStake.value) return
 
-      console.log('handleDelegateStake')
-      console.log('walletAddress', walletAddress.value)
-      console.log('validatorAddress', validatorAddress.value)
       console.log('stakeAmount', stakeAmount.value)
-
+      console.log('validatorAddress', validatorAddress.value) 
+      
       try {
-        const signature = await delegateStake(
-          walletAddress.value,
-          validatorAddress.value,
+        const { stakeAccount } = await createAndInitializeStakeAccount(
           stakeAmount.value * LAMPORTS_PER_SOL
         )
+        console.log('stakeAccount', stakeAccount)
 
-        stakeAccountInfo.value = await getStakeAccountInfo(walletAddress.value)
-        rewards.value = await getStakeRewards(walletAddress.value)
+        if (!stakeAccount) {
+          throw new Error('Failed to create stake account')
+        }
+
+        const initialStakeInfo = await getStakeAccountInfo(stakeAccount)
+        console.log('Initial stake account info:', initialStakeInfo)
+        stakeAccountInfo.value = initialStakeInfo
+        console.log('stakeAccountInfo', stakeAccountInfo.value)
+
+        const signature = await delegateStake(stakeAccount, validatorAddress.value)
+        rewards.value = await getStakeRewards(stakeAccount)
 
         console.log('Stake delegated successfully:', signature)
       } catch (error) {
         console.error('Failed to delegate stake:', error)
       }
-
-      console.log('success')
-      console.log('stakeAccountInfo', stakeAccountInfo.value)
-      console.log('rewards', rewards.value)
     }
 
     return {
