@@ -6,26 +6,24 @@ import {
   LAMPORTS_PER_SOL,
   Keypair,
   StakeProgram,
-  // StakeInstruction,
-  // StakeState
 } from '@solana/web3.js'
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base'
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
 
-// const network = WalletAdapterNetwork.Mainnet
-// const endpoint = 'https://mainnet.helius-rpc.com/?api-key=36e30b3c-0a15-4037-b670-005e3845fcd8'
-// const connection = new Connection(endpoint, {
-//   commitment: 'confirmed',
-//   confirmTransactionInitialTimeout: 60000,
-//   wsEndpoint: 'https://mainnet.helius-rpc.com/?api-key=36e30b3c-0a15-4037-b670-005e3845fcd8'
-// })
-
-const network = WalletAdapterNetwork.Testnet
-const endpoint = 'https://api.testnet.solana.com'
+const network = WalletAdapterNetwork.Mainnet
+const endpoint = 'https://mainnet.helius-rpc.com/?api-key=36e30b3c-0a15-4037-b670-005e3845fcd8'
 const connection = new Connection(endpoint, {
   commitment: 'confirmed',
-  confirmTransactionInitialTimeout: 60000
+  confirmTransactionInitialTimeout: 60000,
+  wsEndpoint: 'https://mainnet.helius-rpc.com/?api-key=36e30b3c-0a15-4037-b670-005e3845fcd8'
 })
+
+// const network = WalletAdapterNetwork.Testnet
+// const endpoint = 'https://api.testnet.solana.com'
+// const connection = new Connection(endpoint, {
+//   commitment: 'confirmed',
+//   confirmTransactionInitialTimeout: 60000
+// })
 
 const wallet = new PhantomWalletAdapter()
 
@@ -50,15 +48,6 @@ export const createAndInitializeStakeAccount = async (amount) => {
     // Generate new stake account keypair
     const stakeAccountKeypair = Keypair.generate()
 
-    // Get minimum rent exemption
-    // const minimumRentExemption = await connection.getMinimumBalanceForRentExemption(
-    //   StakeProgram.space
-    // )
-
-    // Calculate total amount needed
-    // const totalAmount = amount + minimumRentExemption
-
-    // Check wallet balance
     const walletBalance = await connection.getBalance(wallet.publicKey)
     if (walletBalance < amount) {
       throw new Error(`Insufficient balance. Need ${amount / LAMPORTS_PER_SOL} SOL but wallet has ${walletBalance / LAMPORTS_PER_SOL} SOL`)
@@ -174,8 +163,25 @@ export const delegateStake = async (stakeAccountAddress, validatorAddress) => {
       await connectWallet()
     }
 
+    if (!stakeAccountAddress || !validatorAddress) {
+      throw new Error('Stake account and validator addresses are required')
+    }
+
+    // Verify the addresses are valid
     const stakeAccountPubkey = new PublicKey(stakeAccountAddress)
     const validatorPubkey = new PublicKey(validatorAddress)
+
+    // Verify stake account exists and is initialized
+    const stakeAccount = await connection.getAccountInfo(stakeAccountPubkey)
+    if (!stakeAccount) {
+      throw new Error('Stake account not found')
+    }
+
+    // Verify validator exists
+    const validatorAccount = await connection.getAccountInfo(validatorPubkey)
+    if (!validatorAccount) {
+      throw new Error('Validator account not found')
+    }
 
     // Create delegate instruction
     const delegateInstruction = StakeProgram.delegate({
@@ -185,27 +191,39 @@ export const delegateStake = async (stakeAccountAddress, validatorAddress) => {
     })
 
     // Create and setup transaction
-    const transaction = new Transaction().add(delegateInstruction)
+    const transaction = new Transaction()
+    transaction.add(delegateInstruction)
     transaction.feePayer = wallet.publicKey
 
     // Get recent blockhash
-    const blockhash = await connection.getLatestBlockhash({ commitment: 'confirmed' })
-    transaction.recentBlockhash = blockhash.blockhash
-    transaction.lastValidBlockHeight = blockhash.lastValidBlockHeight
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash()
+    transaction.recentBlockhash = blockhash
 
-    // Sign and send transaction
+    // Calculate transaction size and fee
+    const fees = await connection.getFeeForMessage(
+      transaction.compileMessage(),
+      'confirmed'
+    )
+
+    // Sign transaction
     const signedTransaction = await wallet.signTransaction(transaction)
+
+    // Send and confirm transaction with preflight checks disabled
     const signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
-      skipPreflight: false,
-      preflightCommitment: 'confirmed'
+      skipPreflight: true,
+      preflightCommitment: 'processed'
     })
 
     // Wait for confirmation
-    await connection.confirmTransaction({
+    const confirmation = await connection.confirmTransaction({
       signature,
-      blockhash: blockhash.blockhash,
-      lastValidBlockHeight: blockhash.lastValidBlockHeight
+      blockhash,
+      lastValidBlockHeight
     })
+
+    if (confirmation.value.err) {
+      throw new Error(`Transaction failed: ${confirmation.value.err}`)
+    }
 
     return signature
   } catch (error) {

@@ -19,6 +19,16 @@
                 </button>
                 <div class="wallet-info" v-if="walletConnected">
                   <p>Connected: {{ walletAddress }}</p>
+                  <p v-if="transactionSignature" class="transaction-link">
+                    Last Transaction:
+                    <a
+                      :href="`https://explorer.solana.com/tx/${transactionSignature}?cluster=mainnet`"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      View on Explorer
+                    </a>
+                  </p>
                 </div>
               </div>
 
@@ -63,7 +73,6 @@
                   Delegated to: {{ stakeAccountInfo.delegatedVoteAccountAddress }}
                 </p>
 
-                <!-- Add progress bar for activation -->
                 <div v-if="stakeAccountInfo.state === 'activating'" class="activation-progress">
                   <div class="progress-bar">
                     <div
@@ -141,6 +150,7 @@ export default {
     const rewards = ref(null)
     const minimumStake = 0.01
     const stakeAccountPublickey = ref(null)
+    const transactionSignature = ref(null)
 
     onMounted(() => {
       if (props.network?.validator?.[0]) {
@@ -172,28 +182,29 @@ export default {
     const handleDelegateStake = async () => {
       if (!isValidStake.value) return
 
-      console.log('stakeAmount', stakeAmount.value)
-      console.log('validatorAddress', validatorAddress.value) 
-      
       try {
         const { stakeAccount } = await createAndInitializeStakeAccount(
           stakeAmount.value * LAMPORTS_PER_SOL
         )
-        console.log('stakeAccount', stakeAccount)
 
         if (!stakeAccount) {
           throw new Error('Failed to create stake account')
         }
 
         const initialStakeInfo = await getStakeAccountInfo(stakeAccount)
-        console.log('Initial stake account info:', initialStakeInfo)
         stakeAccountInfo.value = initialStakeInfo
-        console.log('stakeAccountInfo', stakeAccountInfo.value)
 
-        const signature = await delegateStake(stakeAccount, validatorAddress.value)
+        // Get validator address from props or input
+        const validator = props.network?.validator?.[0] || validatorAddress.value
+        if (!validator) {
+          throw new Error('Validator address is required')
+        }
+
+        const signature = await delegateStake(stakeAccount, validator)
+        transactionSignature.value = signature
+        stakeAccountInfo.value = await getStakeAccountInfo(stakeAccount)
         rewards.value = await getStakeRewards(stakeAccount)
-
-        console.log('Stake delegated successfully:', signature)
+        console.log('-------success-------')
       } catch (error) {
         console.error('Failed to delegate stake:', error)
       }
@@ -211,7 +222,8 @@ export default {
       isValidStake,
       connectWallet: handleConnectWallet,
       delegateStake: handleDelegateStake,
-      LAMPORTS_PER_SOL
+      LAMPORTS_PER_SOL,
+      transactionSignature
     }
   }
 }
@@ -391,6 +403,23 @@ export default {
 .wallet-info {
   text-align: left;
   margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.transaction-link {
+  font-size: 14px;
+}
+
+.transaction-link a {
+  color: var(--van-primary-color);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.transaction-link a:hover {
+  text-decoration: underline;
 }
 
 .staking-form {
