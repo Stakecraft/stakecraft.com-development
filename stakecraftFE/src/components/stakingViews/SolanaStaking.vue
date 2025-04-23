@@ -1,129 +1,138 @@
 <template>
-  <Transition name="modal-fade">
-    <div v-if="network" class="modal-overlay" @click.self="closeModal">
-      <div class="solana-staking">
-        <div class="modal">
-          <header class="modal-header">
-            <div class="headerTitle">{{ network.title }}</div>
-            <button class="btn-close" @click="closeModal">×</button>
-          </header>
-          <div class="modal-content">
-            <div class="network-info">
-              <div class="network-description" v-if="!walletConnected">
-                <p>{{ network.description }}</p>
-              </div>
+  <transition name="modal-fade">
+    <div class="modal-overlay" @click.self="close">
+      <div v-if="network" class="modal">
+        <header class="modal-header">
+          <div class="headerTitle">{{ network.title }}</div>
+          <button type="button" class="btn-close" @click="close">
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 15 15"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M13.8574 1.74023L1.85742 13.7402M1.85742 1.74023L13.8574 13.7402"
+                stroke="var(--van-modal-btn-close)"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+        </header>
+        <div class="modal-content">
+          <div class="network-info">
+            <div class="network-description" v-if="!walletConnected">
+              <p>{{ network.description }}</p>
+            </div>
 
-              <div class="staking-header">
-                <button class="connect-wallet" @click="connectWallet" v-if="!walletConnected">
-                  Connect Wallet
-                </button>
-                <div class="wallet-info" v-if="walletConnected">
-                  <p>Connected: {{ walletAddress }}</p>
-                  <p v-if="transactionSignature" class="transaction-link">
-                    Last Transaction:
-                    <a
-                      :href="`https://explorer.solana.com/tx/${transactionSignature}?cluster=mainnet`"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View on Explorer
-                    </a>
-                  </p>
-                </div>
-              </div>
-
-              <div class="staking-form" v-if="walletConnected">
-                <div class="form-group">
-                  <label>Amount to Stake (SOL)</label>
-                  <input
-                    type="number"
-                    v-model.number="stakeAmount"
-                    :min="minimumStake"
-                    step="0.01"
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label>Validator Address</label>
-                  <input
-                    type="text"
-                    :value="network.validator"
-                    placeholder="Enter validator address"
-                  />
-                </div>
-
-                <button @click="delegateStake" :disabled="!isValidStake" class="stake-button">
-                  Delegate Stake
-                </button>
-              </div>
-
-              <div class="rewards-info" v-if="rewards">
-                <h3>Staking Rewards</h3>
-                <p>Epoch Rewards: {{ rewards.amount / LAMPORTS_PER_SOL }} SOL</p>
-                <p>Epoch: {{ rewards.epoch }}</p>
-              </div>
-
-              <div class="stake-info" v-if="stakeAccountInfo">
-                <h3>Stake Account Information</h3>
-                <p>Balance: {{ stakeAccountInfo.balance }} SOL</p>
-                <p>State: {{ stakeAccountInfo.state }}</p>
-                <p>Active Stake: {{ stakeAccountInfo.active }} SOL</p>
-                <p>Inactive Stake: {{ stakeAccountInfo.inactive }} SOL</p>
-                <p v-if="stakeAccountInfo.delegatedVoteAccountAddress">
-                  Delegated to: {{ stakeAccountInfo.delegatedVoteAccountAddress }}
+            <div class="staking-header">
+              <button class="connect-wallet" @click="connectWallet" v-if="!walletConnected">
+                Connect Wallet
+              </button>
+              <div class="wallet-info" v-if="walletConnected">
+                <p>Connected: {{ walletAddress }}</p>
+                <p v-if="transactionSignature" class="transaction-link">
+                  Last Transaction:
+                  <a
+                    :href="`https://explorer.solana.com/tx/${transactionSignature}?cluster=mainnet`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View on Explorer
+                  </a>
                 </p>
+              </div>
+            </div>
 
-                <div v-if="stakeAccountInfo.state === 'activating'" class="activation-progress">
-                  <div class="progress-bar">
-                    <div
-                      class="progress-fill"
-                      :style="{
-                        width:
-                          (stakeAccountInfo.active /
-                            (stakeAccountInfo.active + stakeAccountInfo.inactive)) *
-                            100 +
-                          '%'
-                      }"
-                    ></div>
-                  </div>
-                  <p>
-                    Activation Progress:
-                    {{
-                      (
+            <div class="staking-form" v-if="walletConnected">
+              <div class="form-group">
+                <label>Amount to Stake (SOL)</label>
+                <input type="number" v-model.number="stakeAmount" :min="minimumStake" step="0.01" />
+              </div>
+
+              <div class="form-group">
+                <label>Validator Address</label>
+                <input
+                  type="text"
+                  :value="network.validator"
+                  placeholder="Enter validator address"
+                />
+              </div>
+
+              <button @click="delegateStake" :disabled="!isValidStake" class="stake-button">
+                Delegate Stake
+              </button>
+            </div>
+
+            <div class="rewards-info" v-if="rewards">
+              <h3>Staking Rewards</h3>
+              <p>Epoch Rewards: {{ rewards.amount / LAMPORTS_PER_SOL }} SOL</p>
+              <p>Epoch: {{ rewards.epoch }}</p>
+            </div>
+
+            <div class="stake-info" v-if="stakeAccountInfo">
+              <h3>Stake Account Information</h3>
+              <p>Balance: {{ stakeAccountInfo.balance }} SOL</p>
+              <p>State: {{ stakeAccountInfo.state }}</p>
+              <p>Active Stake: {{ stakeAccountInfo.active }} SOL</p>
+              <p>Inactive Stake: {{ stakeAccountInfo.inactive }} SOL</p>
+              <p v-if="stakeAccountInfo.delegatedVoteAccountAddress">
+                Delegated to: {{ stakeAccountInfo.delegatedVoteAccountAddress }}
+              </p>
+
+              <div v-if="stakeAccountInfo.state === 'activating'" class="activation-progress">
+                <div class="progress-bar">
+                  <div
+                    class="progress-fill"
+                    :style="{
+                      width:
                         (stakeAccountInfo.active /
                           (stakeAccountInfo.active + stakeAccountInfo.inactive)) *
-                        100
-                      ).toFixed(2)
-                    }}%
-                  </p>
+                          100 +
+                        '%'
+                    }"
+                  ></div>
                 </div>
+                <p>
+                  Activation Progress:
+                  {{
+                    (
+                      (stakeAccountInfo.active /
+                        (stakeAccountInfo.active + stakeAccountInfo.inactive)) *
+                      100
+                    ).toFixed(2)
+                  }}%
+                </p>
               </div>
+            </div>
 
-              <div
-                class="network-links"
-                v-if="network.explorer || network.howToStake || !walletConnected"
+            <div
+              class="network-links"
+              v-if="network.explorer || network.howToStake || !walletConnected"
+            >
+              <a
+                v-if="network.explorer"
+                :href="network.explorer[0]"
+                target="_blank"
+                class="explorer-link"
+                >View on Explorer</a
               >
-                <a
-                  v-if="network.explorer"
-                  :href="network.explorer[0]"
-                  target="_blank"
-                  class="explorer-link"
-                  >View on Explorer</a
-                >
-                <a
-                  v-if="network.howToStake"
-                  :href="network.howToStake"
-                  target="_blank"
-                  class="stake-guide"
-                  >How to Stake</a
-                >
-              </div>
+              <a
+                v-if="network.howToStake"
+                :href="network.howToStake"
+                target="_blank"
+                class="stake-guide"
+                >How to Stake</a
+              >
             </div>
           </div>
         </div>
       </div>
     </div>
-  </Transition>
+  </transition>
 </template>
 
 <script>
@@ -134,14 +143,14 @@ import {
   getStakeAccountInfo,
   getStakeRewards,
   createAndInitializeStakeAccount
-} from '../utils/SolanaStaking'
+} from '../../utils/SolanaStaking'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 
 export default {
   name: 'SolanaStaking',
   props: ['network'],
-  emits: ['close'],
-  setup(props, { emit }) {
+  // emits: ['close'],
+  setup( props, context ) {
     const walletConnected = ref(false)
     const walletAddress = ref('')
     const stakeAmount = ref(0)
@@ -158,8 +167,8 @@ export default {
       }
     })
 
-    const closeModal = () => {
-      emit('close')
+    const close = () => {
+      context.emit('close')
     }
 
     const isValidStake = computed(() => {
@@ -211,7 +220,7 @@ export default {
     }
 
     return {
-      closeModal,
+      close,
       walletConnected,
       walletAddress,
       stakeAmount,
@@ -229,7 +238,19 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .modal-fade-enter,
 .modal-fade-leave-to {
   opacity: 0;

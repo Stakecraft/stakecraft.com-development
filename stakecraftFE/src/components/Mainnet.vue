@@ -4,7 +4,7 @@
     <div class="buttonsArea">
       <button
         class="networks"
-        @click="showStakingModal(network)"
+        @click="showModal(network)"
         v-for="network in networks"
         :key="network.title"
       >
@@ -16,15 +16,22 @@
         </div>
       </button>
     </div>
-    <modal
-      v-show="isStakingModalVisible"
-      @close="closeStakingModal"
+    <!-- <modal v-show="isModalVisible" @close="closeModal" :network="{ selectedNetwork }" /> -->
+    <solana-staking
+      v-if="selectedNetwork?.title === 'Solana'"
       :network="selectedNetwork"
+      @close="closeModal"
     />
-    <solana-staking 
-      v-if="selectedNetwork?.title === 'Solana'" 
+    <kava-staking
+      v-if="selectedNetwork?.title === 'Kava'"
       :network="selectedNetwork"
-      @close="closeStakingModal"
+      @close="closeModal"
+    />
+    <modal
+      v-if="!['Solana', 'Kava'].includes(selectedNetwork?.title)"
+      v-show="isModalVisible"
+      @close="closeModal"
+      :network="selectedNetwork"
     />
   </div>
 </template>
@@ -56,11 +63,12 @@ import koiiImg from '../assets/koii.png'
 import supraoraclesImg from '../assets/supraoracles.png'
 import modal from './Modal.vue'
 import { ref } from 'vue'
-import SolanaStaking from './SolanaStaking.vue'
+import SolanaStaking from './stakingViews/SolanaStaking.vue'
+import KavaStaking from './stakingViews/KavaStaking.vue'
 
 export default {
   // components: { modal },
-  components: { SolanaStaking },
+  components: { SolanaStaking, KavaStaking },
   setup() {
     const networks = [
       {
@@ -316,27 +324,25 @@ export default {
       }
     ]
 
-    const isStakingModalVisible = ref(false)
+    const isModalVisible = ref(false)
     const selectedNetwork = ref(null)
 
-    const showStakingModal = (network) => {
-      isStakingModalVisible.value = true
+    const showModal = (network) => {
       selectedNetwork.value = network
+      isModalVisible.value = true
     }
 
-    const closeStakingModal = () => {
-      isStakingModalVisible.value = false
+    const closeModal = () => {
+      isModalVisible.value = false
+      selectedNetwork.value = null
     }
-
-    console.log('networks', networks)
-    console.log('selectednetwork', selectedNetwork.value)
 
     return {
       networks,
       selectedNetwork,
-      showStakingModal,
-      isStakingModalVisible,
-      closeStakingModal
+      showModal,
+      isModalVisible,
+      closeModal
     }
   }
 }

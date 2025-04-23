@@ -22,8 +22,8 @@
             </svg>
           </button>
         </header>
-
-        <div class="modal-body">
+asas
+        <!-- <div class="modal-body">
           {{ network.description }}
         </div>
 
@@ -86,7 +86,7 @@
               </li>
             </ul>
           </div>
-        </footer>
+        </footer> -->
       </div>
     </div>
   </transition>
