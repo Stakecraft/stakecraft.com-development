@@ -1,7 +1,7 @@
 <template>
   <Transition name="modal-fade">
     <div v-if="network" class="modal-backdrop" @click.self="closeModal">
-      <div class="koii-staking">
+      <div class="band-staking">
         <div class="modal">
           <header class="modal-header">
             <div class="headerTitle">{{ network.title }}</div>
@@ -20,14 +20,14 @@
                   v-if="!walletConnected"
                   :disabled="isConnecting"
                 >
-                  {{ isConnecting ? 'Connecting...' : 'Connect Finnie Wallet' }}
+                  {{ isConnecting ? 'Connecting...' : 'Connect Keplr Wallet' }}
                 </button>
                 <div class="wallet-info" v-if="walletConnected">
                   <p>Connected: {{ walletAddress }}</p>
                   <p v-if="transactionHash" class="transaction-link">
                     Last Transaction:
                     <a
-                      :href="`https://explorer.koii.live/tx/${transactionHash}`"
+                      :href="`https://cosmoscan.io/tx/${transactionHash}`"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -38,15 +38,16 @@
               </div>
 
               <div v-if="stakingSuccess" class="success-message">
-                Successfully staked KOII tokens!
+                Successfully staked BAND tokens!
               </div>
               <div v-if="stakingError" class="error-message">
                 {{ stakingError }}
                 <div v-if="stakingError.includes('not installed')" class="install-guide">
-                  <p>To use KOII staking, you need to:</p>
+                  <p>To use Band staking, you need to:</p>
                   <ol>
-                    <li>Install the Finnie wallet extension from <a href="https://finnie.koii.network/" target="_blank">https://finnie.koii.network/</a></li>
-                    <li>Create an account in the Finnie wallet</li>
+                    <li>Install the Keplr wallet extension from <a href="https://www.keplr.app/" target="_blank">https://www.keplr.app/</a></li>
+                    <li>Create an account in the Keplr wallet</li>
+                    <li>Add the Band Protocol network to your Keplr wallet</li>
                     <li>Refresh this page after installation</li>
                   </ol>
                 </div>
@@ -54,7 +55,7 @@
 
               <div class="staking-form" v-if="walletConnected">
                 <div class="form-group">
-                  <label>Amount to Stake (KOII)</label>
+                  <label>Amount to Stake (BAND)</label>
                   <input type="number" v-model.number="stakeAmount" :min="minimumStake" step="0.1" />
                 </div>
 
@@ -72,27 +73,23 @@
                 </button>
               </div>
 
-              <!-- <div class="attention-mining-info" v-if="walletConnected">
-                <h3>Attention Mining Status</h3>
+              <div class="staking-info" v-if="walletConnected">
+                <h3>Staking Status</h3>
                 <div class="info-grid">
                   <div class="info-item">
                     <span class="label">Staked Amount:</span>
-                    <span class="value">{{ stakedAmount }} KOII</span>
+                    <span class="value">{{ stakedAmount }} BAND</span>
                   </div>
                   <div class="info-item">
                     <span class="label">Rewards Earned:</span>
-                    <span class="value">{{ rewardsEarned }} KOII</span>
-                  </div>
-                  <div class="info-item">
-                    <span class="label">Attention Score:</span>
-                    <span class="value">{{ attentionScore }}</span>
+                    <span class="value">{{ rewardsEarned }} BAND</span>
                   </div>
                   <div class="info-item">
                     <span class="label">Last Reward:</span>
                     <span class="value">{{ lastRewardTime ? new Date(lastRewardTime).toLocaleString() : 'Never' }}</span>
                   </div>
                 </div>
-              </div> -->
+              </div>
             </div>
           </div>
         </div>
@@ -103,10 +100,10 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue'
-import { connectWallet, delegateTokens, getStakingInfo } from '../../utils/KoiiStaking'
+import { connectWallet, delegateTokens, getStakingInfo } from '../../utils/BandStaking'
 
 export default {
-  name: 'KoiiStaking',
+  name: 'BandStaking',
   props: {
     network: {
       type: Object,
@@ -121,12 +118,11 @@ export default {
     const validatorAddress = ref('')
     const stakedAmount = ref(0)
     const rewardsEarned = ref(0)
-    const attentionScore = ref(0)
     const lastRewardTime = ref(null)
     const stakingSuccess = ref(false)
     const stakingError = ref(null)
     const transactionHash = ref('')
-    const minimumStake = 0.2 // Minimum KOII to stake
+    const minimumStake = 0.1 // Minimum BAND to stake
     const isConnecting = ref(false)
 
     onMounted(() => {
@@ -142,18 +138,12 @@ export default {
 
     const handleConnectWallet = async () => {
       try {
-        console.log("connectWallet");
-        
         isConnecting.value = true
         stakingError.value = null
         const address = await connectWallet()
-        
         walletAddress.value = address
         walletConnected.value = true
-
-        console.log("walletAddress",walletAddress.value);
-        
-        // await refreshStakingInfo()
+        await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         stakingError.value = error.message
@@ -162,19 +152,18 @@ export default {
       }
     }
 
-    // const refreshStakingInfo = async () => {
-    //   if (!walletAddress.value) return
+    const refreshStakingInfo = async () => {
+      if (!walletAddress.value) return
 
-    //   try {
-    //     const info = await getStakingInfo(walletAddress.value)
-    //     stakedAmount.value = info.stakedAmount
-    //     rewardsEarned.value = info.rewardsEarned
-    //     attentionScore.value = info.attentionScore
-    //     lastRewardTime.value = info.lastRewardTime
-    //   } catch (error) {
-    //     console.error('Failed to refresh staking info:', error)
-    //   }
-    // }
+      try {
+        const info = await getStakingInfo(walletAddress.value)
+        stakedAmount.value = info.stakedAmount
+        rewardsEarned.value = info.rewardsEarned
+        lastRewardTime.value = info.lastRewardTime
+      } catch (error) {
+        console.error('Failed to refresh staking info:', error)
+      }
+    }
 
     const handleDelegateTokens = async () => {
       if (!isValidStake.value) return
@@ -192,7 +181,7 @@ export default {
         transactionHash.value = hash
         stakingSuccess.value = true
         stakeAmount.value = 0
-        // await refreshStakingInfo()
+        await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to stake tokens:', error)
         stakingError.value = error.message
@@ -211,7 +200,6 @@ export default {
       stakeAmount,
       stakedAmount,
       rewardsEarned,
-      attentionScore,
       lastRewardTime,
       minimumStake,
       isValidStake,
@@ -227,7 +215,7 @@ export default {
 </script>
 
 <style>
-/* Reuse styles from KavaStaking.vue */
+/* Reuse styles from other staking components */
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -250,7 +238,7 @@ export default {
   transition: opacity 0.3s ease;
 }
 
-.koii-staking {
+.band-staking {
   background: var(--van-background-2);
   border-radius: 20px;
   position: relative;
@@ -277,7 +265,7 @@ export default {
   width: 100%;
 }
 
-.attention-mining-info {
+.staking-info {
   margin-top: 20px;
   padding: 15px;
   background: var(--van-background);
@@ -361,4 +349,4 @@ export default {
 .transaction-link a:hover {
   text-decoration: underline;
 }
-</style>
+</style> 

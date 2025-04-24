@@ -87,6 +87,7 @@ export default {
     const stakingSuccess = ref(false)
     const stakingError = ref(null)
     const transactionHash = ref('')
+    
 
     onMounted(() => {
       if (props.network?.validator?.[0]) {

@@ -27,8 +27,23 @@
       :network="selectedNetwork"
       @close="closeModal"
     />
+    <koii-staking
+      v-if="selectedNetwork?.title === 'Koii'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <agoric-staking
+      v-if="selectedNetwork?.title === 'Agoric'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <band-staking
+      v-if="selectedNetwork?.title === 'Band Protocol'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
     <modal
-      v-if="!['Solana', 'Kava'].includes(selectedNetwork?.title)"
+      v-if="!['Solana', 'Kava', 'Koii', 'Agoric', 'Band Protocol'].includes(selectedNetwork?.title)"
       v-show="isModalVisible"
       @close="closeModal"
       :network="selectedNetwork"
@@ -65,10 +80,11 @@ import modal from './Modal.vue'
 import { ref } from 'vue'
 import SolanaStaking from './stakingViews/SolanaStaking.vue'
 import KavaStaking from './stakingViews/KavaStaking.vue'
-
+import KoiiStaking from './stakingViews/KoiiStaking.vue'
+import AgoricStaking from './stakingViews/AgoricStaking.vue'
+import BandStaking from './stakingViews/BandStaking.vue'
 export default {
-  // components: { modal },
-  components: { SolanaStaking, KavaStaking },
+  components: { SolanaStaking, KavaStaking, KoiiStaking, AgoricStaking, BandStaking, modal },
   setup() {
     const networks = [
       {
