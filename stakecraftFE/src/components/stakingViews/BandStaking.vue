@@ -73,7 +73,7 @@
                 </button>
               </div>
 
-              <div class="staking-info" v-if="walletConnected">
+              <!-- <div class="staking-info" v-if="walletConnected">
                 <h3>Staking Status</h3>
                 <div class="info-grid">
                   <div class="info-item">
@@ -89,7 +89,7 @@
                     <span class="value">{{ lastRewardTime ? new Date(lastRewardTime).toLocaleString() : 'Never' }}</span>
                   </div>
                 </div>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
@@ -122,7 +122,7 @@ export default {
     const stakingSuccess = ref(false)
     const stakingError = ref(null)
     const transactionHash = ref('')
-    const minimumStake = 0.1 // Minimum BAND to stake
+    const minimumStake = 0.01
     const isConnecting = ref(false)
 
     onMounted(() => {
@@ -143,6 +143,7 @@ export default {
         const address = await connectWallet()
         walletAddress.value = address
         walletConnected.value = true
+        console.log('walletAddress.value', walletAddress.value)
         await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
@@ -172,6 +173,9 @@ export default {
         stakingSuccess.value = false
         stakingError.value = null
 
+        console.log('walletAddress.value', walletAddress.value)
+        console.log('validatorAddress.value', validatorAddress.value)
+        console.log('stakeAmount.value', stakeAmount.value)
         const hash = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
@@ -181,6 +185,10 @@ export default {
         transactionHash.value = hash
         stakingSuccess.value = true
         stakeAmount.value = 0
+
+        console.log('stakingSuccess.value', stakingSuccess.value)
+        console.log('transactionHash.value', transactionHash.value)
+
         await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to stake tokens:', error)

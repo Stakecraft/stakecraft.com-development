@@ -27,12 +27,16 @@ const tryRpcEndpoints = async (offlineSigner) => {
       const client = await SigningStargateClient.connectWithSigner(
         endpoint,
         offlineSigner,
-        { gasPrice: GasPrice.fromString('0.0025ustars') } // Stargaze's native token
+        { 
+          gasPrice: GasPrice.fromString('0.0025ustars'),
+          timeout: 10000
+        }
       )
       return client
     } catch (error) {
       console.warn(`Failed to connect to ${endpoint}:`, error)
       lastError = error
+      await new Promise(resolve => setTimeout(resolve, 1000))
     }
   }
   throw new Error(`Failed to connect to any RPC endpoint. Last error: ${lastError?.message}`)
