@@ -42,8 +42,18 @@
       :network="selectedNetwork"
       @close="closeModal"
     />
+    <stargaze-staking
+      v-if="selectedNetwork?.title === 'Stargaze'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <bitsong-staking
+      v-if="selectedNetwork?.title === 'Bitsong'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
     <modal
-      v-if="!['Solana', 'Kava', 'Koii', 'Agoric', 'Band Protocol'].includes(selectedNetwork?.title)"
+      v-if="!['Solana', 'Kava', 'Koii', 'Agoric', 'Band Protocol', 'Stargaze', 'Bitsong'].includes(selectedNetwork?.title)"
       v-show="isModalVisible"
       @close="closeModal"
       :network="selectedNetwork"
@@ -83,8 +93,10 @@ import KavaStaking from './stakingViews/KavaStaking.vue'
 import KoiiStaking from './stakingViews/KoiiStaking.vue'
 import AgoricStaking from './stakingViews/AgoricStaking.vue'
 import BandStaking from './stakingViews/BandStaking.vue'
+import StargazeStaking from './stakingViews/StargazeStaking.vue'  
+import BitsongStaking from './stakingViews/BitsongStaking.vue'
 export default {
-  components: { SolanaStaking, KavaStaking, KoiiStaking, AgoricStaking, BandStaking, modal },
+  components: { SolanaStaking, KavaStaking, KoiiStaking, AgoricStaking, BandStaking, StargazeStaking, BitsongStaking, modal },
   setup() {
     const networks = [
       {

@@ -1,11 +1,11 @@
 import { SigningStargateClient, GasPrice } from '@cosmjs/stargate'
 
-const AGORIC_CHAIN_ID = 'agoric-3'
+const STARGAZE_CHAIN_ID = 'stargaze-1' // Stargaze mainnet chain ID
 
 const RPC_ENDPOINTS = [
-  'https://agoric-rpc.polkachu.com',
-  'https://rpc.agoric.nodestake.top',
-  'https://agoric-rpc.publicnode.com'
+  'https://rpc-stargaze-ia.cosmosia.notional.ventures',
+  'https://rpc.stargaze-apis.com',
+  'https://rpc.stargaze.publicawesome.dev'
 ]
 
 // Connect wallet
@@ -13,8 +13,8 @@ export const connectWallet = async () => {
   if (!window.keplr) {
     throw new Error('Please install Keplr extension')
   }
-  await window.keplr.enable(AGORIC_CHAIN_ID)
-  const offlineSigner = window.getOfflineSigner(AGORIC_CHAIN_ID)
+  await window.keplr.enable(STARGAZE_CHAIN_ID)
+  const offlineSigner = window.getOfflineSigner(STARGAZE_CHAIN_ID)
   const accounts = await offlineSigner.getAccounts()
   return accounts[0].address
 }
@@ -27,7 +27,7 @@ const tryRpcEndpoints = async (offlineSigner) => {
       const client = await SigningStargateClient.connectWithSigner(
         endpoint,
         offlineSigner,
-        { gasPrice: GasPrice.fromString('0.025ubld') } // Agoric's native token
+        { gasPrice: GasPrice.fromString('0.0025ustars') } // Stargaze's native token
       )
       return client
     } catch (error) {
@@ -41,19 +41,27 @@ const tryRpcEndpoints = async (offlineSigner) => {
 // Delegate tokens
 export const delegateTokens = async (delegatorAddress, validatorAddress, amount) => {
   try {
-    await window.keplr.enable(AGORIC_CHAIN_ID)
-    const offlineSigner = window.getOfflineSigner(AGORIC_CHAIN_ID)
+    await window.keplr.enable(STARGAZE_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(STARGAZE_CHAIN_ID)
     const client = await tryRpcEndpoints(offlineSigner)
-    const result = await client.delegateTokens(
-      delegatorAddress,
-      validatorAddress,
-      {
-        denom: 'ubld',
-        amount: (amount * 1_000_000).toString()
-      },
-      'auto',
-      'Delegate BLD tokens'
-    )
+
+    const msg = {
+      typeUrl: '/cosmos.staking.v1beta1.MsgDelegate',
+      value: {
+        delegatorAddress: delegatorAddress,
+        validatorAddress: validatorAddress,
+        amount: {
+          denom: 'ustars',
+          amount: String(amount * 1_000_000) // Convert to micro-STARS
+        }
+      }
+    }
+
+    const result = await client.signAndBroadcast(delegatorAddress, [msg], {
+      amount: [{ denom: 'ustars', amount: String(amount * 1_000_000) }],
+      gas: '200000'
+    })
+
     return result.transactionHash
   } catch (error) {
     console.error('Error delegating tokens:', error)
@@ -68,6 +76,7 @@ export const getStakingInfo = async (address) => {
       throw new Error('Wallet address is required')
     }
 
+    // TODO: Implement actual API calls to get staking info
     return {
       stakedAmount: 0,
       rewardsEarned: 0,
@@ -86,9 +95,10 @@ export const getBalance = async (address) => {
       throw new Error('Wallet address is required')
     }
 
+    // TODO: Implement actual API calls to get balance
     return 0
   } catch (error) {
     console.error('Error getting balance:', error)
     throw new Error(`Failed to get balance: ${error.message}`)
   }
-}
+} 

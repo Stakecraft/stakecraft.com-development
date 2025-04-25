@@ -1,7 +1,7 @@
 <template>
   <Transition name="modal-fade">
     <div v-if="network" class="modal-backdrop" @click.self="closeModal">
-      <div class="agoric-staking">
+      <div class="stargaze-staking">
         <div class="modal">
           <header class="modal-header">
             <div class="headerTitle">{{ network.title }}</div>
@@ -14,9 +14,9 @@
               </div>
 
               <div class="staking-header">
-                <button
-                  class="connect-wallet"
-                  @click="connectWallet"
+                <button 
+                  class="connect-wallet" 
+                  @click="connectWallet" 
                   v-if="!walletConnected"
                   :disabled="isConnecting"
                 >
@@ -27,7 +27,7 @@
                   <p v-if="transactionHash" class="transaction-link">
                     Last Transaction:
                     <a
-                      :href="`https://atomscan.com/agoric/transactions/${transactionHash}`"
+                      :href="`https://www.mintscan.io/stargaze/txs/${transactionHash}`"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -38,19 +38,16 @@
               </div>
 
               <div v-if="stakingSuccess" class="success-message">
-                Successfully staked BLD tokens!
+                Successfully staked STARS tokens!
               </div>
               <div v-if="stakingError" class="error-message">
                 {{ stakingError }}
                 <div v-if="stakingError.includes('not installed')" class="install-guide">
-                  <p>To use Agoric staking, you need to:</p>
+                  <p>To use Stargaze staking, you need to:</p>
                   <ol>
-                    <li>
-                      Install the Keplr wallet extension from
-                      <a href="https://www.keplr.app/" target="_blank">https://www.keplr.app/</a>
-                    </li>
+                    <li>Install the Keplr wallet extension from <a href="https://www.keplr.app/" target="_blank">https://www.keplr.app/</a></li>
                     <li>Create an account in the Keplr wallet</li>
-                    <li>Add the Agoric network to your Keplr wallet</li>
+                    <li>Add the Stargaze network to your Keplr wallet</li>
                     <li>Refresh this page after installation</li>
                   </ol>
                 </div>
@@ -58,13 +55,8 @@
 
               <div class="staking-form" v-if="walletConnected">
                 <div class="form-group">
-                  <label>Amount to Stake (BLD)</label>
-                  <input
-                    type="number"
-                    v-model.number="stakeAmount"
-                    :min="minimumStake"
-                    step="0.1"
-                  />
+                  <label>Amount to Stake (STARS)</label>
+                  <input type="number" v-model.number="stakeAmount" :min="minimumStake" step="0.1" />
                 </div>
 
                 <div class="form-group">
@@ -86,17 +78,15 @@
                 <div class="info-grid">
                   <div class="info-item">
                     <span class="label">Staked Amount:</span>
-                    <span class="value">{{ stakedAmount }} BLD</span>
+                    <span class="value">{{ stakedAmount }} STARS</span>
                   </div>
                   <div class="info-item">
                     <span class="label">Rewards Earned:</span>
-                    <span class="value">{{ rewardsEarned }} BLD</span>
+                    <span class="value">{{ rewardsEarned }} STARS</span>
                   </div>
                   <div class="info-item">
                     <span class="label">Last Reward:</span>
-                    <span class="value">{{
-                      lastRewardTime ? new Date(lastRewardTime).toLocaleString() : 'Never'
-                    }}</span>
+                    <span class="value">{{ lastRewardTime ? new Date(lastRewardTime).toLocaleString() : 'Never' }}</span>
                   </div>
                 </div>
               </div>
@@ -110,10 +100,10 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue'
-import { connectWallet, delegateTokens, getStakingInfo } from '../../utils/AgoricStaking'
+import { connectWallet, delegateTokens, getStakingInfo } from '../../utils/StargazeStaking'
 
 export default {
-  name: 'AgoricStaking',
+  name: 'StargazeStaking',
   props: {
     network: {
       type: Object,
@@ -132,7 +122,7 @@ export default {
     const stakingSuccess = ref(false)
     const stakingError = ref(null)
     const transactionHash = ref('')
-    const minimumStake = 0.01
+    const minimumStake = 0.1 // Minimum STARS to stake
     const isConnecting = ref(false)
 
     onMounted(() => {
@@ -191,7 +181,6 @@ export default {
         transactionHash.value = hash
         stakingSuccess.value = true
         stakeAmount.value = 0
-
         await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to stake tokens:', error)
@@ -226,6 +215,7 @@ export default {
 </script>
 
 <style>
+/* Reuse styles from other staking components */
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -248,7 +238,7 @@ export default {
   transition: opacity 0.3s ease;
 }
 
-.agoric-staking {
+.stargaze-staking {
   background: var(--van-background-2);
   border-radius: 20px;
   position: relative;
@@ -359,4 +349,4 @@ export default {
 .transaction-link a:hover {
   text-decoration: underline;
 }
-</style>
+</style> 
