@@ -3,8 +3,7 @@ import { SigningStargateClient, GasPrice } from '@cosmjs/stargate'
 const BITSONG_CHAIN_ID = 'bitsong-2b' // Bitsong mainnet chain ID
 
 const RPC_ENDPOINTS = [
-  'https://rpc-bitsong-ia.cosmosia.notional.ventures',
-  'https://rpc-bitsong.itastakers.com',
+  // 'https://rpc-bitsong.itastakers.com',
   'https://rpc.explorebitsong.com'
 ]
 

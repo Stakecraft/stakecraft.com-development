@@ -3,7 +3,6 @@ import { SigningStargateClient, GasPrice } from '@cosmjs/stargate'
 const STARGAZE_CHAIN_ID = 'stargaze-1' // Stargaze mainnet chain ID
 
 const RPC_ENDPOINTS = [
-  'https://rpc-stargaze-ia.cosmosia.notional.ventures',
   'https://rpc.stargaze-apis.com',
   'https://rpc.stargaze.publicawesome.dev'
 ]
@@ -63,7 +62,7 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
 
     const result = await client.signAndBroadcast(delegatorAddress, [msg], {
       amount: [{ denom: 'ustars', amount: String(amount * 1_000_000) }],
-      gas: '200000'
+      gas: '300000'
     })
 
     return result.transactionHash

@@ -122,7 +122,7 @@ export default {
     const stakingSuccess = ref(false)
     const stakingError = ref(null)
     const transactionHash = ref('')
-    const minimumStake = 0.1 // Minimum BTSG to stake
+    const minimumStake = 0.01 // Minimum BTSG to stake
     const isConnecting = ref(false)
 
     onMounted(() => {
@@ -143,6 +143,7 @@ export default {
         const address = await connectWallet()
         walletAddress.value = address
         walletConnected.value = true
+        console.log('walletAddress', walletAddress.value)
         await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
@@ -172,6 +173,10 @@ export default {
         stakingSuccess.value = false
         stakingError.value = null
 
+        console.log('walletAddress', walletAddress.value)
+        console.log('validatorAddress', validatorAddress.value)
+        console.log('stakeAmount', stakeAmount.value)
+
         const hash = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
@@ -181,6 +186,9 @@ export default {
         transactionHash.value = hash
         stakingSuccess.value = true
         stakeAmount.value = 0
+        console.log('transactionHash', hash)
+
+        console.log('stakingSuccess', stakingSuccess.value)
         await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to stake tokens:', error)

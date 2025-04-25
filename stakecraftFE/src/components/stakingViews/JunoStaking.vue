@@ -27,7 +27,7 @@
                   <p v-if="transactionHash" class="transaction-link">
                     Last Transaction:
                     <a
-                      :href="`https://www.mintscan.io/juno/txs/${transactionHash}`"
+                      :href="`https://atomscan.com/juno/transactions/${transactionHash}`"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -163,7 +163,6 @@ export default {
         transactionHash.value = hash
         stakingSuccess.value = true
         stakeAmount.value = 0
-
         await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to stake tokens:', error)
@@ -198,7 +197,7 @@ export default {
 </script>
 
 <style>
-/* Reuse styles from other staking components */
+
 .modal-backdrop {
   position: fixed;
   top: 0;

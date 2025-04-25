@@ -3,7 +3,6 @@ import { SigningStargateClient, GasPrice } from '@cosmjs/stargate'
 const JUNO_CHAIN_ID = 'juno-1'
 
 const RPC_ENDPOINTS = [
-  'https://rpc-juno-ia.cosmosia.notional.ventures',
   'https://rpc-juno.itastakers.com',
   'https://juno-rpc.polkachu.com'
 ]
@@ -63,7 +62,7 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
 
     const result = await client.signAndBroadcast(delegatorAddress, [msg], {
       amount: [{ denom: 'ujuno', amount: String(amount * 1_000_000) }],
-      gas: '200000'
+      gas: '300000'
     })
 
     return result.transactionHash

@@ -342,7 +342,7 @@ export default {
         title: 'Bitsong',
         description:
           'Distributed (open source) blockchain music ecosystem born in December 2017, to create a decentralized and trustless hub that interconnects the various market players.',
-        validator: ['bitsong1rgtyd3uj3m0rr684hy3590y3vjcm9enhulvj27'],
+        validator: ['bitsongvaloper1rgtyd3uj3m0rr684hy3590y3vjcm9enhamsm6r'],
         explorer: [
           'https://www.mintscan.io/bitsong/validators/bitsongvaloper1rgtyd3uj3m0rr684hy3590y3vjcm9enhamsm6r'
         ],
