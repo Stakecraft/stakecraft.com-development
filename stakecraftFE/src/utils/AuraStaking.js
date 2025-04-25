@@ -1,11 +1,11 @@
 import { SigningStargateClient, GasPrice } from '@cosmjs/stargate'
 
-const JUNO_CHAIN_ID = 'juno-1'
+const AURA_CHAIN_ID = 'aura_6322-2'
 
 const RPC_ENDPOINTS = [
-  'https://rpc-juno-ia.cosmosia.notional.ventures',
-  'https://rpc-juno.itastakers.com',
-  'https://juno-rpc.polkachu.com'
+  'https://rpc-aura-ia.cosmosia.notional.ventures',
+  'https://rpc.aura.network',
+  'https://rpc.aura.nodestake.top'
 ]
 
 // Connect wallet
@@ -13,8 +13,8 @@ export const connectWallet = async () => {
   if (!window.keplr) {
     throw new Error('Please install Keplr extension')
   }
-  await window.keplr.enable(JUNO_CHAIN_ID)
-  const offlineSigner = window.getOfflineSigner(JUNO_CHAIN_ID)
+  await window.keplr.enable(AURA_CHAIN_ID)
+  const offlineSigner = window.getOfflineSigner(AURA_CHAIN_ID)
   const accounts = await offlineSigner.getAccounts()
   return accounts[0].address
 }
@@ -28,7 +28,7 @@ const tryRpcEndpoints = async (offlineSigner) => {
         endpoint,
         offlineSigner,
         { 
-          gasPrice: GasPrice.fromString('0.0025ujuno'),
+          gasPrice: GasPrice.fromString('0.0025uaura'),
           timeout: 10000
         }
       )
@@ -45,8 +45,8 @@ const tryRpcEndpoints = async (offlineSigner) => {
 // Delegate tokens
 export const delegateTokens = async (delegatorAddress, validatorAddress, amount) => {
   try {
-    await window.keplr.enable(JUNO_CHAIN_ID)
-    const offlineSigner = window.getOfflineSigner(JUNO_CHAIN_ID)
+    await window.keplr.enable(AURA_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(AURA_CHAIN_ID)
     const client = await tryRpcEndpoints(offlineSigner)
 
     const msg = {
@@ -55,14 +55,14 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
         delegatorAddress: delegatorAddress,
         validatorAddress: validatorAddress,
         amount: {
-          denom: 'ujuno',
+          denom: 'uaura',
           amount: String(amount * 1_000_000)
         }
       }
     }
 
     const result = await client.signAndBroadcast(delegatorAddress, [msg], {
-      amount: [{ denom: 'ujuno', amount: String(amount * 1_000_000) }],
+      amount: [{ denom: 'uaura', amount: String(amount * 1_000_000) }],
       gas: '200000'
     })
 
