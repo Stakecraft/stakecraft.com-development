@@ -52,18 +52,18 @@
       :network="selectedNetwork"
       @close="closeModal"
     />
-    <aura-staking
+    <!-- <aura-staking
       v-if="selectedNetwork?.title === 'Aura Network'"
       :network="selectedNetwork"
       @close="closeModal"
-    />
+    /> -->
     <juno-staking
         v-if="selectedNetwork?.title === 'Juno'"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <zeta-staking
-      v-if="selectedNetwork?.title === 'ZetaChain'"
+      v-if="selectedNetwork?.title === 'Zetachain'"
       :network="selectedNetwork"
       @close="closeModal"
     />
@@ -72,12 +72,20 @@
       :network="selectedNetwork"
       @close="closeModal"
     />
+    <supra-staking
+      v-if="selectedNetwork?.title === 'Supra Oracles'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+
     <modal
-      v-if="!['Solana', 'Kava', 'Koii', 'Agoric', 'Band Protocol', 'Stargaze', 'Bitsong', 'Aura Network', 'Juno', 'ZetaChain', 'Ki Foundation'].includes(selectedNetwork?.title)"
+      v-if="!['Solana', 'Kava', 'Koii', 'Agoric', 'Band Protocol', 'Stargaze', 'Bitsong', 'Juno', 'Zetachain', 'Ki Foundation', 'Supra Oracles'].includes(selectedNetwork?.title)"
       v-show="isModalVisible"
       @close="closeModal"
       :network="selectedNetwork"
     />
+
+
   </div>
 </template>
 
@@ -110,18 +118,21 @@ import modal from './Modal.vue'
 import { ref } from 'vue'
 import SolanaStaking from './stakingViews/SolanaStaking.vue'
 import KavaStaking from './stakingViews/KavaStaking.vue'
-import KoiiStaking from './stakingViews/KoiiStaking.vue'
+import KoiiStaking from './stakingViews/KoiiStaking.vue' // not complted
 import AgoricStaking from './stakingViews/AgoricStaking.vue'
 import BandStaking from './stakingViews/BandStaking.vue'
 import StargazeStaking from './stakingViews/StargazeStaking.vue'  
 import BitsongStaking from './stakingViews/BitsongStaking.vue'
-import AuraStaking from './stakingViews/AuraStaking.vue'
+// import AuraStaking from './stakingViews/AuraStaking.vue'
 import JunoStaking from './stakingViews/JunoStaking.vue'
-import ZetaStaking from './stakingViews/ZetaStaking.vue'
+import ZetaStaking from './stakingViews/ZetaStaking.vue' // not complted
 import KiStaking from './stakingViews/KiStaking.vue'
+import SupraStaking from './stakingViews/SupraStaking.vue' // not complted
+
+
 
 export default {
-  components: { SolanaStaking, KavaStaking, KoiiStaking, AgoricStaking, BandStaking, StargazeStaking, BitsongStaking, AuraStaking, JunoStaking, ZetaStaking, KiStaking, modal },
+  components: { SolanaStaking, KavaStaking, KoiiStaking, AgoricStaking, BandStaking, StargazeStaking, BitsongStaking, JunoStaking, ZetaStaking, KiStaking, SupraStaking, modal },
   setup() {
     const networks = [
       {

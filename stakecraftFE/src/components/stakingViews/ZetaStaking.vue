@@ -100,7 +100,8 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue'
-import { connectWallet, delegateTokens, getStakingInfo } from '../../utils/ZetaStaking'
+import { connectWallet, delegateTokens } from '../../utils/ZetaStaking'
+// import { connectWallet, delegateTokens, getStakingInfo } from '../../utils/ZetaStaking'
 
 export default {
   name: 'ZetaStaking',
@@ -143,7 +144,9 @@ export default {
         const address = await connectWallet()
         walletAddress.value = address
         walletConnected.value = true
-        await refreshStakingInfo()
+
+        console.log('walletAddress', walletAddress.value)
+        // await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         stakingError.value = error.message
@@ -152,18 +155,18 @@ export default {
       }
     }
 
-    const refreshStakingInfo = async () => {
-      if (!walletAddress.value) return
+    // const refreshStakingInfo = async () => {
+    //   if (!walletAddress.value) return
 
-      try {
-        const info = await getStakingInfo(walletAddress.value)
-        stakedAmount.value = info.stakedAmount
-        rewardsEarned.value = info.rewardsEarned
-        lastRewardTime.value = info.lastRewardTime
-      } catch (error) {
-        console.error('Failed to refresh staking info:', error)
-      }
-    }
+    //   try {
+    //     const info = await getStakingInfo(walletAddress.value)
+    //     stakedAmount.value = info.stakedAmount
+    //     rewardsEarned.value = info.rewardsEarned
+    //     lastRewardTime.value = info.lastRewardTime
+    //   } catch (error) {
+    //     console.error('Failed to refresh staking info:', error)
+    //   }
+    // }
 
     const handleDelegateTokens = async () => {
       if (!isValidStake.value) return
@@ -171,6 +174,10 @@ export default {
       try {
         stakingSuccess.value = false
         stakingError.value = null
+
+        console.log('walletAddress', walletAddress.value)
+        console.log('validatorAddress', validatorAddress.value)
+        console.log('stakeAmount', stakeAmount.value)
 
         const hash = await delegateTokens(
           walletAddress.value,
@@ -182,7 +189,10 @@ export default {
         stakingSuccess.value = true
         stakeAmount.value = 0
 
-        await refreshStakingInfo()
+        console.log('stakingSuccess', stakingSuccess.value)
+        console.log('transactionHash', transactionHash.value)
+
+        // await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to stake tokens:', error)
         stakingError.value = error.message
