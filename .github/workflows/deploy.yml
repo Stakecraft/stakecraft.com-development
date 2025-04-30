@@ -16,7 +16,7 @@ jobs:
         uses: fifsky/ssh-action@master
         with:
           command: |
-            cd ~/stakecraft.com
+            cd ~/stakecraft.com-development
             git pull
             cd stakecraftFE/
             /usr/bin/npm run build
