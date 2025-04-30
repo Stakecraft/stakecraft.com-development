@@ -65,7 +65,7 @@
 </template>
 
 <script>
-import { useSupraStaking } from './supraStaking'
+import { useSupraStaking } from '../../utils/SupraStaking.js'
 
 export default {
   name: 'SupraStaking',
