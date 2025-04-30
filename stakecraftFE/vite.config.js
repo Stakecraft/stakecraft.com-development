@@ -11,6 +11,14 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
+  optimizeDeps: {
+    include: ['cosmjs-types']
+  },
+  build: {
+    rollupOptions: {
+      external: ['cosmjs-types/ethermint/types/v1/account']
+    }
+  },
   server: {
     proxy: {
       '/rpc': {
