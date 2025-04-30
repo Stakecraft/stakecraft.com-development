@@ -1,8 +1,5 @@
 import { AminoMsg, makeCosmoshubPath, makeSignDoc, serializeSignDoc, StdFee } from '@cosmjs/amino'
 import { BroadcastMode, SigningStargateClient } from '@cosmjs/stargate'
-import { Buffer } from 'buffer'
-import { EthAccount } from "cosmjs-types/ethermint/types/v1/account";
-import { Registry } from "@cosmjs/proto-signing";
 
 const ZETA_CONFIG = {
   chainId: 'zetachain_7000-1',
@@ -14,11 +11,6 @@ const ZETA_CONFIG = {
   displayDecimals: 6,
   explorer: 'https://explorer.zetachain.com/tx/'
 }
-
-// const proxyUrl = "https://corsproxy.io/?";
-// const rpcUrl = proxyUrl + encodeURIComponent("https://zetachain-rpc.polkachu.com");
-
-const rpcUrl = "http://localhost:5173/rpc";
 
 export async function connectWallet() {
   if (!window.keplr) {
@@ -138,20 +130,6 @@ export async function getAccountInfo(address) {
   }
 }
 
-async function ethermintAccountParser(any) {
-  if (any.typeUrl === "/ethermint.types.v1.EthAccount") {
-    const ethAccount = EthAccount.decode(any.value);
-    return {
-      address: ethAccount.baseAccount?.address || "",
-      pubkey: ethAccount.baseAccount?.pubKey,
-      accountNumber: ethAccount.baseAccount?.accountNumber.toNumber() || 0,
-      sequence: ethAccount.baseAccount?.sequence.toNumber() || 0,
-    };
-  }
-
-  throw new Error(`Unsupported account type: ${any.typeUrl}`);
-}
-
 export async function delegateTokens(delegatorAddress, validatorAddress, amount) {
   if (!window.keplr) {
     throw new Error('Keplr wallet is not installed')
@@ -204,62 +182,42 @@ export async function delegateTokens(delegatorAddress, validatorAddress, amount)
       signDoc
     )
 
-    const offlineSigner = window.getOfflineSigner(ZETA_CONFIG.chainId);
-
-    const client = await SigningStargateClient.connectWithSigner(
-      ZETA_CONFIG.rpc,
-      offlineSigner,
-      {
-        accountParser: ethermintAccountParser, // 🔑 This fixes the error
-      }
-    );
-
     let txHash = null
     let broadcastMethod = null
 
-    // if (typeof window.keplr.experimentalBroadcastTx === 'function') {
+    if (typeof window.keplr.experimentalBroadcastTx === 'function') {
       console.log("Using Keplr's experimentalBroadcastTx method...")
-      // try {
-        // const broadcastResult = await window.keplr.experimentalBroadcastTx(
-        //   ZETA_CONFIG.chainId,
-        //   signDoc,
-        //   'BROADCAST_MODE_SYNC'
-        // )
-        // console.log('Broadcast result:', broadcastResult)
-        // txHash = broadcastResult.txhash
-        // broadcastMethod = 'experimentalBroadcastTx'
+      try {
+        const broadcastResult = await window.keplr.experimentalBroadcastTx(
+          ZETA_CONFIG.chainId,
+          signDoc,
+          'BROADCAST_MODE_SYNC'
+        )
+        console.log('Broadcast result:', broadcastResult)
+        txHash = broadcastResult.txhash
+        broadcastMethod = 'experimentalBroadcastTx'
 
+        const client = await SigningStargateClient.connectWithSigner(
+          rpcUrl,
+          window.keplr.getOfflineSigner(ZETA_CONFIG.chainId)
+        )
 
-        // const client = await SigningStargateClient.connectWithSigner(
-        //   rpcUrl,
-        //   window.keplr.getOfflineSigner(ZETA_CONFIG.chainId)
-        // )
-
-        // const result = await client.signAndBroadcast(delegatorAddress, [msg], {
-        //   amount: [{ denom: 'azeta', amount: String(amount * 1_000_000) }],
-        //   gas: '300000'
-        // })
-
-        const result = await client.delegateTokens(delegatorAddress, validatorAddress, {
-          denom: ZETA_CONFIG.denom,
-          amount: amountInAzeta,
-        }, {
-          amount: [{ denom: ZETA_CONFIG.denom, amount: "10000" }],
-          gas: "250000",
-        });
-        
+        const result = await client.signAndBroadcast(delegatorAddress, [msg], {
+          amount: [{ denom: 'azeta', amount: String(amount * 1_000_000) }],
+          gas: '300000'
+        })
 
         console.log('result', result)
         return result
-    //   } catch (broadcastError) {
-    //     console.error('Error with experimentalBroadcastTx:', broadcastError)
-    //   }
-    // }
-    // return {
-    //   txHash,
-    //   broadcastMethod,
-    //   explorerLink: `${ZETA_CONFIG.explorer}${txHash}`
-    // }
+      } catch (broadcastError) {
+        console.error('Error with experimentalBroadcastTx:', broadcastError)
+      }
+    }
+    return {
+      txHash,
+      broadcastMethod,
+      explorerLink: `${ZETA_CONFIG.explorer}${txHash}`
+    }
   } catch (error) {
     console.error('Delegation error:', error)
     throw new Error('Failed to delegate tokens: ' + error.message)

@@ -12,11 +12,11 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    include: ['cosmjs-types']
+    include: ['@cosmjs/proto-signing', '@cosmjs/amino', '@cosmjs/stargate', 'buffer', 'cosmjs-types']
   },
   build: {
-    rollupOptions: {
-      external: ['cosmjs-types/ethermint/types/v1/account']
+    commonjsOptions: {
+      include: [/cosmjs-types/, /node_modules/]
     }
   },
   server: {
@@ -29,5 +29,4 @@ export default defineConfig({
       }
     }
   }
-
 })
