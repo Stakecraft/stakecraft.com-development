@@ -77,9 +77,16 @@
       :network="selectedNetwork"
       @close="closeModal"
     />
+    <!-- <near-staking
+      v-if="selectedNetwork?.title === 'Near Protocol'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    /> -->
 
     <modal
-      v-if="!['Solana', 'Kava', 'Koii', 'Agoric', 'Band Protocol', 'Stargaze', 'Bitsong', 'Juno', 'Zetachain', 'Ki Foundation', 'Supra Oracles'].includes(selectedNetwork?.title)"
+      v-if="!['Solana', 'Kava', 'Koii', 'Agoric', 
+      'Band Protocol', 'Stargaze', 'Bitsong', 'Juno',
+       'Zetachain', 'Ki Foundation', 'Supra Oracles'].includes(selectedNetwork?.title)"
       v-show="isModalVisible"
       @close="closeModal"
       :network="selectedNetwork"
@@ -128,11 +135,11 @@ import JunoStaking from './stakingViews/JunoStaking.vue'
 import ZetaStaking from './stakingViews/ZetaStaking.vue' // not complted
 import KiStaking from './stakingViews/KiStaking.vue'
 import SupraStaking from './stakingViews/SupraStaking.vue' // not complted
-
+import NearStaking from './stakingViews/NearStaking.vue'
 
 
 export default {
-  components: { SolanaStaking, KavaStaking, KoiiStaking, AgoricStaking, BandStaking, StargazeStaking, BitsongStaking, JunoStaking, ZetaStaking, KiStaking, SupraStaking, modal },
+  components: { SolanaStaking, KavaStaking, KoiiStaking, AgoricStaking, BandStaking, StargazeStaking, BitsongStaking, JunoStaking, ZetaStaking, KiStaking, SupraStaking, NearStaking, modal },
   setup() {
     const networks = [
       {

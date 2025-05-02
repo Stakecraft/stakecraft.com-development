@@ -126,7 +126,7 @@ export default {
     const stakingSuccess = ref(false)
     const stakingError = ref(null)
     const transactionHash = ref('')
-    const minimumStake = 0.2 // Minimum KOII to stake
+    const minimumStake = 0.01 // Minimum KOII to stake
     const isConnecting = ref(false)
 
     onMounted(() => {

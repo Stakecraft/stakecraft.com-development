@@ -1,168 +1,325 @@
 <template>
-  <div class="near-staking">
-    <h3>NEAR Staking</h3>
-    
-    <div v-if="!isConnected" class="connect-wallet">
-      <button @click="connectNear" class="connect-btn">Connect NEAR Wallet</button>
-    </div>
+  <Transition name="modal-fade">
+    <div v-if="network" class="modal-backdrop" @click.self="closeModal">
+      <div class="koii-staking">
+        <div class="modal">
+          <header class="modal-header">
+            <div class="headerTitle">{{ network.title }}</div>
+            <button class="btn-close" @click="closeModal">×</button>
+          </header>
+          <div class="modal-content">
+            <div class="network-info">
+              <div class="network-description" v-if="!walletConnected">
+                <p>{{ network.description }}</p>
+              </div>
 
-    <div v-else class="staking-interface">
-      <div class="stake-info">
-        <div class="balance">
-          <span>Your NEAR Balance:</span>
-          <span>{{ formatBalance(nearBalance) }} NEAR</span>
-        </div>
-        <div class="staked">
-          <span>Currently Staked:</span>
-          <span>{{ formatBalance(stakedAmount) }} NEAR</span>
-        </div>
-        <div class="rewards">
-          <span>Available Rewards:</span>
-          <span>{{ formatBalance(rewards) }} NEAR</span>
+              <div class="staking-header">
+                <button 
+                  class="connect-wallet" 
+                  @click="connectWallet" 
+                  v-if="!walletConnected"
+                  :disabled="isConnecting"
+                >
+                  {{ isConnecting ? 'Connecting...' : 'Connect Finnie Wallet' }}
+                </button>
+                <div class="wallet-info" v-if="walletConnected">
+                  <p>Connected: {{ walletAddress }}</p>
+                  <p v-if="transactionHash" class="transaction-link">
+                    Last Transaction:
+                    <a
+                      :href="`https://explorer.koii.live/tx/${transactionHash}`"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      View on Explorer
+                    </a>
+                  </p>
+                </div>
+              </div>
+
+              <div v-if="stakingSuccess" class="success-message">
+                Successfully staked KOII tokens!
+              </div>
+              <div v-if="stakingError" class="error-message">
+                {{ stakingError }}
+                <div v-if="stakingError.includes('not installed')" class="install-guide">
+                  <p>To use KOII staking, you need to:</p>
+                  <ol>
+                    <li>Install the Finnie wallet extension from <a href="https://finnie.koii.network/" target="_blank">https://finnie.koii.network/</a></li>
+                    <li>Create an account in the Finnie wallet</li>
+                    <li>Refresh this page after installation</li>
+                  </ol>
+                </div>
+              </div>
+
+              <div class="staking-form" v-if="walletConnected">
+                <div class="form-group">
+                  <label>Amount to Stake (KOII)</label>
+                  <input type="number" v-model.number="stakeAmount" :min="minimumStake" step="0.1" />
+                </div>
+
+                <div class="form-group">
+                  <label>Validator Address</label>
+                  <input
+                    type="text"
+                    v-model="validatorAddress"
+                    placeholder="Enter validator address"
+                  />
+                </div>
+
+                <button @click="delegateTokens" :disabled="!isValidStake" class="stake-button">
+                  Delegate
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-
-      <div class="stake-form">
-        <div class="input-group">
-          <input 
-            v-model="stakeAmount" 
-            type="number" 
-            placeholder="Amount to stake"
-            :disabled="loading"
-          />
-          <button 
-            @click="stake" 
-            :disabled="loading || !stakeAmount"
-            class="stake-btn"
-          >
-            {{ loading ? 'Processing...' : 'Stake' }}
-          </button>
-        </div>
-
-        <div class="unstake-section">
-          <button 
-            @click="unstake" 
-            :disabled="loading || stakedAmount <= 0"
-            class="unstake-btn"
-          >
-            Unstake All
-          </button>
-          <button 
-            @click="claimRewards" 
-            :disabled="loading || rewards <= 0"
-            class="claim-btn"
-          >
-            Claim Rewards
-          </button>
-        </div>
-      </div>
     </div>
-
-    <div v-if="error" class="error-message">
-      {{ error }}
-    </div>
-  </div>
+  </Transition>
 </template>
 
 <script>
-import { useNearStaking } from './nearStaking'
+import { ref, computed, onMounted } from 'vue'
+import { connectWallet, delegateTokens } from '../../utils/NearStaking' 
 
 export default {
-  name: 'NearStaking',
-  setup() {
-    return useNearStaking()
+  name: 'KoiiStaking',
+  props: {
+    network: {
+      type: Object,
+      required: true
+    }
+  },
+  emits: ['close'],
+  setup(props, { emit }) {
+    const walletConnected = ref(false)
+    const walletAddress = ref('')
+    const stakeAmount = ref(0)
+    const validatorAddress = ref('')
+    const stakedAmount = ref(0)
+    const rewardsEarned = ref(0)
+    const attentionScore = ref(0)
+    const lastRewardTime = ref(null)
+    const stakingSuccess = ref(false)
+    const stakingError = ref(null)
+    const transactionHash = ref('')
+    const minimumStake = 0.01 // Minimum KOII to stake
+    const isConnecting = ref(false)
+
+    onMounted(() => {
+      if (props.network?.validator) {
+        validatorAddress.value = props.network.validator[0]
+      }
+    })
+
+    const isValidStake = computed(() => {
+      const amount = parseFloat(stakeAmount.value)
+      return !isNaN(amount) && amount >= minimumStake && validatorAddress.value
+    })
+
+    const handleConnectWallet = async () => {
+      try {
+        console.log("connectWallet");
+        
+        isConnecting.value = true
+        stakingError.value = null
+        const address = await connectWallet()
+        
+        walletAddress.value = address
+        walletConnected.value = true
+
+        console.log("walletAddress",walletAddress.value);
+        
+      } catch (error) {
+        console.error('Failed to connect wallet:', error)
+        stakingError.value = error.message
+      } finally {
+        isConnecting.value = false
+      }
+    }
+
+    const handleDelegateTokens = async () => {
+      if (!isValidStake.value) return
+
+      try {
+        stakingSuccess.value = false
+        stakingError.value = null
+
+        const hash = await delegateTokens(
+          walletAddress.value,
+          validatorAddress.value,
+          stakeAmount.value
+        )
+
+        transactionHash.value = hash
+        stakingSuccess.value = true
+        stakeAmount.value = 0
+      } catch (error) {
+        console.error('Failed to stake tokens:', error)
+        stakingError.value = error.message
+      }
+    }
+
+    const closeModal = () => {
+      emit('close')
+    }
+
+    return {
+      validatorAddress,
+      closeModal,
+      walletConnected,
+      walletAddress,
+      stakeAmount,
+      stakedAmount,
+      rewardsEarned,
+      attentionScore,
+      lastRewardTime,
+      minimumStake,
+      isValidStake,
+      stakingSuccess,
+      stakingError,
+      transactionHash,
+      isConnecting,
+      connectWallet: handleConnectWallet,
+      delegateTokens: handleDelegateTokens
+    }
   }
 }
 </script>
 
-<style scoped>
-.near-staking {
-  padding: 20px;
+<style>
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-fade-enter,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.koii-staking {
   background: var(--van-background-2);
-  border-radius: 12px;
-  margin: 20px 0;
+  border-radius: 20px;
+  position: relative;
+  cursor: default;
 }
 
-.connect-wallet {
-  text-align: center;
-  padding: 20px;
-}
-
-.connect-btn {
-  padding: 10px 20px;
-  background: var(--van-primary-color);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.staking-interface {
+.modal {
+  padding: 40px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  align-items: center;
+  gap: 30px;
 }
 
-.stake-info {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
+.modal-header {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.modal-content {
+  width: 100%;
+}
+
+.attention-mining-info {
+  margin-top: 20px;
   padding: 15px;
   background: var(--van-background);
   border-radius: 8px;
 }
 
-.stake-form {
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.info-item {
   display: flex;
   flex-direction: column;
-  gap: 15px;
 }
 
-.input-group {
-  display: flex;
-  gap: 10px;
+.label {
+  font-size: 0.9em;
+  color: var(--van-text-color-2);
 }
 
-.input-group input {
-  flex: 1;
+.value {
+  font-weight: 500;
+  margin-top: 5px;
+}
+
+.success-message {
+  color: var(--van-success-color);
+  margin-top: 10px;
   padding: 10px;
-  border: 1px solid var(--van-border-color);
-  border-radius: 8px;
-  background: var(--van-background);
-  color: var(--van-text-color);
-}
-
-.stake-btn, .unstake-btn, .claim-btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.stake-btn {
-  background: var(--van-primary-color);
-  color: white;
-}
-
-.unstake-btn {
-  background: var(--van-warning-color);
-  color: white;
-}
-
-.claim-btn {
-  background: var(--van-success-color);
-  color: white;
+  background-color: rgba(0, 255, 0, 0.1);
+  border-radius: 4px;
 }
 
 .error-message {
   color: var(--van-danger-color);
-  text-align: center;
   margin-top: 10px;
+  padding: 10px;
+  background-color: rgba(255, 0, 0, 0.1);
+  border-radius: 4px;
 }
 
-button:disabled {
-  opacity: 0.6;
+.install-guide {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.install-guide ol {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+.install-guide a {
+  color: var(--van-primary-color);
+  text-decoration: none;
+}
+
+.install-guide a:hover {
+  text-decoration: underline;
+}
+
+.connect-wallet:disabled {
+  opacity: 0.7;
   cursor: not-allowed;
 }
-</style> 
+
+.transaction-link {
+  font-size: 0.9em;
+  margin-top: 5px;
+}
+
+.transaction-link a {
+  color: var(--van-primary-color);
+  text-decoration: none;
+}
+
+.transaction-link a:hover {
+  text-decoration: underline;
+}
+</style>
