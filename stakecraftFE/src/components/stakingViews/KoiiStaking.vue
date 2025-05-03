@@ -14,9 +14,9 @@
               </div>
 
               <div class="staking-header">
-                <button 
-                  class="connect-wallet" 
-                  @click="connectWallet" 
+                <button
+                  class="connect-wallet"
+                  @click="connectWallet"
                   v-if="!walletConnected"
                   :disabled="isConnecting"
                 >
@@ -45,7 +45,12 @@
                 <div v-if="stakingError.includes('not installed')" class="install-guide">
                   <p>To use KOII staking, you need to:</p>
                   <ol>
-                    <li>Install the Finnie wallet extension from <a href="https://finnie.koii.network/" target="_blank">https://finnie.koii.network/</a></li>
+                    <li>
+                      Install the Finnie wallet extension from
+                      <a href="https://finnie.koii.network/" target="_blank"
+                        >https://finnie.koii.network/</a
+                      >
+                    </li>
                     <li>Create an account in the Finnie wallet</li>
                     <li>Refresh this page after installation</li>
                   </ol>
@@ -55,7 +60,12 @@
               <div class="staking-form" v-if="walletConnected">
                 <div class="form-group">
                   <label>Amount to Stake (KOII)</label>
-                  <input type="number" v-model.number="stakeAmount" :min="minimumStake" step="0.1" />
+                  <input
+                    type="number"
+                    v-model.number="stakeAmount"
+                    :min="minimumStake"
+                    step="0.1"
+                  />
                 </div>
 
                 <div class="form-group">
@@ -66,33 +76,10 @@
                     placeholder="Enter validator address"
                   />
                 </div>
-
                 <button @click="delegateTokens" :disabled="!isValidStake" class="stake-button">
                   Delegate
                 </button>
               </div>
-
-              <!-- <div class="attention-mining-info" v-if="walletConnected">
-                <h3>Attention Mining Status</h3>
-                <div class="info-grid">
-                  <div class="info-item">
-                    <span class="label">Staked Amount:</span>
-                    <span class="value">{{ stakedAmount }} KOII</span>
-                  </div>
-                  <div class="info-item">
-                    <span class="label">Rewards Earned:</span>
-                    <span class="value">{{ rewardsEarned }} KOII</span>
-                  </div>
-                  <div class="info-item">
-                    <span class="label">Attention Score:</span>
-                    <span class="value">{{ attentionScore }}</span>
-                  </div>
-                  <div class="info-item">
-                    <span class="label">Last Reward:</span>
-                    <span class="value">{{ lastRewardTime ? new Date(lastRewardTime).toLocaleString() : 'Never' }}</span>
-                  </div>
-                </div>
-              </div> -->
             </div>
           </div>
         </div>
@@ -142,17 +129,17 @@ export default {
 
     const handleConnectWallet = async () => {
       try {
-        console.log("connectWallet");
-        
+        console.log('connectWallet')
+
         isConnecting.value = true
         stakingError.value = null
         const address = await connectWallet()
-        
+
         walletAddress.value = address
         walletConnected.value = true
 
-        console.log("walletAddress",walletAddress.value);
-        
+        console.log('walletAddress', walletAddress.value)
+
         // await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
@@ -161,21 +148,6 @@ export default {
         isConnecting.value = false
       }
     }
-
-    // const refreshStakingInfo = async () => {
-    //   if (!walletAddress.value) return
-
-    //   try {
-    //     const info = await getStakingInfo(walletAddress.value)
-    //     stakedAmount.value = info.stakedAmount
-    //     rewardsEarned.value = info.rewardsEarned
-    //     attentionScore.value = info.attentionScore
-    //     lastRewardTime.value = info.lastRewardTime
-    //   } catch (error) {
-    //     console.error('Failed to refresh staking info:', error)
-    //   }
-    // }
-
     const handleDelegateTokens = async () => {
       if (!isValidStake.value) return
 
@@ -192,7 +164,6 @@ export default {
         transactionHash.value = hash
         stakingSuccess.value = true
         stakeAmount.value = 0
-        // await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to stake tokens:', error)
         stakingError.value = error.message
@@ -227,7 +198,6 @@ export default {
 </script>
 
 <style>
-/* Reuse styles from KavaStaking.vue */
 .modal-backdrop {
   position: fixed;
   top: 0;

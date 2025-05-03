@@ -1,4 +1,4 @@
-import { Transaction, Keypair, Connection, PublicKey, SystemProgram, Message } from '@_koii/web3.js'
+import { Transaction, Connection, PublicKey, SystemProgram } from '@_koii/web3.js'
 
 const KOII_RPC_URL = 'https://mainnet.koii.network'
 const connection = new Connection(KOII_RPC_URL)
@@ -26,16 +26,6 @@ export const delegateTokens = async (walletAddress, validatorAddress, amount) =>
       throw new Error('Missing required parameters')
     }
 
-    // const transaction = new Transaction()
-
-    // transaction.add(
-    //   SystemProgram.transfer({
-    //     fromPubkey: new PublicKey(walletAddress),
-    //     toPubkey: new PublicKey(validatorAddress),
-    //     lamports: amount * 10 ** 9,
-    //   })
-    // )
-
     const fromPubkey = new PublicKey(walletAddress)
     const toPubkey = new PublicKey(validatorAddress)
 
@@ -43,26 +33,18 @@ export const delegateTokens = async (walletAddress, validatorAddress, amount) =>
       SystemProgram.transfer({
         fromPubkey,
         toPubkey,
-        lamports: amount * 10 ** 9 // Convert KOII to lamports
+        lamports: amount * 10 ** 9
       })
     )
 
+    // Get recent blockhash
     const { blockhash } = await connection.getRecentBlockhash()
     transaction.recentBlockhash = blockhash
     transaction.feePayer = fromPubkey
+    const signature = await window.k2.signAndSendTransaction(transaction)
+    const result = await connection.confirmTransaction(signature)
 
-    const message = transaction.compileMessage()
-    const serializedTx = Message.from(message)
-    const signature = await window.k2.signAndSendTransaction(serializedTx)
-
-    // const signature = await window.k2.signAndSendTransaction(transaction)
-
-    if (!signature || !signature.transactionHash) {
-      throw new Error('Failed to send transaction')
-    }
-    console.log('signature', signature)
-
-    return signature.transactionHash
+    return signature
   } catch (error) {
     console.error('Error staking tokens:', error)
     throw new Error(`Failed to stake tokens: ${error.message}`)
@@ -75,8 +57,6 @@ export const getStakingInfo = async (address) => {
       throw new Error('Wallet address is required')
     }
 
-    // In a real implementation, you would fetch this data from the Koii network
-    // For now, returning mock data
     return {
       stakedAmount: 0,
       rewardsEarned: 0,
@@ -98,9 +78,6 @@ export const getBalance = async (address) => {
     if (!window.finnie) {
       throw new Error('Finnie wallet is not available')
     }
-
-    // In a real implementation, you would fetch the balance from the wallet
-    // For now, returning mock data
     return 0
   } catch (error) {
     console.error('Error getting balance:', error)
