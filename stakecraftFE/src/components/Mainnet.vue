@@ -77,16 +77,16 @@
       :network="selectedNetwork"
       @close="closeModal"
     />
-    <!-- <near-staking
+    <near-staking
       v-if="selectedNetwork?.title === 'Near Protocol'"
       :network="selectedNetwork"
       @close="closeModal"
-    /> -->
+    />
 
     <modal
       v-if="!['Solana', 'Kava', 'Koii', 'Agoric', 
       'Band Protocol', 'Stargaze', 'Bitsong', 'Juno',
-       'Zetachain', 'Ki Foundation', 'Supra Oracles'].includes(selectedNetwork?.title)"
+       'Zetachain', 'Ki Foundation', 'Supra Oracles', 'Near Protocol'].includes(selectedNetwork?.title)"
       v-show="isModalVisible"
       @close="closeModal"
       :network="selectedNetwork"

@@ -14,20 +14,20 @@
               </div>
 
               <div class="staking-header">
-                <button 
-                  class="connect-wallet" 
-                  @click="connectWallet" 
+                <button
+                  class="connect-wallet"
+                  @click="connectWallet"
                   v-if="!walletConnected"
                   :disabled="isConnecting"
                 >
-                  {{ isConnecting ? 'Connecting...' : 'Connect Finnie Wallet' }}
+                  {{ isConnecting ? 'Connecting...' : 'Connect Meteor Wallet' }}
                 </button>
                 <div class="wallet-info" v-if="walletConnected">
                   <p>Connected: {{ walletAddress }}</p>
                   <p v-if="transactionHash" class="transaction-link">
                     Last Transaction:
                     <a
-                      :href="`https://explorer.koii.live/tx/${transactionHash}`"
+                      :href="`https://nearblocks.io/txns/${transactionHash}`"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -38,15 +38,20 @@
               </div>
 
               <div v-if="stakingSuccess" class="success-message">
-                Successfully staked KOII tokens!
+                Successfully staked Near tokens!
               </div>
               <div v-if="stakingError" class="error-message">
                 {{ stakingError }}
                 <div v-if="stakingError.includes('not installed')" class="install-guide">
-                  <p>To use KOII staking, you need to:</p>
+                  <p>To use Near staking, you need to:</p>
                   <ol>
-                    <li>Install the Finnie wallet extension from <a href="https://finnie.koii.network/" target="_blank">https://finnie.koii.network/</a></li>
-                    <li>Create an account in the Finnie wallet</li>
+                    <li>
+                      Install the Meteor wallet extension from
+                      <a href="https://meteorwallet.io/" target="_blank"
+                        >https://meteorwallet.io/</a
+                      >
+                    </li>
+                    <li>Create an account in the Meteor wallet</li>
                     <li>Refresh this page after installation</li>
                   </ol>
                 </div>
@@ -55,7 +60,12 @@
               <div class="staking-form" v-if="walletConnected">
                 <div class="form-group">
                   <label>Amount to Stake (KOII)</label>
-                  <input type="number" v-model.number="stakeAmount" :min="minimumStake" step="0.1" />
+                  <input
+                    type="number"
+                    v-model.number="stakeAmount"
+                    :min="minimumStake"
+                    step="0.1"
+                  />
                 </div>
 
                 <div class="form-group">
@@ -81,7 +91,7 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue'
-import { connectWallet, delegateTokens } from '../../utils/NearStaking' 
+import { walletConnect, delegateTokens, getAccountId } from '../../utils/NearStaking'
 
 export default {
   name: 'KoiiStaking',
@@ -104,7 +114,7 @@ export default {
     const stakingSuccess = ref(false)
     const stakingError = ref(null)
     const transactionHash = ref('')
-    const minimumStake = 0.01 // Minimum KOII to stake
+    const minimumStake = 0.01
     const isConnecting = ref(false)
 
     onMounted(() => {
@@ -120,17 +130,13 @@ export default {
 
     const handleConnectWallet = async () => {
       try {
-        console.log("connectWallet");
-        
         isConnecting.value = true
         stakingError.value = null
-        const address = await connectWallet()
-        
-        walletAddress.value = address
+        await walletConnect()
+        const connectedId = await getAccountId()
+        walletAddress.value = connectedId
         walletConnected.value = true
-
-        console.log("walletAddress",walletAddress.value);
-        
+        return walletAddress.value
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         stakingError.value = error.message
@@ -145,13 +151,11 @@ export default {
       try {
         stakingSuccess.value = false
         stakingError.value = null
-
         const hash = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
           stakeAmount.value
         )
-
         transactionHash.value = hash
         stakingSuccess.value = true
         stakeAmount.value = 0
