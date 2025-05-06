@@ -38,12 +38,12 @@
               </div>
 
               <div v-if="stakingSuccess" class="success-message">
-                Successfully staked Near tokens!
+                Successfully staked Supra tokens!
               </div>
               <div v-if="stakingError" class="error-message">
                 {{ stakingError }}
                 <div v-if="stakingError.includes('not installed')" class="install-guide">
-                  <p>To use Near staking, you need to:</p>
+                  <p>To use Supra staking, you need to:</p>
                   <ol>
                     <li>
                       Install the Starkey wallet extension from
@@ -59,7 +59,7 @@
 
               <div class="staking-form" v-if="walletConnected">
                 <div class="form-group">
-                  <label>Amount to Stake (KOII)</label>
+                  <label>Amount to Stake (SUPRA)</label>
                   <input
                     type="number"
                     v-model.number="stakeAmount"
@@ -145,22 +145,48 @@ export default {
     }
 
     const handleDelegateTokens = async () => {
-      if (!isValidStake.value) return
+      if (!isValidStake.value) {
+        stakingError.value = "Please enter a valid stake amount and validator address";
+        return;
+      }
 
       try {
-        stakingSuccess.value = false
-        stakingError.value = null
+        stakingSuccess.value = false;
+        stakingError.value = null;
+        
+        const stakeButton = document.querySelector('.stake-button');
+        if (stakeButton) {
+          stakeButton.disabled = true;
+          stakeButton.textContent = 'Processing...';
+        }
+
+        console.log('Delegating tokens:', {
+          wallet: walletAddress.value,
+          validator: validatorAddress.value,
+          amount: stakeAmount.value
+        });
+
         const hash = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
           stakeAmount.value
-        )
-        transactionHash.value = hash
-        stakingSuccess.value = true
-        stakeAmount.value = 0
+        );
+
+        if (hash) {
+          transactionHash.value = hash;
+          stakingSuccess.value = true;
+          stakeAmount.value = 0;
+          console.log('Delegation successful, transaction hash:', hash);
+        }
       } catch (error) {
-        console.error('Failed to stake tokens:', error)
-        stakingError.value = error.message
+        console.error('Failed to stake tokens:', error);
+        stakingError.value = error.message || 'Failed to delegate tokens. Please try again.';
+      } finally {
+        const stakeButton = document.querySelector('.stake-button');
+        if (stakeButton) {
+          stakeButton.disabled = false;
+          stakeButton.textContent = 'Delegate';
+        }
       }
     }
 
