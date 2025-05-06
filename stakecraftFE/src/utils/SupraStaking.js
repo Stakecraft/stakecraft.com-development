@@ -1,10 +1,11 @@
-// Provider utility functions
+import { HexString, TxnBuilderTypes, BCS } from 'supra-l1-sdk'
+
 export const getProvider = () => {
   if ('starkey' in window) {
     const provider = window.starkey?.supra
 
     if (provider) {
-      provider.currentNetwork = 'mainNet'
+      provider.changeNetwork({ chainId: 8 })
       return provider
     }
   }
@@ -34,20 +35,37 @@ export const walletConnect = async () => {
 export const delegateTokens = async (walletAddress, validatorAddress, amount) => {
   try {
     const provider = getProvider()
+    console.log('StarKey Wallet:', starKeyWallet)
     console.log('---------------------------------Provider initialized:', provider)
 
-    const tx = {
-      data: '0x',
-      fromAddress: walletAddress,
-      toAddress: validatorAddress,
-      amount: amount
+    const txExpiryTime = Math.ceil(Date.now() / 1000) + 30
+    const optionalTransactionPayloadArgs = {
+      txExpiryTime
     }
 
-    const txHash = await provider.sendAutomationTransaction(tx)
+    const rawTxPayload = [
+      walletAddress,
+      0,
+      '0000000000000000000000000000000000000000000000000000000000000001',
+      'supra_account',
+      'transfer',
+      [],
+      [new HexString(validatorAddress).toUint8Array(), BCS.bcsSerializeUint64(100000000)],
+      optionalTransactionPayloadArgs
+    ]
 
-    txStatus.txHash = txHash
-    console.log('Transaction sent:', txHash)
+    const data = await provider.createRawTransactionData(rawTxPayload)
+    console.log('data :: ', data)
 
+    const params = {
+      data: data,
+      from: walletAddress,
+      to: validatorAddress,
+      chainId: 8,
+      value: amount * 10 ** 8
+    }
+    const txHash = await provider.sendTransaction(params)
+    console.log('txHash :: ', txHash)
     return txHash
   } catch (error) {
     console.error('Delegation error:', error)

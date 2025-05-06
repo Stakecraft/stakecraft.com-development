@@ -34,6 +34,7 @@
     "near-api-js": "^5.1.1",
     "sass": "^1.77.8",
     "sass-loader": "^16.0.1",
+    "supra-l1-sdk": "^4.3.1",
     "vant": "^4.9.4",
     "vue": "^3.4.29",
     "vue-router": "^4.3.3"

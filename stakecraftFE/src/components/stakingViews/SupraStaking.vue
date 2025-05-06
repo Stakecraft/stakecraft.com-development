@@ -27,7 +27,7 @@
                   <p v-if="transactionHash" class="transaction-link">
                     Last Transaction:
                     <a
-                      :href="`https://nearblocks.io/txns/${transactionHash}`"
+                      :href="`https://suprascan.io/tx/${transactionHash}`"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
