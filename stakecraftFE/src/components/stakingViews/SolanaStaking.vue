@@ -1,132 +1,210 @@
 <template>
   <transition name="modal-fade">
     <div class="modal-overlay" @click.self="close">
-      <div v-if="network" class="modal">
-        <header class="modal-header">
-          <div class="headerTitle">{{ network.title }}</div>
-          <button type="button" class="btn-close" @click="close">
-            <svg
-              width="15"
-              height="15"
-              viewBox="0 0 15 15"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M13.8574 1.74023L1.85742 13.7402M1.85742 1.74023L13.8574 13.7402"
-                stroke="var(--van-modal-btn-close)"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </button>
-        </header>
+      <div v-if="network" class="modal-container" @click.stop>
         <div class="modal-content">
-          <div class="network-info">
-            <div class="network-description" v-if="!walletConnected">
-              <p>{{ network.description }}</p>
-            </div>
-
-            <div class="staking-header">
-              <button class="connect-wallet" @click="connectWallet" v-if="!walletConnected">
-                Connect Wallet
-              </button>
-              <div class="wallet-info" v-if="walletConnected">
-                <p>Connected: {{ walletAddress }}</p>
-                <p v-if="transactionSignature" class="transaction-link">
-                  Last Transaction:
-                  <a
-                    :href="`https://explorer.solana.com/tx/${transactionSignature}?cluster=mainnet`"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    View on Explorer
-                  </a>
-                </p>
-              </div>
-            </div>
-
-            <div class="staking-form" v-if="walletConnected">
-              <div class="form-group">
-                <label>Amount to Stake (SOL)</label>
-                <input type="number" v-model.number="stakeAmount" :min="minimumStake" step="0.01" />
-              </div>
-
-              <div class="form-group">
-                <label>Validator Address</label>
-                <input
-                  type="text"
-                  :value="network.validator"
-                  placeholder="Enter validator address"
-                />
-              </div>
-
-              <button @click="delegateStake" :disabled="!isValidStake" class="stake-button">
-                Delegate Stake
-              </button>
-            </div>
-
-            <div class="rewards-info" v-if="rewards">
-              <h3>Staking Rewards</h3>
-              <p>Epoch Rewards: {{ rewards.amount / LAMPORTS_PER_SOL }} SOL</p>
-              <p>Epoch: {{ rewards.epoch }}</p>
-            </div>
-
-            <div class="stake-info" v-if="stakeAccountInfo">
-              <h3>Stake Account Information</h3>
-              <p>Balance: {{ stakeAccountInfo.balance }} SOL</p>
-              <p>State: {{ stakeAccountInfo.state }}</p>
-              <p>Active Stake: {{ stakeAccountInfo.active }} SOL</p>
-              <p>Inactive Stake: {{ stakeAccountInfo.inactive }} SOL</p>
-              <p v-if="stakeAccountInfo.delegatedVoteAccountAddress">
-                Delegated to: {{ stakeAccountInfo.delegatedVoteAccountAddress }}
-              </p>
-
-              <div v-if="stakeAccountInfo.state === 'activating'" class="activation-progress">
-                <div class="progress-bar">
-                  <div
-                    class="progress-fill"
-                    :style="{
-                      width:
-                        (stakeAccountInfo.active /
-                          (stakeAccountInfo.active + stakeAccountInfo.inactive)) *
-                          100 +
-                        '%'
-                    }"
-                  ></div>
-                </div>
-                <p>
-                  Activation Progress:
-                  {{
-                    (
-                      (stakeAccountInfo.active /
-                        (stakeAccountInfo.active + stakeAccountInfo.inactive)) *
-                      100
-                    ).toFixed(2)
-                  }}%
-                </p>
-              </div>
-            </div>
-
-            <div
-              class="network-links"
-              v-if="network.explorer || network.howToStake || !walletConnected"
+          <!-- Header -->
+          <div class="modal-header">
+            <h2 class="modal-title">{{ network.title }}</h2>
+            <button @click="close" class="close-button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+          </div>
+          
+          <!-- Network Description -->
+          <div v-if="!walletConnected" class="network-description">
+            <p>{{ network.description }}</p>
+          </div>
+          
+          <!-- Wallet Connection -->
+          <div v-if="!walletConnected" class="wallet-connection">
+            <button
+              @click="connectWallet"
+              class="primary-button full-width"
             >
+              Connect Wallet
+            </button>
+            
+            <!-- Network Links -->
+            <div class="network-links">
               <a
                 v-if="network.explorer"
                 :href="network.explorer[0]"
                 target="_blank"
-                class="explorer-link"
-                >View on Explorer</a
+                class="link-primary"
               >
+                View on Explorer
+              </a>
               <a
                 v-if="network.howToStake"
                 :href="network.howToStake"
                 target="_blank"
-                class="stake-guide"
-                >How to Stake</a
+                class="link-primary"
               >
+                How to Stake
+              </a>
+            </div>
+          </div>
+          
+          <!-- Connected Wallet Info -->
+          <div v-if="walletConnected">
+            <div class="wallet-info-card">
+              <div class="wallet-info-row">
+                <span class="info-label">Connected Wallet:</span>
+                <span class="info-value">{{ truncateAddress(walletAddress) }}</span>
+              </div>
+              <div v-if="transactionSignature" class="transaction-info">
+                <div class="wallet-info-row">
+                  <span class="info-label">Last Transaction:</span>
+                  <a
+                    :href="`https://explorer.solana.com/tx/${transactionSignature}?cluster=mainnet`"
+                    target="_blank"
+                    class="transaction-link"
+                  >
+                    View on Explorer
+                  </a>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Staking Form -->
+            <div class="staking-form">
+              <!-- Staking Amount Input -->
+              <div class="form-group">
+                <label class="form-label">
+                  Amount to Stake (SOL)
+                </label>
+                <div class="input-container">
+                  <input
+                    v-model.number="stakeAmount"
+                    type="number"
+                    :min="minimumStake"
+                    step="0.01"
+                    class="form-input"
+                    placeholder="Enter amount"
+                  />
+                  <div class="input-suffix">
+                    <span>SOL</span>
+                  </div>
+                </div>
+                <div class="input-hint">
+                  <span>
+                    Minimum: {{ minimumStake }} SOL
+                  </span>
+                </div>
+              </div>
+              
+              <!-- Validator Address -->
+              <div class="form-group">
+                <label class="form-label">
+                  Validator Address
+                </label>
+                <input
+                  :value="network.validator"
+                  type="text"
+                  class="form-input"
+                  placeholder="Enter validator address"
+                  readonly
+                />
+              </div>
+              
+              <!-- Stake Account Info -->
+              <div v-if="stakeAccountInfo" class="info-card">
+                <h3 class="info-card-title">Stake Account Information</h3>
+                <div class="info-card-content">
+                  <div class="info-row">
+                    <span class="info-label">Balance:</span>
+                    <span class="info-value">{{ stakeAccountInfo.balance }} SOL</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">State:</span>
+                    <span class="info-value">{{ stakeAccountInfo.state }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Active Stake:</span>
+                    <span class="info-value">{{ stakeAccountInfo.active }} SOL</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Inactive Stake:</span>
+                    <span class="info-value">{{ stakeAccountInfo.inactive }} SOL</span>
+                  </div>
+                  <div v-if="stakeAccountInfo.delegatedVoteAccountAddress" class="info-row">
+                    <span class="info-label">Delegated to:</span>
+                    <span class="info-value">{{ truncateAddress(stakeAccountInfo.delegatedVoteAccountAddress) }}</span>
+                  </div>
+                </div>
+                
+                <!-- Activation Progress -->
+                <div v-if="stakeAccountInfo.state === 'activating'" class="progress-section">
+                  <div class="progress-label">Activation Progress:</div>
+                  <div class="progress-bar-container">
+                    <div
+                      class="progress-bar-fill"
+                      :style="{
+                        width:
+                          (stakeAccountInfo.active /
+                            (stakeAccountInfo.active + stakeAccountInfo.inactive)) *
+                            100 +
+                          '%'
+                      }"
+                    ></div>
+                  </div>
+                  <div class="progress-percentage">
+                    {{
+                      (
+                        (stakeAccountInfo.active /
+                          (stakeAccountInfo.active + stakeAccountInfo.inactive)) *
+                        100
+                      ).toFixed(2)
+                    }}%
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Rewards Info -->
+              <div v-if="rewards" class="info-card">
+                <h3 class="info-card-title">Staking Rewards</h3>
+                <div class="info-card-content">
+                  <div class="info-row">
+                    <span class="info-label">Epoch Rewards:</span>
+                    <span class="info-value">{{ rewards.amount / LAMPORTS_PER_SOL }} SOL</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Epoch:</span>
+                    <span class="info-value">{{ rewards.epoch }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Action Button -->
+            <button
+              @click="delegateStake"
+              :disabled="!isValidStake"
+              class="primary-button full-width delegate-button"
+              :class="{ 'button-disabled': !isValidStake }"
+            >
+              Delegate Stake
+            </button>
+            
+            <!-- Network Links -->
+            <div class="network-links-bottom">
+              <a
+                v-if="network.explorer"
+                :href="network.explorer[0]"
+                target="_blank"
+                class="link-primary"
+              >
+                View on Explorer
+              </a>
+              <a
+                v-if="network.howToStake"
+                :href="network.howToStake"
+                target="_blank"
+                class="link-primary"
+              >
+                How to Stake
+              </a>
             </div>
           </div>
         </div>
@@ -218,6 +296,12 @@ export default {
         console.error('Failed to delegate stake:', error)
       }
     }
+    
+    const truncateAddress = (address) => {
+      if (!address) return '';
+      if (address.length <= 12) return address;
+      return address.substring(0, 6) + '...' + address.substring(address.length - 4);
+    }
 
     return {
       close,
@@ -232,25 +316,15 @@ export default {
       connectWallet: handleConnectWallet,
       delegateStake: handleDelegateStake,
       LAMPORTS_PER_SOL,
-      transactionSignature
+      transactionSignature,
+      truncateAddress
     }
   }
 }
 </script>
 
-<style>
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: transparent;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
+<style scoped>
+/* Modal Animation */
 .modal-fade-enter,
 .modal-fade-leave-to {
   opacity: 0;
@@ -261,6 +335,7 @@ export default {
   transition: opacity 0.3s ease;
 }
 
+/* Modal Layout */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -271,241 +346,293 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
-  cursor: pointer;
+  z-index: 50;
 }
 
-.solana-staking {
-  background: var(--van-background-2);
-  border-radius: 20px;
-  position: relative;
-  cursor: default;
-}
-
-.modal {
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 30px;
-}
-
-.modal-header {
+.modal-container {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 28rem;
   width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-}
-
-.headerTitle {
-  font-family: generalSans;
-  font-size: 52px;
-  font-weight: 600;
-  line-height: 40px;
-  text-align: center;
-  color: var(--van-text-color);
-}
-
-.btn-close {
-  position: absolute;
-  top: -20px;
-  right: -20px;
-  border: none;
-  background: transparent;
-  font-size: 24px;
-  cursor: pointer;
-  color: var(--van-text-color);
-  padding: 5px;
+  overflow: hidden;
 }
 
 .modal-content {
-  width: 100%;
+  padding: 1.5rem;
 }
 
-.network-info {
+/* Header */
+.modal-header {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  gap: 24px;
+  margin-bottom: 1.5rem;
 }
 
-.network-image {
-  text-align: center;
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
 }
 
-.network-image img {
-  width: 120px;
-  height: 120px;
-  object-fit: contain;
+.close-button {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: color 0.2s;
 }
 
+.close-button:hover {
+  color: #374151;
+}
+
+/* Network Description */
 .network-description {
   text-align: center;
-  max-width: 800px;
-  margin: 0 auto;
+  margin-bottom: 1.5rem;
 }
 
 .network-description p {
-  font-size: 16px;
-  line-height: 1.6;
-  color: var(--van-text-color);
+  color: #4b5563;
+  margin: 0;
 }
 
-.network-details {
+/* Wallet Connection */
+.wallet-connection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  width: 100%;
 }
 
-.network-details h3 {
-  color: var(--van-text-color);
-  font-size: 18px;
-  margin-bottom: 12px;
-}
-
-.network-details p {
-  word-break: break-all;
-  color: var(--van-text-color);
-  font-size: 14px;
-  background: rgba(0, 0, 0, 0.1);
-  padding: 12px;
-  border-radius: 8px;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
+/* Network Links */
 .network-links {
   display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.network-links-bottom {
+  display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
-.explorer-link,
-.stake-guide {
-  padding: 12px 24px;
-  background-color: var(--van-primary-color);
-  color: white;
+.link-primary {
+  color: #6366f1;
   text-decoration: none;
-  border-radius: 10px;
-  font-weight: 500;
-  transition: all 0.3s ease;
+  font-size: 0.875rem;
 }
 
-.explorer-link:hover,
-.stake-guide:hover {
-  opacity: 0.9;
-  transform: translateY(-2px);
-}
-
-.staking-header {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  color: var(--van-text-color);
-}
-
-.connect-wallet {
-  background-color: var(--van-primary-color);
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-.connect-wallet:hover {
-  opacity: 0.9;
-  transform: translateY(-2px);
-}
-
-.wallet-info {
-  text-align: left;
-  margin-top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.transaction-link {
-  font-size: 14px;
-}
-
-.transaction-link a {
-  color: var(--van-primary-color);
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.transaction-link a:hover {
+.link-primary:hover {
   text-decoration: underline;
 }
 
+/* Buttons */
+.primary-button {
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.primary-button:hover:not(:disabled) {
+  background-color: #4f46e5;
+}
+
+.primary-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.full-width {
+  width: 100%;
+}
+
+.button-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.delegate-button {
+  margin-top: 1.5rem;
+}
+
+/* Wallet Info Card */
+.wallet-info-card {
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.wallet-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.transaction-info {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.transaction-link {
+  color: #6366f1;
+  text-decoration: none;
+  font-size: 0.75rem;
+}
+
+.transaction-link:hover {
+  text-decoration: underline;
+}
+
+/* Form Elements */
 .staking-form {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  width: 50%;
+  gap: 1rem;
 }
 
 .form-group {
-  width: 100%;
-  margin-bottom: 15px;
+  margin-bottom: 0.5rem;
 }
 
-.form-group label {
+.form-label {
   display: block;
-  margin-bottom: 5px;
-  color: var(--van-text-color);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.25rem;
 }
 
-.form-group input {
+.input-container {
+  position: relative;
+}
+
+.form-input {
   width: 100%;
-  padding: 8px;
-  border: 1px solid var(--van-border-color);
-  border-radius: 4px;
-  background-color: var(--van-background);
-  color: var(--van-text-color);
-  border: 1px solid green;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: #1f2937;
+  background-color: white;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.form-group input:focus {
+.form-input:focus {
   outline: none;
-  border-color: var(--van-primary-color);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-.stake-button {
-  background-color: var(--van-primary-color);
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  width: 100%;
-  transition: all 0.3s ease;
+.input-suffix {
+  position: absolute;
+  right: 0.75rem;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  color: #6b7280;
 }
 
-.stake-button:hover:not(:disabled) {
-  opacity: 0.9;
-  transform: translateY(-1px);
+.input-hint {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #6b7280;
 }
 
-.stake-button:disabled {
-  background-color: var(--van-gray-5);
-  cursor: not-allowed;
-  opacity: 0.7;
+/* Info Cards */
+.info-card {
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
 }
 
-.stake-info,
-.rewards-info {
-  margin-top: 20px;
-  padding: 15px;
-  background-color: var(--van-background);
-  border-radius: 4px;
-  border: 1px solid var(--van-border-color);
+.info-card-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1f2937;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.info-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+}
+
+.info-label {
+  color: #6b7280;
+}
+
+.info-value {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+/* Progress Bar */
+.progress-section {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.progress-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.progress-bar-container {
+  height: 0.5rem;
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: #6366f1;
+}
+
+.progress-percentage {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: right;
+  margin-top: 0.25rem;
+}
+
+/* Remove number input arrows */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
 }
 </style>

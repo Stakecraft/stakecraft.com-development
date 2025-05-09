@@ -1,63 +1,156 @@
 <template>
-  <Transition name="modal-fade">
-    <div v-if="network" class="modal-backdrop" @click.self="closeModal">
-      <div class="kava-staking">
-        <div class="modal">
-          <header class="modal-header">
-            <div class="headerTitle">{{ network.title }}</div>
-            <button class="btn-close" @click="closeModal">×</button>
-          </header>
-          <div class="modal-content">
-            <div class="network-info">
-              <div class="network-description" v-if="!walletConnected">
-                <p>{{ network.description }}</p>
+  <transition name="modal-fade">
+    <div class="modal-overlay" @click.self="closeModal">
+      <div v-if="network" class="modal-container" @click.stop>
+        <div class="modal-content">
+          <!-- Header -->
+          <div class="modal-header">
+            <h2 class="modal-title">{{ network.title }}</h2>
+            <button @click="closeModal" class="close-button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+          </div>
+          
+          <!-- Network Description -->
+          <div v-if="!walletConnected" class="network-description">
+            <p>{{ network.description }}</p>
+          </div>
+          
+          <!-- Wallet Connection -->
+          <div v-if="!walletConnected" class="wallet-connection">
+            <button
+              @click="connectWallet"
+              class="primary-button full-width"
+            >
+              Connect Keplr Wallet
+            </button>
+            
+            <!-- Network Links -->
+            <div class="network-links">
+              <a
+                v-if="network.explorer"
+                :href="network.explorer[0]"
+                target="_blank"
+                class="link-primary"
+              >
+                View on Explorer
+              </a>
+              <a
+                v-if="network.howToStake"
+                :href="network.howToStake"
+                target="_blank"
+                class="link-primary"
+              >
+                How to Stake
+              </a>
+            </div>
+          </div>
+          
+          <!-- Connected Wallet Info -->
+          <div v-if="walletConnected">
+            <div class="wallet-info-card">
+              <div class="wallet-info-row">
+                <span class="info-label">Connected Wallet:</span>
+                <span class="info-value">{{ truncateAddress(walletAddress) }}</span>
               </div>
-
-              <div class="staking-header">
-                <button class="connect-wallet" @click="connectWallet" v-if="!walletConnected">
-                  Connect Keplr Wallet
-                </button>
-                <div class="wallet-info" v-if="walletConnected">
-                  <p>Connected: {{ walletAddress }}</p>
-                </div>
-              </div>
-
-              <div v-if="stakingSuccess" class="success-message">
-                Successfully delegated KAVA tokens!
-                <div v-if="transactionHash" class="transaction-link">
-                  <a :href="`https://www.mintscan.io/kava/txs/${transactionHash}`" target="_blank">
-                    View transaction on Kava Explorer
+              <div v-if="transactionHash" class="transaction-info">
+                <div class="wallet-info-row">
+                  <span class="info-label">Last Transaction:</span>
+                  <a
+                    :href="`https://www.mintscan.io/kava/txs/${transactionHash}`"
+                    target="_blank"
+                    class="transaction-link"
+                  >
+                    View on Explorer
                   </a>
                 </div>
               </div>
-              <div v-if="stakingError" class="error-message">
-                {{ stakingError }}
-              </div>
-
-              <div class="staking-form" v-if="walletConnected">
-                <div class="form-group">
-                  <label>Amount to Stake (KAVA)</label>
-                  <input type="number" v-model.number="stakeAmount" :min="minimumStake" step="1" />
-                </div>
-
-                <div class="form-group">
-                  <label>Validator Address</label>
+            </div>
+            
+            <!-- Staking Form -->
+            <div class="staking-form">
+              <!-- Staking Amount Input -->
+              <div class="form-group">
+                <label class="form-label">
+                  Amount to Stake (KAVA)
+                </label>
+                <div class="input-container">
                   <input
-                    type="text"
-                    :value="network.validator"
-                    placeholder="Enter validator address"
+                    v-model.number="stakeAmount"
+                    type="number"
+                    :min="minimumStake"
+                    step="1"
+                    class="form-input"
+                    placeholder="Enter amount"
                   />
+                  <div class="input-suffix">
+                    <span>KAVA</span>
+                  </div>
                 </div>
-                <button @click="delegateTokens" :disabled="!isValidStake" class="stake-button">
-                  Delegate KAVA
-                </button>
+                <div class="input-hint">
+                  <span>
+                    Minimum: {{ minimumStake }} KAVA
+                  </span>
+                </div>
               </div>
+              
+              <!-- Validator Address -->
+              <div class="form-group">
+                <label class="form-label">
+                  Validator Address
+                </label>
+                <input
+                  :value="network.validator"
+                  type="text"
+                  class="form-input"
+                  placeholder="Enter validator address"
+                  readonly
+                />
+              </div>
+            </div>
+            
+            <!-- Success/Error Messages -->
+            <div v-if="stakingSuccess" class="success-message">
+              Successfully delegated KAVA tokens!
+            </div>
+            <div v-if="stakingError" class="error-message">
+              {{ stakingError }}
+            </div>
+            
+            <!-- Action Button -->
+            <button
+              @click="delegateTokens"
+              :disabled="!isValidStake"
+              class="primary-button full-width delegate-button"
+              :class="{ 'button-disabled': !isValidStake }"
+            >
+              Delegate KAVA
+            </button>
+            
+            <!-- Network Links -->
+            <div class="network-links-bottom">
+              <a
+                v-if="network.explorer"
+                :href="network.explorer[0]"
+                target="_blank"
+                class="link-primary"
+              >
+                View on Explorer
+              </a>
+              <a
+                v-if="network.howToStake"
+                :href="network.howToStake"
+                target="_blank"
+                class="link-primary"
+              >
+                How to Stake
+              </a>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </Transition>
+  </transition>
 </template>
 
 <script>
@@ -133,6 +226,12 @@ export default {
       emit('close')
     }
 
+    const truncateAddress = (address) => {
+      if (!address) return '';
+      if (address.length <= 12) return address;
+      return address.substring(0, 6) + '...' + address.substring(address.length - 4);
+    }
+
     return {
       validatorAddress,
       closeModal,
@@ -146,25 +245,15 @@ export default {
       stakingError,
       transactionHash,
       connectWallet: handleConnectWallet,
-      delegateTokens: handleDelegateTokens
+      delegateTokens: handleDelegateTokens,
+      truncateAddress
     }
   }
 }
 </script>
 
-<style>
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: transparent;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
+<style scoped>
+/* Modal Animation */
 .modal-fade-enter,
 .modal-fade-leave-to {
   opacity: 0;
@@ -175,6 +264,7 @@ export default {
   transition: opacity 0.3s ease;
 }
 
+/* Modal Layout */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -185,142 +275,243 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
-  cursor: pointer;
+  z-index: 50;
 }
 
-.modal {
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 30px;
-}
-
-.modal-header {
+.modal-container {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 28rem;
   width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
+  overflow: hidden;
 }
 
 .modal-content {
-  width: 100%;
-}
-.kava-staking {
-  background: var(--van-background-2);
-  border-radius: 20px;
-  position: relative;
-  cursor: default;
+  padding: 1.5rem;
 }
 
-/* Add Kava-specific styles */
-.validator-select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid var(--van-border-color);
-  border-radius: 4px;
-  background-color: var(--van-background);
-  color: var(--van-text-color);
-}
-
-.action-buttons {
+/* Header */
+.modal-header {
   display: flex;
-  gap: 10px;
-  margin-top: 20px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
 }
 
-.claim-button,
-.undelegate-button {
-  flex: 1;
-  padding: 10px;
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.close-button {
+  background: none;
   border: none;
-  border-radius: 4px;
+  color: #6b7280;
   cursor: pointer;
-  font-weight: 500;
+  padding: 0.25rem;
+  transition: color 0.2s;
 }
 
-.claim-button {
-  background-color: var(--van-success-color);
-  color: white;
+.close-button:hover {
+  color: #374151;
 }
 
-.undelegate-button {
-  background-color: var(--van-warning-color);
-  color: white;
+/* Network Description */
+.network-description {
+  text-align: center;
+  margin-bottom: 1.5rem;
 }
 
-.undelegate-modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: var(--van-background-2);
-  padding: 20px;
-  border-radius: 12px;
-  z-index: 1100;
-  width: 90%;
-  max-width: 400px;
+.network-description p {
+  color: #4b5563;
+  margin: 0;
 }
 
-.warning {
-  color: var(--van-warning-color);
-  margin: 10px 0;
-  font-size: 0.9em;
-}
-
-.button-group {
+/* Wallet Connection */
+.wallet-connection {
   display: flex;
-  gap: 10px;
-  margin-top: 20px;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
-.cancel-button,
-.confirm-button {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+/* Network Links */
+.network-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
 }
 
-.cancel-button {
-  background-color: var(--van-gray-5);
-  color: white;
+.network-links-bottom {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
-.confirm-button {
-  background-color: var(--van-primary-color);
-  color: white;
+.link-primary {
+  color: #6366f1;
+  text-decoration: none;
+  font-size: 0.875rem;
 }
 
-.success-message {
-  color: var(--van-success-color);
-  margin-top: 10px;
-  padding: 10px;
-  background-color: rgba(0, 255, 0, 0.1);
-  border-radius: 4px;
-}
-
-.error-message {
-  color: var(--van-danger-color);
-  margin-top: 10px;
-  padding: 10px;
-  background-color: rgba(255, 0, 0, 0.1);
-  border-radius: 4px;
-}
-
-.transaction-link {
-  margin-top: 10px;
-}
-
-.transaction-link a {
-  color: var(--van-primary-color);
+.link-primary:hover {
   text-decoration: underline;
 }
 
-.transaction-link a:hover {
-  color: var(--van-primary-color-dark);
+/* Buttons */
+.primary-button {
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.primary-button:hover:not(:disabled) {
+  background-color: #4f46e5;
+}
+
+.primary-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.full-width {
+  width: 100%;
+}
+
+.button-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.delegate-button {
+  margin-top: 1.5rem;
+}
+
+/* Wallet Info Card */
+.wallet-info-card {
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.wallet-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.transaction-info {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.transaction-link {
+  color: #6366f1;
+  text-decoration: none;
+  font-size: 0.75rem;
+}
+
+.transaction-link:hover {
+  text-decoration: underline;
+}
+
+/* Form Elements */
+.staking-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  margin-bottom: 0.5rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.input-container {
+  position: relative;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: #1f2937;
+  background-color: white;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.input-suffix {
+  position: absolute;
+  right: 0.75rem;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  color: #6b7280;
+}
+
+.input-hint {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Success/Error Messages */
+.success-message {
+  color: #059669;
+  background-color: #ecfdf5;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+}
+
+.error-message {
+  color: #dc2626;
+  background-color: #fef2f2;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+}
+
+/* Remove number input arrows */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
 }
 </style>
