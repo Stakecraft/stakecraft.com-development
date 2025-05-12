@@ -9,7 +9,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: pull diff and restast services
+      - name: pull diff and restart services
         env:
           SERVER_ENV:  ${{ secrets.SERVER_ENV }}
           AUTH_CONFIG: ${{ secrets.AUTH_CONFIG }}
