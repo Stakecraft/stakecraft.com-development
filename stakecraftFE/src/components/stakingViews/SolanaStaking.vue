@@ -7,24 +7,62 @@
           <div class="modal-header">
             <h2 class="modal-title">{{ network.title }}</h2>
             <button @click="close" class="close-button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-x"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
             </button>
           </div>
-          
+
           <!-- Network Description -->
           <div v-if="!walletConnected" class="network-description">
             <p>{{ network.description }}</p>
           </div>
-          
+
+          <!-- Wallet Warning -->
+          <div v-if="walletError" class="wallet-warning">
+            <div class="warning-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                ></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <div class="warning-content">
+              <h3 class="warning-title">Wallet Not Found</h3>
+              <p class="warning-message">
+                To use Solana staking, you need to install the Phantom wallet extension.
+              </p>
+            </div>
+          </div>
+
           <!-- Wallet Connection -->
           <div v-if="!walletConnected" class="wallet-connection">
-            <button
-              @click="connectWallet"
-              class="primary-button full-width"
-            >
-              Connect Wallet
-            </button>
-            
+            <button @click="connectWallet" class="primary-button full-width">Connect Wallet</button>
+
             <!-- Network Links -->
             <div class="network-links">
               <a
@@ -45,13 +83,16 @@
               </a>
             </div>
           </div>
-          
+
           <!-- Connected Wallet Info -->
           <div v-if="walletConnected">
             <div class="wallet-info-card">
               <div class="wallet-info-row">
                 <span class="info-label">Connected Wallet:</span>
-                <span class="info-value">{{ truncateAddress(walletAddress) }}</span>
+                <span class="info-value tooltip-container">
+                  {{ truncateAddress(walletAddress) }}
+                  <span class="tooltip">{{ walletAddress }}</span>
+                </span>
               </div>
               <div v-if="transactionSignature" class="transaction-info">
                 <div class="wallet-info-row">
@@ -66,14 +107,12 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Staking Form -->
             <div class="staking-form">
               <!-- Staking Amount Input -->
               <div class="form-group">
-                <label class="form-label">
-                  Amount to Stake (SOL)
-                </label>
+                <label class="form-label"> Amount to Stake (SOL) </label>
                 <div class="input-container">
                   <input
                     v-model.number="stakeAmount"
@@ -88,18 +127,15 @@
                   </div>
                 </div>
                 <div class="input-hint">
-                  <span>
-                    Minimum: {{ minimumStake }} SOL
-                  </span>
+                  <span> Minimum: {{ minimumStake }} SOL </span>
                 </div>
               </div>
-              
+
               <!-- Validator Address -->
               <div class="form-group">
-                <label class="form-label">
-                  Validator Address
-                </label>
+                <label class="form-label"> Validator Address </label>
                 <input
+                  disabled
                   :value="network.validator"
                   type="text"
                   class="form-input"
@@ -107,86 +143,49 @@
                   readonly
                 />
               </div>
-              
-              <!-- Stake Account Info -->
-              <div v-if="stakeAccountInfo" class="info-card">
-                <h3 class="info-card-title">Stake Account Information</h3>
+              <!-- Staking Info -->
+              <div class="info-card">
+                <h3 class="info-card-title">Staking Status</h3>
                 <div class="info-card-content">
                   <div class="info-row">
-                    <span class="info-label">Balance:</span>
-                    <span class="info-value">{{ stakeAccountInfo.balance }} SOL</span>
+                    <span class="info-label">Staked Amount:</span>
+                    <span class="info-value">{{ stakedAmount }} SOL</span>
                   </div>
                   <div class="info-row">
-                    <span class="info-label">State:</span>
-                    <span class="info-value">{{ stakeAccountInfo.state }}</span>
+                    <span class="info-label">Rewards Earned:</span>
+                    <span class="info-value">{{ rewardsEarned }} SOL</span>
                   </div>
                   <div class="info-row">
-                    <span class="info-label">Active Stake:</span>
-                    <span class="info-value">{{ stakeAccountInfo.active }} SOL</span>
-                  </div>
-                  <div class="info-row">
-                    <span class="info-label">Inactive Stake:</span>
-                    <span class="info-value">{{ stakeAccountInfo.inactive }} SOL</span>
-                  </div>
-                  <div v-if="stakeAccountInfo.delegatedVoteAccountAddress" class="info-row">
-                    <span class="info-label">Delegated to:</span>
-                    <span class="info-value">{{ truncateAddress(stakeAccountInfo.delegatedVoteAccountAddress) }}</span>
-                  </div>
-                </div>
-                
-                <!-- Activation Progress -->
-                <div v-if="stakeAccountInfo.state === 'activating'" class="progress-section">
-                  <div class="progress-label">Activation Progress:</div>
-                  <div class="progress-bar-container">
-                    <div
-                      class="progress-bar-fill"
-                      :style="{
-                        width:
-                          (stakeAccountInfo.active /
-                            (stakeAccountInfo.active + stakeAccountInfo.inactive)) *
-                            100 +
-                          '%'
-                      }"
-                    ></div>
-                  </div>
-                  <div class="progress-percentage">
-                    {{
-                      (
-                        (stakeAccountInfo.active /
-                          (stakeAccountInfo.active + stakeAccountInfo.inactive)) *
-                        100
-                      ).toFixed(2)
-                    }}%
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Rewards Info -->
-              <div v-if="rewards" class="info-card">
-                <h3 class="info-card-title">Staking Rewards</h3>
-                <div class="info-card-content">
-                  <div class="info-row">
-                    <span class="info-label">Epoch Rewards:</span>
-                    <span class="info-value">{{ rewards.amount / LAMPORTS_PER_SOL }} SOL</span>
-                  </div>
-                  <div class="info-row">
-                    <span class="info-label">Epoch:</span>
-                    <span class="info-value">{{ rewards.epoch }}</span>
+                    <span class="info-label">Last Reward:</span>
+                    <span class="info-value">{{
+                      lastRewardTime ? new Date(lastRewardTime).toLocaleString() : 'Never'
+                    }}</span>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <!-- Action Button -->
-            <button
-              @click="delegateStake"
-              :disabled="!isValidStake"
-              class="primary-button full-width delegate-button"
-              :class="{ 'button-disabled': !isValidStake }"
-            >
-              Delegate Stake
-            </button>
-            
+            <div class="action-buttons">
+              <button
+                @click="delegateStake"
+                :disabled="!isValidStake"
+                class="primary-button full-width delegate-button"
+                :class="{ 'button-disabled': !isValidStake }"
+              >
+                Delegate Solana
+              </button>
+
+              <button
+                @click="undelegateStake"
+                :disabled="stakedAmount <= 0"
+                class="primary-button full-width delegate-button"
+                :class="{ 'button-disabled': stakedAmount <= 0 }"
+              >
+                Undelegate Solana
+              </button>
+            </div>
+
             <!-- Network Links -->
             <div class="network-links-bottom">
               <a
@@ -220,15 +219,17 @@ import {
   delegateStake,
   getStakeAccountInfo,
   getStakeRewards,
-  createAndInitializeStakeAccount
+  createAndInitializeStakeAccount,
+  getStakingInfo,
+  getTotalStakedAmount,
+  undelegateStake
 } from '../../utils/SolanaStaking'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 
 export default {
   name: 'SolanaStaking',
   props: ['network'],
-  // emits: ['close'],
-  setup( props, context ) {
+  setup(props, context) {
     const walletConnected = ref(false)
     const walletAddress = ref('')
     const stakeAmount = ref(0)
@@ -238,6 +239,11 @@ export default {
     const minimumStake = 0.01
     const stakeAccountPublickey = ref(null)
     const transactionSignature = ref(null)
+    const walletError = ref(null)
+    const stakedAmount = ref(0)
+    const rewardsEarned = ref(0)
+    const lastRewardTime = ref(null)
+    const delegatedStakeAccounts = ref([])
 
     onMounted(() => {
       if (props.network?.validator?.[0]) {
@@ -258,11 +264,47 @@ export default {
 
     const handleConnectWallet = async () => {
       try {
+        walletError.value = null
+        if (typeof window.solana === 'undefined' || !window.solana.isPhantom) {
+          walletError.value = 'Phantom wallet not found'
+          return
+        }
+
         const publicKey = await connectWallet()
         walletAddress.value = publicKey.toString()
         walletConnected.value = true
+        await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
+        if (error.message.includes('not installed') || error.message.includes('not found')) {
+          walletError.value = 'Phantom wallet not found'
+        } else {
+          stakingError.value = error.message
+        }
+      }
+    }
+
+    const refreshStakingInfo = async () => {
+      if (!walletAddress.value) return
+
+      try {
+        // Get total staked amount to the validator
+        const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
+        console.log('stakingInfo', stakingInfo)
+        stakedAmount.value = stakingInfo.totalStaked
+        delegatedStakeAccounts.value = stakingInfo.delegatedAccounts || []
+
+        // Get rewards info if we have stake accounts
+        if (stakingInfo.stakeAccounts > 0) {
+          const rewards = await getStakeRewards(walletAddress.value)
+          rewardsEarned.value = rewards ? rewards.amount / LAMPORTS_PER_SOL : 0
+          lastRewardTime.value = rewards ? rewards.epoch : null
+        } else {
+          rewardsEarned.value = 0
+          lastRewardTime.value = null
+        }
+      } catch (error) {
+        console.error('Failed to refresh staking info:', error)
       }
     }
 
@@ -291,16 +333,31 @@ export default {
         transactionSignature.value = signature
         stakeAccountInfo.value = await getStakeAccountInfo(stakeAccount)
         rewards.value = await getStakeRewards(stakeAccount)
-        console.log('-------success-------')
+        await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to delegate stake:', error)
       }
     }
-    
+
+    const handleUndelegateStake = async () => {
+      try {
+        if (!delegatedStakeAccounts.value.length) {
+          throw new Error('No stake account found')
+        }
+        // For now, undelegate the first one
+        const signature = await undelegateStake(delegatedStakeAccounts.value[1])
+        transactionSignature.value = signature
+        console.log('signature', signature)
+        await refreshStakingInfo()
+      } catch (error) {
+        console.error('Failed to undelegate stake:', error)
+      }
+    }
+
     const truncateAddress = (address) => {
-      if (!address) return '';
-      if (address.length <= 12) return address;
-      return address.substring(0, 6) + '...' + address.substring(address.length - 4);
+      if (!address) return ''
+      if (address.length <= 12) return address
+      return address.substring(0, 6) + '...' + address.substring(address.length - 4)
     }
 
     return {
@@ -315,9 +372,15 @@ export default {
       isValidStake,
       connectWallet: handleConnectWallet,
       delegateStake: handleDelegateStake,
+      undelegateStake: handleUndelegateStake,
       LAMPORTS_PER_SOL,
       transactionSignature,
-      truncateAddress
+      truncateAddress,
+      walletError,
+      stakedAmount,
+      rewardsEarned,
+      lastRewardTime,
+      delegatedStakeAccounts
     }
   }
 }
@@ -352,7 +415,9 @@ export default {
 .modal-container {
   background-color: white;
   border-radius: 0.75rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   max-width: 28rem;
   width: 100%;
   overflow: hidden;
@@ -435,6 +500,11 @@ export default {
 }
 
 /* Buttons */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .primary-button {
   background-color: #6366f1;
   color: white;
@@ -443,7 +513,9 @@ export default {
   padding: 0.75rem 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
 }
 
 .primary-button:hover:not(:disabled) {
@@ -528,7 +600,9 @@ export default {
   font-size: 0.875rem;
   color: #1f2937;
   background-color: white;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .form-input:focus {
@@ -558,10 +632,11 @@ export default {
 
 /* Info Cards */
 .info-card {
+  margin-top: 0.5rem;
   background-color: #f9fafb;
   border-radius: 0.5rem;
   padding: 0.75rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.2rem;
 }
 
 .info-card-title {
@@ -626,13 +701,119 @@ export default {
 }
 
 /* Remove number input arrows */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
-  margin: 0; 
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-input[type=number] {
+input[type='number'] {
   -moz-appearance: textfield;
+}
+
+/* Wallet Warning */
+.wallet-warning {
+  background-color: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  display: flex;
+  gap: 1rem;
+}
+
+.warning-icon {
+  color: #ea580c;
+  flex-shrink: 0;
+}
+
+.warning-content {
+  flex: 1;
+}
+
+.warning-title {
+  color: #ea580c;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.warning-message {
+  color: #9a3412;
+  font-size: 0.875rem;
+  margin: 0 0 0.75rem 0;
+}
+
+.warning-steps {
+  background-color: #fff;
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+}
+
+.warning-steps ol {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: #9a3412;
+  font-size: 0.875rem;
+}
+
+.warning-steps li {
+  margin-bottom: 0.25rem;
+}
+
+.warning-steps li:last-child {
+  margin-bottom: 0;
+}
+
+.warning-steps a {
+  color: #ea580c;
+  text-decoration: none;
+}
+
+.warning-steps a:hover {
+  text-decoration: underline;
+}
+
+/* Tooltip Styles */
+.tooltip-container {
+  position: relative;
+  cursor: help;
+}
+
+.tooltip {
+  visibility: hidden;
+  position: absolute;
+  bottom: 100%;
+  left: 10%;
+  transform: translateX(-70%);
+  padding: 0.5rem;
+  background-color: #1f2937;
+  color: white;
+  text-align: center;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 10;
+  margin-bottom: 0.5rem;
+  opacity: 0;
+  transition:
+    opacity 0.2s,
+    visibility 0.2s;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 80%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #1f2937 transparent transparent transparent;
+}
+
+.tooltip-container:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
 }
 </style>

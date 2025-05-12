@@ -5,7 +5,7 @@ import {
   SystemProgram,
   LAMPORTS_PER_SOL,
   Keypair,
-  StakeProgram,
+  StakeProgram
 } from '@solana/web3.js'
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base'
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
@@ -17,13 +17,6 @@ const connection = new Connection(endpoint, {
   confirmTransactionInitialTimeout: 60000,
   wsEndpoint: 'https://mainnet.helius-rpc.com/?api-key=36e30b3c-0a15-4037-b670-005e3845fcd8'
 })
-
-// const network = WalletAdapterNetwork.Testnet
-// const endpoint = 'https://api.testnet.solana.com'
-// const connection = new Connection(endpoint, {
-//   commitment: 'confirmed',
-//   confirmTransactionInitialTimeout: 60000
-// })
 
 const wallet = new PhantomWalletAdapter()
 
@@ -50,7 +43,9 @@ export const createAndInitializeStakeAccount = async (amount) => {
 
     const walletBalance = await connection.getBalance(wallet.publicKey)
     if (walletBalance < amount) {
-      throw new Error(`Insufficient balance. Need ${amount / LAMPORTS_PER_SOL} SOL but wallet has ${walletBalance / LAMPORTS_PER_SOL} SOL`)
+      throw new Error(
+        `Insufficient balance. Need ${amount / LAMPORTS_PER_SOL} SOL but wallet has ${walletBalance / LAMPORTS_PER_SOL} SOL`
+      )
     }
 
     // Create account instruction
@@ -72,9 +67,7 @@ export const createAndInitializeStakeAccount = async (amount) => {
     })
 
     // Create transaction and add instructions
-    const transaction = new Transaction()
-      .add(createAccountInstruction)
-      .add(initializeInstruction)
+    const transaction = new Transaction().add(createAccountInstruction).add(initializeInstruction)
 
     transaction.feePayer = wallet.publicKey
 
@@ -116,13 +109,13 @@ export const getStakeAccountInfo = async (stakeAccountAddress) => {
     }
 
     const stakeAccountPubkey = new PublicKey(stakeAccountAddress)
-    
+
     // Get account info
     const accountInfo = await connection.getAccountInfo(stakeAccountPubkey)
     if (!accountInfo) {
       throw new Error('Stake account not found')
     }
-    
+
     // Get basic stake info
     const stakeInfo = {
       address: stakeAccountAddress,
@@ -139,7 +132,8 @@ export const getStakeAccountInfo = async (stakeAccountAddress) => {
       try {
         const stakeAccount = StakeProgram.decode(accountInfo.data)
         if (stakeAccount?.stake?.delegation) {
-          stakeInfo.delegatedVoteAccountAddress = stakeAccount.stake.delegation.voterPubkey?.toBase58()
+          stakeInfo.delegatedVoteAccountAddress =
+            stakeAccount.stake.delegation.voterPubkey?.toBase58()
           stakeInfo.stake = stakeAccount.stake.delegation.stake / LAMPORTS_PER_SOL
           stakeInfo.state = stakeAccount.stake.delegation.voterPubkey ? 'active' : 'inactive'
           stakeInfo.active = stakeAccount.stake.delegation.stake / LAMPORTS_PER_SOL
@@ -148,11 +142,20 @@ export const getStakeAccountInfo = async (stakeAccountAddress) => {
         console.warn('Could not decode stake account data:', error.message)
       }
     }
-    
+
     return stakeInfo
   } catch (error) {
     console.error('Error getting stake account info:', error)
     throw error
+  }
+}
+
+export const getStakingInfo = async (stakeAccountAddress) => {
+  const stakeAccountInfo = await getStakeAccountInfo(stakeAccountAddress)
+  const stakeRewards = await getStakeRewards(stakeAccountAddress)
+  return {
+    ...stakeAccountInfo,
+    rewardsEarned: stakeRewards
   }
 }
 
@@ -200,10 +203,7 @@ export const delegateStake = async (stakeAccountAddress, validatorAddress) => {
     transaction.recentBlockhash = blockhash
 
     // Calculate transaction size and fee
-    const fees = await connection.getFeeForMessage(
-      transaction.compileMessage(),
-      'confirmed'
-    )
+    const fees = await connection.getFeeForMessage(transaction.compileMessage(), 'confirmed')
 
     // Sign transaction
     const signedTransaction = await wallet.signTransaction(transaction)
@@ -256,6 +256,109 @@ export const getStakeActivationStatus = async (stakeAccountAddress) => {
     }
   } catch (error) {
     console.error('Error getting stake activation status:', error)
+    throw error
+  }
+}
+
+// Get total amount staked to a specific validator
+export const getTotalStakedAmount = async (walletAddress, validatorAddress) => {
+  try {
+    if (!walletAddress || !validatorAddress) {
+      throw new Error('Wallet address and validator address are required')
+    }
+
+    const walletPubkey = new PublicKey(walletAddress)
+    const validatorPubkey = new PublicKey(validatorAddress)
+
+    // Get all stake accounts owned by the wallet
+    const stakeAccounts = await connection.getParsedProgramAccounts(StakeProgram.programId, {
+      filters: [
+        {
+          memcmp: {
+            offset: 44, // Offset to the authorized staker field
+            bytes: walletPubkey.toBase58()
+          }
+        }
+      ]
+    })
+
+    let totalStaked = 0
+    let delegatedAccounts = []
+
+    // Process each stake account
+    for (const account of stakeAccounts) {
+      const parsed = account.account.data.parsed
+      const info = parsed?.info
+      if (
+        parsed?.type === 'delegated' &&
+        info?.stake?.delegation?.voter === validatorPubkey.toBase58()
+      ) {
+        const delegatedLamports = parseInt(info?.stake?.delegation?.stake || 0)
+        totalStaked += delegatedLamports / LAMPORTS_PER_SOL
+        delegatedAccounts.push(account.pubkey.toBase58())
+      }
+    }
+
+    return {
+      totalStaked,
+      stakeAccounts: stakeAccounts.length,
+      delegatedAccounts
+    }
+  } catch (error) {
+    console.error('Error getting total staked amount:', error)
+    throw error
+  }
+}
+
+// Undelegate (deactivate) stake
+export const undelegateStake = async (stakeAccountAddress) => {
+  try {
+    if (!wallet.connected) {
+      await connectWallet()
+    }
+
+    if (!stakeAccountAddress) {
+      throw new Error('Stake account address is required')
+    }
+
+    console.log('---------------- start undelegate ----------------')
+    console.log('stakeAccountAddress', stakeAccountAddress)
+    const stakeAccountPubkey = new PublicKey(stakeAccountAddress)
+
+    // Create deactivate instruction
+    const deactivateInstruction = StakeProgram.deactivate({
+      stakePubkey: stakeAccountPubkey,
+      authorizedPubkey: wallet.publicKey
+    })
+
+    // Create and setup transaction
+    const transaction = new Transaction().add(deactivateInstruction)
+    transaction.feePayer = wallet.publicKey
+
+    // Get recent blockhash
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash()
+    transaction.recentBlockhash = blockhash
+
+    // Sign transaction
+    const signedTransaction = await wallet.signTransaction(transaction)
+
+    // Send and confirm transaction
+    const signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
+      skipPreflight: false,
+      preflightCommitment: 'confirmed'
+    })
+
+    await connection.confirmTransaction({
+      signature,
+      blockhash,
+      lastValidBlockHeight
+    })
+
+    console.log('signature', signature)
+    console.log('blockhash', blockhash)
+    return signature
+  } catch (error) {
+    console.error('Error undelegating stake:', error)
     throw error
   }
 }
