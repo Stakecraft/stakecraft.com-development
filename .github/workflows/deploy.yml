@@ -19,7 +19,8 @@ jobs:
             cd ~/stakecraft.com-development
             git pull
             cd stakecraftFE/
-            /usr/bin/npm run build
+            npm install
+            npm run build
           host: ${{ secrets.HOST }}
           user: ${{ secrets.USER }}
           port: ${{ secrets.PORT }}
