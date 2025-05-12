@@ -345,7 +345,7 @@ export default {
           throw new Error('No stake account found')
         }
         // For now, undelegate the first one
-        const signature = await undelegateStake(delegatedStakeAccounts.value[1])
+        const signature = await undelegateStake(delegatedStakeAccounts.value[3])
         transactionSignature.value = signature
         console.log('signature', signature)
         await refreshStakingInfo()
