@@ -21,29 +21,27 @@ export const connectWallet = async () => {
 
 // Helper function to try different RPC endpoints
 const tryRpcEndpoints = async (offlineSigner) => {
-  let lastError = null;
+  let lastError = null
   for (const endpoint of RPC_ENDPOINTS) {
     try {
-      const client = await SigningStargateClient.connectWithSigner(
-        endpoint,
-        offlineSigner,
-        { gasPrice: GasPrice.fromString('0.025ukava') }
-      );
-      return client;
+      const client = await SigningStargateClient.connectWithSigner(endpoint, offlineSigner, {
+        gasPrice: GasPrice.fromString('0.025ukava')
+      })
+      return client
     } catch (error) {
-      console.warn(`Failed to connect to ${endpoint}:`, error);
-      lastError = error;
+      console.warn(`Failed to connect to ${endpoint}:`, error)
+      lastError = error
     }
   }
-  throw new Error(`Failed to connect to any RPC endpoint. Last error: ${lastError?.message}`);
-};
+  throw new Error(`Failed to connect to any RPC endpoint. Last error: ${lastError?.message}`)
+}
 
 // Delegate tokens
 export const delegateTokens = async (delegatorAddress, validatorAddress, amount) => {
   try {
     await window.keplr.enable(KAVA_CHAIN_ID)
     const offlineSigner = window.getOfflineSigner(KAVA_CHAIN_ID)
-    const client = await tryRpcEndpoints(offlineSigner);
+    const client = await tryRpcEndpoints(offlineSigner)
     console.log('client', client)
     const result = await client.delegateTokens(
       delegatorAddress,
@@ -59,5 +57,17 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
   } catch (error) {
     console.error('Error delegating tokens:', error)
     throw new Error(`Failed to delegate tokens: ${error.message}`)
+  }
+}
+
+export const undelegateStake = async (delegatorAddress) => {
+  try {
+    await window.keplr.enable(KAVA_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(KAVA_CHAIN_ID)
+    const client = await tryRpcEndpoints(offlineSigner)
+    console.log('client', client)
+  } catch (error) {
+    console.error('Error undelegating stake:', error)
+    throw new Error(`Failed to undelegate stake: ${error.message}`)
   }
 }

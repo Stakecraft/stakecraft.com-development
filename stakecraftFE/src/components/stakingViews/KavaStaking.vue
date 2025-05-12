@@ -7,24 +7,68 @@
           <div class="modal-header">
             <h2 class="modal-title">{{ network.title }}</h2>
             <button @click="closeModal" class="close-button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-x"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
             </button>
           </div>
-          
+
           <!-- Network Description -->
           <div v-if="!walletConnected" class="network-description">
             <p>{{ network.description }}</p>
           </div>
-          
+
+          <!-- Wallet Warning -->
+          <div v-if="walletError" class="wallet-warning">
+            <div class="warning-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                ></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <div class="warning-content">
+              <h3 class="warning-title">Wallet Not Found</h3>
+              <p class="warning-message">
+                To use Kava staking, you need to install the Keplr wallet extension.
+              </p>
+            </div>
+          </div>
+
           <!-- Wallet Connection -->
           <div v-if="!walletConnected" class="wallet-connection">
             <button
               @click="connectWallet"
               class="primary-button full-width"
+              :disabled="isConnecting"
             >
-              Connect Keplr Wallet
+              {{ isConnecting ? 'Connecting...' : 'Connect Keplr Wallet' }}
             </button>
-            
+
             <!-- Network Links -->
             <div class="network-links">
               <a
@@ -45,7 +89,7 @@
               </a>
             </div>
           </div>
-          
+
           <!-- Connected Wallet Info -->
           <div v-if="walletConnected">
             <div class="wallet-info-card">
@@ -66,14 +110,12 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Staking Form -->
             <div class="staking-form">
               <!-- Staking Amount Input -->
               <div class="form-group">
-                <label class="form-label">
-                  Amount to Stake (KAVA)
-                </label>
+                <label class="form-label"> Amount to Stake (KAVA) </label>
                 <div class="input-container">
                   <input
                     v-model.number="stakeAmount"
@@ -88,17 +130,13 @@
                   </div>
                 </div>
                 <div class="input-hint">
-                  <span>
-                    Minimum: {{ minimumStake }} KAVA
-                  </span>
+                  <span> Minimum: {{ minimumStake }} KAVA </span>
                 </div>
               </div>
-              
+
               <!-- Validator Address -->
               <div class="form-group">
-                <label class="form-label">
-                  Validator Address
-                </label>
+                <label class="form-label"> Validator Address </label>
                 <input
                   :value="network.validator"
                   type="text"
@@ -107,26 +145,56 @@
                   readonly
                 />
               </div>
+
+              <!-- Staking Info -->
+              <div class="info-card">
+                <h3 class="info-card-title">Staking Status</h3>
+                <div class="info-card-content">
+                  <div class="info-row">
+                    <span class="info-label">Staked Amount:</span>
+                    <span class="info-value">{{ stakedAmount }} KAVA</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Rewards Earned:</span>
+                    <span class="info-value">{{ rewardsEarned }} KAVA</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Last Reward:</span>
+                    <span class="info-value">{{
+                      lastRewardTime ? new Date(lastRewardTime).toLocaleString() : 'Never'
+                    }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            
+
             <!-- Success/Error Messages -->
-            <div v-if="stakingSuccess" class="success-message">
+            <!-- <div v-if="stakingSuccess" class="success-message">
               Successfully delegated KAVA tokens!
             </div>
             <div v-if="stakingError" class="error-message">
               {{ stakingError }}
-            </div>
-            
+            </div> -->
+
             <!-- Action Button -->
-            <button
-              @click="delegateTokens"
-              :disabled="!isValidStake"
-              class="primary-button full-width delegate-button"
-              :class="{ 'button-disabled': !isValidStake }"
-            >
-              Delegate KAVA
-            </button>
-            
+            <div class="action-buttons">
+              <button
+                @click="delegateTokens"
+                :disabled="!isValidStake"
+                class="primary-button full-width delegate-button"
+                :class="{ 'button-disabled': !isValidStake }"
+              >
+                Delegate KAVA
+              </button>
+              <button
+                @click="undelegateStake"
+                :disabled="stakedAmount <= 0"
+                class="primary-button full-width delegate-button"
+                :class="{ 'button-disabled': stakedAmount <= 0 }"
+              >
+                Undelegate KAVA
+              </button>
+            </div>
             <!-- Network Links -->
             <div class="network-links-bottom">
               <a
@@ -157,7 +225,8 @@
 import { ref, computed, onMounted } from 'vue'
 import {
   connectWallet,
-  delegateTokens
+  delegateTokens,
+  undelegateStake
   // getDelegationStatus
 } from '../../utils/KavaStaking'
 
@@ -180,7 +249,11 @@ export default {
     const stakingSuccess = ref(false)
     const stakingError = ref(null)
     const transactionHash = ref('')
-    
+    const walletError = ref(false)
+    const isConnecting = ref(false)
+    const stakedAmount = ref(0)
+    const rewardsEarned = ref(0)
+    const lastRewardTime = ref(null)
 
     onMounted(() => {
       if (props.network?.validator?.[0]) {
@@ -195,11 +268,40 @@ export default {
 
     const handleConnectWallet = async () => {
       try {
+        isConnecting.value = true
         const address = await connectWallet()
         walletAddress.value = address
         walletConnected.value = true
+        isConnecting.value = false
+        refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
+        walletError.value = true
+        isConnecting.value = false
+      }
+    }
+
+    const refreshStakingInfo = async () => {
+      if (!walletAddress.value) return
+
+      try {
+        // Get total staked amount to the validator
+        const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
+        console.log('stakingInfo', stakingInfo)
+        stakedAmount.value = stakingInfo.totalStaked
+        delegatedStakeAccounts.value = stakingInfo.delegatedAccounts || []
+
+        // Get rewards info if we have stake accounts
+        if (stakingInfo.stakeAccounts > 0) {
+          const rewards = await getStakeRewards(walletAddress.value)
+          rewardsEarned.value = rewards ? rewards.amount / LAMPORTS_PER_SOL : 0
+          lastRewardTime.value = rewards ? rewards.epoch : null
+        } else {
+          rewardsEarned.value = 0
+          lastRewardTime.value = null
+        }
+      } catch (error) {
+        console.error('Failed to refresh staking info:', error)
       }
     }
 
@@ -216,6 +318,7 @@ export default {
         )
         transactionHash.value = hash
         stakingSuccess.value = true
+        refreshStakingInfo()
       } catch (error) {
         console.error('Failed to delegate tokens:', error)
         stakingError.value = error.message || 'Failed to delegate tokens'
@@ -226,10 +329,21 @@ export default {
       emit('close')
     }
 
+    const handleUndelegateStake = async () => {
+      try {
+        const hash = await undelegateStake(walletAddress.value)
+        console.log('hash', hash)
+        transactionHash.value = hash
+        refreshStakingInfo()
+      } catch (error) {
+        console.error('Failed to undelegate stake:', error)
+      }
+    }
+
     const truncateAddress = (address) => {
-      if (!address) return '';
-      if (address.length <= 12) return address;
-      return address.substring(0, 6) + '...' + address.substring(address.length - 4);
+      if (!address) return ''
+      if (address.length <= 12) return address
+      return address.substring(0, 6) + '...' + address.substring(address.length - 4)
     }
 
     return {
@@ -246,7 +360,13 @@ export default {
       transactionHash,
       connectWallet: handleConnectWallet,
       delegateTokens: handleDelegateTokens,
-      truncateAddress
+      undelegateStake: handleUndelegateStake,
+      truncateAddress,
+      walletError,
+      isConnecting,
+      stakedAmount,
+      rewardsEarned,
+      lastRewardTime
     }
   }
 }
@@ -281,7 +401,9 @@ export default {
 .modal-container {
   background-color: white;
   border-radius: 0.75rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   max-width: 28rem;
   width: 100%;
   overflow: hidden;
@@ -372,7 +494,9 @@ export default {
   padding: 0.75rem 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
 }
 
 .primary-button:hover:not(:disabled) {
@@ -457,7 +581,9 @@ export default {
   font-size: 0.875rem;
   color: #1f2937;
   background-color: white;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .form-input:focus {
@@ -485,6 +611,44 @@ export default {
   color: #6b7280;
 }
 
+/* Info Cards */
+.info-card {
+  margin-top: 0.5rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 0.2rem;
+}
+
+.info-card-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1f2937;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.info-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+}
+
+.info-label {
+  color: #6b7280;
+}
+
+.info-value {
+  font-weight: 500;
+  color: #1f2937;
+}
+
 /* Success/Error Messages */
 .success-message {
   color: #059669;
@@ -504,14 +668,47 @@ export default {
   font-size: 0.875rem;
 }
 
-/* Remove number input arrows */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
-  margin: 0; 
+/* Wallet Warning */
+.wallet-warning {
+  background-color: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  display: flex;
+  gap: 1rem;
 }
 
-input[type=number] {
+.warning-icon {
+  color: #ea580c;
+  flex-shrink: 0;
+}
+
+.warning-content {
+  flex: 1;
+}
+
+.warning-title {
+  color: #ea580c;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.warning-message {
+  color: #9a3412;
+  font-size: 0.875rem;
+  margin: 0 0 0.75rem 0;
+}
+
+/* Remove number input arrows */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
   -moz-appearance: textfield;
 }
 </style>
