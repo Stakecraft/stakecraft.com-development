@@ -19,7 +19,7 @@ jobs:
             cd ~/stakecraft.com-development
             git pull
             cd stakecraftFE/
-            npm install
+            npm install --legacy-peer-deps
             npm run build
           host: ${{ secrets.HOST }}
           user: ${{ secrets.USER }}
