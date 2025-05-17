@@ -226,7 +226,9 @@ import { ref, computed, onMounted } from 'vue'
 import {
   connectWallet,
   delegateTokens,
-  undelegateStake
+  undelegateStake,
+  getTotalStakedAmount,
+  // getStakeRewards
   // getDelegationStatus
 } from '../../utils/KavaStaking'
 
@@ -285,21 +287,22 @@ export default {
       if (!walletAddress.value) return
 
       try {
-        // Get total staked amount to the validator
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
         console.log('stakingInfo', stakingInfo)
-        stakedAmount.value = stakingInfo.totalStaked
-        delegatedStakeAccounts.value = stakingInfo.delegatedAccounts || []
+        stakedAmount.value = stakingInfo.amount / 10 ** 6
+        console.log('stakedAmount', stakedAmount.value)
 
-        // Get rewards info if we have stake accounts
-        if (stakingInfo.stakeAccounts > 0) {
-          const rewards = await getStakeRewards(walletAddress.value)
-          rewardsEarned.value = rewards ? rewards.amount / LAMPORTS_PER_SOL : 0
-          lastRewardTime.value = rewards ? rewards.epoch : null
-        } else {
-          rewardsEarned.value = 0
-          lastRewardTime.value = null
-        }
+        rewardsEarned.value = 0
+        lastRewardTime.value = null
+        // if (stakedAmount.value > 0) {
+        //   const rewards = await getStakeRewards(walletAddress.value, validatorAddress.value)
+        //   console.log('rewards', rewards)
+        //   rewardsEarned.value = rewards.amount
+        //   lastRewardTime.value = rewards.epoch
+        // } else {
+        //   rewardsEarned.value = 0
+        //   lastRewardTime.value = null
+        // }
       } catch (error) {
         console.error('Failed to refresh staking info:', error)
       }
@@ -331,12 +334,19 @@ export default {
 
     const handleUndelegateStake = async () => {
       try {
-        const hash = await undelegateStake(walletAddress.value)
-        console.log('hash', hash)
+        console.log('-------vue console. handleUndelegateStake start-------')
+        console.log('vue console. walletAddress', walletAddress.value)
+        console.log('vue console. validatorAddress', validatorAddress.value)
+        stakingSuccess.value = false
+        stakingError.value = null
+        const hash = await undelegateStake(walletAddress.value, validatorAddress.value)
+        console.log('vue console. hash', hash)
         transactionHash.value = hash
-        refreshStakingInfo()
+        stakingSuccess.value = true
+        await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to undelegate stake:', error)
+        stakingError.value = error.message || 'Failed to undelegate stake'
       }
     }
 
@@ -486,6 +496,12 @@ export default {
 }
 
 /* Buttons */
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .primary-button {
   background-color: #6366f1;
   color: white;

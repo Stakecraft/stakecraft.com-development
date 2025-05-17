@@ -150,15 +150,25 @@
               </div>
             </div>
             
-            <!-- Action Button -->
-            <button
-              @click="delegateTokens"
-              :disabled="!isValidStake"
-              class="primary-button full-width delegate-button"
-              :class="{ 'button-disabled': !isValidStake }"
-            >
-              Delegate JUNO
-            </button>
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+              <button
+                @click="delegateTokens"
+                :disabled="!isValidStake"
+                class="primary-button full-width delegate-button"
+                :class="{ 'button-disabled': !isValidStake }"
+              >
+                Delegate JUNO
+              </button>
+              <button
+                @click="undelegateStake"
+                :disabled="stakedAmount <= 0"
+                class="primary-button full-width delegate-button"
+                :class="{ 'button-disabled': stakedAmount <= 0 }"
+              >
+                Undelegate JUNO
+              </button>
+            </div>
             
             <!-- Network Links -->
             <div class="network-links-bottom">
@@ -188,7 +198,12 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue'
-import { connectWallet, delegateTokens, getStakingInfo } from '../../utils/JunoStaking'
+import {
+  connectWallet,
+  delegateTokens,
+  undelegateStake,
+  getTotalStakedAmount
+} from '../../utils/JunoStaking'
 
 export default {
   name: 'JunoStaking',
@@ -204,17 +219,19 @@ export default {
     const walletAddress = ref('')
     const stakeAmount = ref(0)
     const validatorAddress = ref('')
-    const stakedAmount = ref(0)
-    const rewardsEarned = ref(0)
-    const lastRewardTime = ref(null)
+    const delegationInfo = ref(null)
+    const minimumStake = 0.01 // Minimum JUNO to stake
     const stakingSuccess = ref(false)
     const stakingError = ref(null)
     const transactionHash = ref('')
-    const minimumStake = 0.01
+    const walletError = ref(false)
     const isConnecting = ref(false)
+    const stakedAmount = ref(0)
+    const rewardsEarned = ref(0)
+    const lastRewardTime = ref(null)
 
     onMounted(() => {
-      if (props.network?.validator) {
+      if (props.network?.validator?.[0]) {
         validatorAddress.value = props.network.validator[0]
       }
     })
@@ -227,15 +244,14 @@ export default {
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
-        stakingError.value = null
         const address = await connectWallet()
         walletAddress.value = address
         walletConnected.value = true
-        await refreshStakingInfo()
+        isConnecting.value = false
+        refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
-        stakingError.value = error.message
-      } finally {
+        walletError.value = true
         isConnecting.value = false
       }
     }
@@ -244,10 +260,13 @@ export default {
       if (!walletAddress.value) return
 
       try {
-        const info = await getStakingInfo(walletAddress.value)
-        stakedAmount.value = info.stakedAmount
-        rewardsEarned.value = info.rewardsEarned
-        lastRewardTime.value = info.lastRewardTime
+        const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
+        console.log('stakingInfo', stakingInfo)
+        stakedAmount.value = stakingInfo.amount / 10 ** 6
+        console.log('stakedAmount', stakedAmount.value)
+
+        rewardsEarned.value = 0
+        lastRewardTime.value = null
       } catch (error) {
         console.error('Failed to refresh staking info:', error)
       }
@@ -259,20 +278,32 @@ export default {
       try {
         stakingSuccess.value = false
         stakingError.value = null
-
         const hash = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
           stakeAmount.value
         )
-
         transactionHash.value = hash
         stakingSuccess.value = true
-        stakeAmount.value = 0
+        refreshStakingInfo()
+      } catch (error) {
+        console.error('Failed to delegate tokens:', error)
+        stakingError.value = error.message || 'Failed to delegate tokens'
+      }
+    }
+
+    const handleUndelegateStake = async () => {
+      try {
+        stakingSuccess.value = false
+        stakingError.value = null
+        const hash = await undelegateStake(walletAddress.value, validatorAddress.value)
+        console.log('vue console. hash', hash)
+        transactionHash.value = hash
+        stakingSuccess.value = true
         await refreshStakingInfo()
       } catch (error) {
-        console.error('Failed to stake tokens:', error)
-        stakingError.value = error.message
+        console.error('Failed to undelegate stake:', error)
+        stakingError.value = error.message || 'Failed to undelegate stake'
       }
     }
 
@@ -281,9 +312,9 @@ export default {
     }
 
     const truncateAddress = (address) => {
-      if (!address) return '';
-      if (address.length <= 12) return address;
-      return address.substring(0, 6) + '...' + address.substring(address.length - 4);
+      if (!address) return ''
+      if (address.length <= 12) return address
+      return address.substring(0, 6) + '...' + address.substring(address.length - 4)
     }
 
     return {
@@ -292,18 +323,21 @@ export default {
       walletConnected,
       walletAddress,
       stakeAmount,
-      stakedAmount,
-      rewardsEarned,
-      lastRewardTime,
+      delegationInfo,
       minimumStake,
       isValidStake,
       stakingSuccess,
       stakingError,
       transactionHash,
-      isConnecting,
       connectWallet: handleConnectWallet,
       delegateTokens: handleDelegateTokens,
-      truncateAddress
+      undelegateStake: handleUndelegateStake,
+      truncateAddress,
+      walletError,
+      isConnecting,
+      stakedAmount,
+      rewardsEarned,
+      lastRewardTime
     }
   }
 }
@@ -421,6 +455,11 @@ export default {
 }
 
 /* Buttons */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .primary-button {
   background-color: #6366f1;
   color: white;

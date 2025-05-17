@@ -32,6 +32,20 @@ const tryRpcEndpoints = async (offlineSigner) => {
   throw new Error(`Failed to connect to any RPC endpoint. Last error: ${lastError?.message}`)
 }
 
+// Get total staked amount
+export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) => {
+  try {
+    await window.keplr.enable(BAND_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(BAND_CHAIN_ID)
+    const client = await tryRpcEndpoints(offlineSigner)
+    const stakingInfo = await client.getDelegation(delegatorAddress, validatorAddress)
+    return stakingInfo
+  } catch (error) {
+    console.error('Error getting total staked amount:', error)
+    throw new Error(`Failed to get total staked amount: ${error.message}`)
+  }
+}
+
 // Delegate tokens
 export const delegateTokens = async (delegatorAddress, validatorAddress, amount) => {
   try {
@@ -63,34 +77,45 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
   }
 }
 
-// Get staking information
-export const getStakingInfo = async (address) => {
+export const undelegateStake = async (delegatorAddress, validatorAddress) => {
   try {
-    if (!address) {
-      throw new Error('Wallet address is required')
+    await window.keplr.enable(BAND_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(BAND_CHAIN_ID)
+    const client = await tryRpcEndpoints(offlineSigner)
+
+    const delegation = await client.getDelegation(delegatorAddress, validatorAddress)
+    console.log('delegation', delegation)
+    
+    if (!delegation) {
+      throw new Error('No delegation found')
     }
 
-    return {
-      stakedAmount: 0,
-      rewardsEarned: 0,
-      lastRewardTime: null
+    // Get the delegation amount
+    const delegationAmount = delegation?.amount
+    console.log('delegationAmount', delegationAmount)
+
+    if (!delegationAmount) {
+      throw new Error('Could not find delegation amount')
     }
+
+    // Format the amount properly for undelegation
+    const amount = {
+      denom: 'uband',
+      amount: delegationAmount.toString()
+    }
+    console.log('formatted amount', amount)
+
+    const result = await client.undelegateTokens(
+      delegatorAddress,
+      validatorAddress,
+      amount,
+      'auto',
+      'Undelegate BAND tokens'
+    )
+    console.log('result', result)
+    return result.transactionHash
   } catch (error) {
-    console.error('Error getting staking info:', error)
-    throw new Error(`Failed to get staking information: ${error.message}`)
-  }
-}
-
-// Get available balance
-export const getBalance = async (address) => {
-  try {
-    if (!address) {
-      throw new Error('Wallet address is required')
-    }
-
-    return 0
-  } catch (error) {
-    console.error('Error getting balance:', error)
-    throw new Error(`Failed to get balance: ${error.message}`)
+    console.error('Error undelegating stake:', error)
+    throw new Error(`Failed to undelegate stake: ${error.message}`)
   }
 }

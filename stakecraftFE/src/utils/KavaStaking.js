@@ -36,6 +36,19 @@ const tryRpcEndpoints = async (offlineSigner) => {
   throw new Error(`Failed to connect to any RPC endpoint. Last error: ${lastError?.message}`)
 }
 
+export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) => {
+  try {
+    await window.keplr.enable(KAVA_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(KAVA_CHAIN_ID)
+    const client = await tryRpcEndpoints(offlineSigner)
+    const stakingInfo = await client.getDelegation(delegatorAddress, validatorAddress)
+    return stakingInfo
+  } catch (error) {
+    console.error('Error getting total staked amount:', error)
+    throw new Error(`Failed to get total staked amount: ${error.message}`)
+  }
+}
+
 // Delegate tokens
 export const delegateTokens = async (delegatorAddress, validatorAddress, amount) => {
   try {
@@ -60,12 +73,43 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
   }
 }
 
-export const undelegateStake = async (delegatorAddress) => {
+export const undelegateStake = async (delegatorAddress, validatorAddress) => {
   try {
     await window.keplr.enable(KAVA_CHAIN_ID)
     const offlineSigner = window.getOfflineSigner(KAVA_CHAIN_ID)
     const client = await tryRpcEndpoints(offlineSigner)
-    console.log('client', client)
+
+    const delegation = await client.getDelegation(delegatorAddress, validatorAddress)
+    console.log('delegation', delegation)
+    
+    if (!delegation) {
+      throw new Error('No delegation found')
+    }
+
+    // Get the delegation amount from the correct path in the object
+    const delegationAmount = delegation?.amount
+    console.log('delegationAmount', delegationAmount)
+
+    if (!delegationAmount) {
+      throw new Error('Could not find delegation amount')
+    }
+
+    // Format the amount properly for undelegation
+    const amount = {
+      denom: 'ukava',
+      amount: delegationAmount.toString()
+    }
+    console.log('formatted amount', amount)
+
+    const result = await client.undelegateTokens(
+      delegatorAddress,
+      validatorAddress,
+      amount,
+      'auto',
+      'Undelegate KAVA tokens'
+    )
+    console.log('result', result)
+    return result.transactionHash
   } catch (error) {
     console.error('Error undelegating stake:', error)
     throw new Error(`Failed to undelegate stake: ${error.message}`)

@@ -4,8 +4,7 @@ const AGORIC_CHAIN_ID = 'agoric-3'
 
 const RPC_ENDPOINTS = [
   'https://agoric-rpc.polkachu.com',
-  'https://rpc.agoric.nodestake.top',
-  'https://agoric-rpc.publicnode.com'
+  'https://rpc.agoric.nodestake.top'
 ]
 
 // Connect wallet
@@ -27,12 +26,16 @@ const tryRpcEndpoints = async (offlineSigner) => {
       const client = await SigningStargateClient.connectWithSigner(
         endpoint,
         offlineSigner,
-        { gasPrice: GasPrice.fromString('0.025ubld') } // Agoric's native token
+        { 
+          gasPrice: GasPrice.fromString('0.025ubld'),
+          timeout: 10000
+        }
       )
       return client
     } catch (error) {
       console.warn(`Failed to connect to ${endpoint}:`, error)
       lastError = error
+      await new Promise(resolve => setTimeout(resolve, 1000))
     }
   }
   throw new Error(`Failed to connect to any RPC endpoint. Last error: ${lastError?.message}`)
@@ -44,16 +47,24 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
     await window.keplr.enable(AGORIC_CHAIN_ID)
     const offlineSigner = window.getOfflineSigner(AGORIC_CHAIN_ID)
     const client = await tryRpcEndpoints(offlineSigner)
-    const result = await client.delegateTokens(
-      delegatorAddress,
-      validatorAddress,
-      {
-        denom: 'ubld',
-        amount: (amount * 1_000_000).toString()
-      },
-      'auto',
-      'Delegate BLD tokens'
-    )
+
+    const msg = {
+      typeUrl: '/cosmos.staking.v1beta1.MsgDelegate',
+      value: {
+        delegatorAddress: delegatorAddress,
+        validatorAddress: validatorAddress,
+        amount: {
+          denom: 'ubld',
+          amount: String(amount * 1_000_000)
+        }
+      }
+    }
+
+    const result = await client.signAndBroadcast(delegatorAddress, [msg], {
+      amount: [{ denom: 'ubld', amount: String(amount * 1_000_000) }],
+      gas: '300000'
+    })
+
     return result.transactionHash
   } catch (error) {
     console.error('Error delegating tokens:', error)
@@ -61,34 +72,59 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
   }
 }
 
-// Get staking information
-export const getStakingInfo = async (address) => {
+// Get total staked amount
+export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) => {
   try {
-    if (!address) {
-      throw new Error('Wallet address is required')
-    }
-
-    return {
-      stakedAmount: 0,
-      rewardsEarned: 0,
-      lastRewardTime: null
-    }
+    await window.keplr.enable(AGORIC_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(AGORIC_CHAIN_ID)
+    const client = await tryRpcEndpoints(offlineSigner)
+    const stakingInfo = await client.getDelegation(delegatorAddress, validatorAddress)
+    return stakingInfo
   } catch (error) {
-    console.error('Error getting staking info:', error)
-    throw new Error(`Failed to get staking information: ${error.message}`)
+    console.error('Error getting total staked amount:', error)
+    throw new Error(`Failed to get total staked amount: ${error.message}`)
   }
 }
 
-// Get available balance
-export const getBalance = async (address) => {
+export const undelegateStake = async (delegatorAddress, validatorAddress) => {
   try {
-    if (!address) {
-      throw new Error('Wallet address is required')
+    await window.keplr.enable(AGORIC_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(AGORIC_CHAIN_ID)
+    const client = await tryRpcEndpoints(offlineSigner)
+
+    const delegation = await client.getDelegation(delegatorAddress, validatorAddress)
+    console.log('delegation', delegation)
+    
+    if (!delegation) {
+      throw new Error('No delegation found')
     }
 
-    return 0
+    // Get the delegation amount
+    const delegationAmount = delegation?.amount
+    console.log('delegationAmount', delegationAmount)
+
+    if (!delegationAmount) {
+      throw new Error('Could not find delegation amount')
+    }
+
+    // Format the amount properly for undelegation
+    const amount = {
+      denom: 'ubld',
+      amount: delegationAmount.toString()
+    }
+    console.log('formatted amount', amount)
+
+    const result = await client.undelegateTokens(
+      delegatorAddress,
+      validatorAddress,
+      amount,
+      'auto',
+      'Undelegate BLD tokens'
+    )
+    console.log('result', result)
+    return result.transactionHash
   } catch (error) {
-    console.error('Error getting balance:', error)
-    throw new Error(`Failed to get balance: ${error.message}`)
+    console.error('Error undelegating stake:', error)
+    throw new Error(`Failed to undelegate stake: ${error.message}`)
   }
 }
