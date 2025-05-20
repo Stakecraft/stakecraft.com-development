@@ -222,7 +222,8 @@ import {
   createAndInitializeStakeAccount,
   getStakingInfo,
   getTotalStakedAmount,
-  undelegateStake
+  undelegateStake,
+  getStakeActivationStatus
 } from '../../utils/SolanaStaking'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 
@@ -244,7 +245,11 @@ export default {
     const rewardsEarned = ref(0)
     const lastRewardTime = ref(null)
     const delegatedStakeAccounts = ref([])
-
+    const completedStakeAccounts = ref([
+      'DqCFeJweWrPHYNuYD8uK7HwxcF7kMEJjAaCSWGPdieAJ',
+      '7fXr2zoyFCePcyLD1gnepxBEVyXwVbrgtKmr81GWUiF6',
+      '7fvq1pzmtwALR7ShXbBKEbyCKicZSCqGMWkQYmpeiZa5'
+    ])
     onMounted(() => {
       if (props.network?.validator?.[0]) {
         validatorAddress.value = props.network.validator[0]
@@ -269,11 +274,12 @@ export default {
           walletError.value = 'Phantom wallet not found'
           return
         }
-
         const publicKey = await connectWallet()
         walletAddress.value = publicKey.toString()
         walletConnected.value = true
         await refreshStakingInfo()
+        console.log('delegatedStakeAccounts', delegatedStakeAccounts.value)
+        console.log('completedStakeAccounts', completedStakeAccounts.value)
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         if (error.message.includes('not installed') || error.message.includes('not found')) {
@@ -288,13 +294,9 @@ export default {
       if (!walletAddress.value) return
 
       try {
-        // Get total staked amount to the validator
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
-        console.log('stakingInfo', stakingInfo)
         stakedAmount.value = stakingInfo.totalStaked
         delegatedStakeAccounts.value = stakingInfo.delegatedAccounts || []
-
-        // Get rewards info if we have stake accounts
         if (stakingInfo.stakeAccounts > 0) {
           const rewards = await getStakeRewards(walletAddress.value)
           rewardsEarned.value = rewards ? rewards.amount / LAMPORTS_PER_SOL : 0
@@ -310,25 +312,19 @@ export default {
 
     const handleDelegateStake = async () => {
       if (!isValidStake.value) return
-
       try {
         const { stakeAccount } = await createAndInitializeStakeAccount(
           stakeAmount.value * LAMPORTS_PER_SOL
         )
-
         if (!stakeAccount) {
           throw new Error('Failed to create stake account')
         }
-
         const initialStakeInfo = await getStakeAccountInfo(stakeAccount)
         stakeAccountInfo.value = initialStakeInfo
-
-        // Get validator address from props or input
         const validator = props.network?.validator?.[0] || validatorAddress.value
         if (!validator) {
           throw new Error('Validator address is required')
         }
-
         const signature = await delegateStake(stakeAccount, validator)
         transactionSignature.value = signature
         stakeAccountInfo.value = await getStakeAccountInfo(stakeAccount)
@@ -342,15 +338,30 @@ export default {
     const handleUndelegateStake = async () => {
       try {
         if (!delegatedStakeAccounts.value.length) {
-          throw new Error('No stake account found')
+          throw new Error('No delegated stake accounts found')
         }
-        // For now, undelegate the first one
-        const signature = await undelegateStake(delegatedStakeAccounts.value[3])
+        const activeStakeAccounts = delegatedStakeAccounts.value.filter(
+          (account) => !completedStakeAccounts.value.includes(account)
+        )
+        if (!activeStakeAccounts.length) {
+          throw new Error('No active stake accounts found')
+        }
+        const stakeAccountAddress = activeStakeAccounts[1]
+        console.log('stakeAccountAddress', stakeAccountAddress)
+        const signature = await undelegateStake(stakeAccountAddress)
         transactionSignature.value = signature
         console.log('signature', signature)
+
+        if (signature) {
+          completedStakeAccounts.value.push(stakeAccountAddress)
+        }
+
+        console.log('delegatedStakeAccounts', delegatedStakeAccounts.value)
+        console.log('completedStakeAccounts', completedStakeAccounts.value)
         await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to undelegate stake:', error)
+        throw new Error(`Failed to undelegate stake: ${error.message}`)
       }
     }
 

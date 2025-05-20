@@ -85,7 +85,7 @@ export default {
 
     const handleResize = () => {
       dropdownVisible.value = window.innerWidth <= 945
-      console.log('handleResize', dropdownVisible.value, window.innerWidth)
+      // console.log('handleResize', dropdownVisible.value, window.innerWidth)
     }
 
     onMounted(() => {
