@@ -7,15 +7,58 @@
           <div class="modal-header">
             <h2 class="modal-title">{{ network.title }}</h2>
             <button @click="closeModal" class="close-button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-x"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
             </button>
           </div>
-          
+
           <!-- Network Description -->
           <div v-if="!walletConnected" class="network-description">
             <p>{{ network.description }}</p>
           </div>
-          
+
+          <!-- Wallet Warning -->
+          <div v-if="walletError" class="wallet-warning">
+            <div class="warning-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                ></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <div class="warning-content">
+              <h3 class="warning-title">Wallet Not Found</h3>
+              <p class="warning-message">
+                To use KOII staking, you need to install the Finnie wallet extension.
+              </p>
+            </div>
+          </div>
+
           <!-- Wallet Connection -->
           <div v-if="!walletConnected" class="wallet-connection">
             <button
@@ -25,7 +68,7 @@
             >
               {{ isConnecting ? 'Connecting...' : 'Connect Finnie Wallet' }}
             </button>
-            
+
             <!-- Network Links -->
             <div class="network-links">
               <a
@@ -46,13 +89,14 @@
               </a>
             </div>
           </div>
-          
+
           <!-- Connected Wallet Info -->
           <div v-if="walletConnected">
             <div class="wallet-info-card">
               <div class="wallet-info-row">
                 <span class="info-label">Connected Wallet:</span>
-                <span class="info-value">{{ walletAddress }}</span>
+                <span class="info-value">{{ truncateAddress(walletAddress) }}</span>
+                <!-- <span class="info-value">{{ walletAddress }}</span> -->
               </div>
               <div v-if="transactionHash" class="transaction-info">
                 <div class="wallet-info-row">
@@ -67,14 +111,12 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Staking Form -->
             <div class="staking-form">
               <!-- Staking Amount Input -->
               <div class="form-group">
-                <label class="form-label">
-                  Amount to Stake (KOII)
-                </label>
+                <label class="form-label"> Amount to Stake (KOII) </label>
                 <div class="input-container">
                   <input
                     v-model.number="stakeAmount"
@@ -89,17 +131,13 @@
                   </div>
                 </div>
                 <div class="input-hint">
-                  <span>
-                    Minimum: {{ minimumStake }} KOII
-                  </span>
+                  <span> Minimum: {{ minimumStake }} KOII </span>
                 </div>
               </div>
-              
+
               <!-- Validator Address -->
               <div class="form-group">
-                <label class="form-label">
-                  Validator Address
-                </label>
+                <label class="form-label"> Validator Address </label>
                 <input
                   v-model="validatorAddress"
                   type="text"
@@ -108,7 +146,7 @@
                 />
               </div>
             </div>
-            
+
             <!-- Staking Info -->
             <div class="info-card">
               <h3 class="info-card-title">Staking Status</h3>
@@ -122,10 +160,6 @@
                   <span class="info-value">{{ rewardsEarned }} KOII</span>
                 </div>
                 <div class="info-row">
-                  <span class="info-label">Attention Score:</span>
-                  <span class="info-value">{{ attentionScore }}</span>
-                </div>
-                <div class="info-row">
                   <span class="info-label">Last Reward:</span>
                   <span class="info-value">{{
                     lastRewardTime ? new Date(lastRewardTime).toLocaleString() : 'Never'
@@ -133,7 +167,7 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Success/Error Messages -->
             <div v-if="stakingSuccess" class="success-message">
               Successfully staked KOII tokens!
@@ -145,24 +179,36 @@
                 <ol>
                   <li>
                     Install the Finnie wallet extension from
-                    <a href="https://finnie.koii.network/" target="_blank">https://finnie.koii.network/</a>
+                    <a href="https://finnie.koii.network/" target="_blank"
+                      >https://finnie.koii.network/</a
+                    >
                   </li>
                   <li>Create an account in the Finnie wallet</li>
                   <li>Refresh this page after installation</li>
                 </ol>
               </div>
             </div>
-            
+
             <!-- Action Button -->
-            <button
-              @click="delegateTokens"
-              :disabled="!isValidStake"
-              class="primary-button full-width delegate-button"
-              :class="{ 'button-disabled': !isValidStake }"
-            >
-              Delegate KOII
-            </button>
-            
+            <div class="action-buttons">
+              <button
+                @click="delegateTokens"
+                :disabled="!isValidStake"
+                class="primary-button full-width delegate-button"
+                :class="{ 'button-disabled': !isValidStake }"
+              >
+                Delegate KOII
+              </button>
+              <button
+                @click="undelegateTokens"
+                :disabled="stakedAmount <= 0"
+                class="primary-button full-width delegate-button"
+                :class="{ 'button-disabled': stakedAmount <= 0 }"
+              >
+                Undelegate KOII
+              </button>
+            </div>
+
             <!-- Network Links -->
             <div class="network-links-bottom">
               <a
@@ -191,7 +237,12 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue'
-import { connectWallet, delegateTokens, getStakingInfo } from '../../utils/KoiiStaking'
+import {
+  connectWallet,
+  delegateTokens,
+  undelegateTokens,
+  getTotalStakedAmount
+} from '../../utils/KoiiStaking'
 
 export default {
   name: 'KoiiStaking',
@@ -216,6 +267,10 @@ export default {
     const transactionHash = ref('')
     const minimumStake = 0.01
     const isConnecting = ref(false)
+    const undelegateAmount = ref(0)
+    const undelegateSuccess = ref(false)
+    const undelegateError = ref(null)
+    const totalStaked = ref(0)
 
     onMounted(() => {
       if (props.network?.validator) {
@@ -235,6 +290,7 @@ export default {
         const address = await connectWallet()
         walletAddress.value = address
         walletConnected.value = true
+        await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         stakingError.value = error.message
@@ -265,15 +321,46 @@ export default {
       }
     }
 
+    const handleUndelegateTokens = async () => {
+      if (!undelegateAmount.value || undelegateAmount.value <= 0) return
+      try {
+        undelegateSuccess.value = false
+        undelegateError.value = null
+        const hash = await undelegateTokens(
+          walletAddress.value,
+          validatorAddress.value,
+          undelegateAmount.value
+        )
+        transactionHash.value = hash
+        undelegateSuccess.value = true
+        undelegateAmount.value = 0
+        await refreshStakingInfo()
+      } catch (error) {
+        console.error('Failed to undelegate tokens:', error)
+        undelegateError.value = error.message
+      }
+    }
+
+    const refreshStakingInfo = async () => {
+      try {
+        console.log('walletAddress.value', walletAddress.value)
+        const totalInfo = await getTotalStakedAmount(walletAddress.value)
+        console.log('totalInfo', totalInfo)
+      } catch (error) {
+        console.error('Failed to refresh staking info:', error)
+      }
+    }
+
     const closeModal = () => {
       emit('close')
     }
 
     const truncateAddress = (address) => {
-      if (!address) return '';
-      if (address.length <= 12) return address;
-      console.log(typeof address, address);
-      return address;
+      if (!address) return ''
+      if (address.length <= 12) return address
+      const addr = typeof address === 'string' ? address : address.toString()
+      console.log('addr', addr)
+      return addr.substring(0, 6) + '...' + addr.substring(addr.length - 4)
     }
 
     return {
@@ -294,7 +381,13 @@ export default {
       isConnecting,
       connectWallet: handleConnectWallet,
       delegateTokens: handleDelegateTokens,
-      truncateAddress
+      undelegateTokens: handleUndelegateTokens,
+      truncateAddress,
+      undelegateAmount,
+      undelegateSuccess,
+      undelegateError,
+      totalStaked,
+      refreshStakingInfo
     }
   }
 }
@@ -329,7 +422,9 @@ export default {
 .modal-container {
   background-color: white;
   border-radius: 0.75rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   max-width: 28rem;
   width: 100%;
   overflow: hidden;
@@ -412,6 +507,11 @@ export default {
 }
 
 /* Buttons */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .primary-button {
   background-color: #6366f1;
   color: white;
@@ -420,7 +520,9 @@ export default {
   padding: 0.75rem 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
 }
 
 .primary-button:hover:not(:disabled) {
@@ -505,7 +607,9 @@ export default {
   font-size: 0.875rem;
   color: #1f2937;
   background-color: white;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .form-input:focus {
@@ -612,13 +716,13 @@ export default {
 }
 
 /* Remove number input arrows */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
-  margin: 0; 
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-input[type=number] {
+input[type='number'] {
   -moz-appearance: textfield;
 }
 </style>

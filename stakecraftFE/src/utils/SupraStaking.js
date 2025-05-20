@@ -32,12 +32,27 @@ export const walletConnect = async () => {
   }
 }
 
+export const getTotalStakedAmount = async (walletAddress, validatorAddress) => {
+  try {
+    const provider = getProvider()
+
+    const result = await provider.account(validatorAddress)
+    console.log('result :: ', result)
+
+    const amount = result?.balance || '0'
+    return {
+      amount,
+      validatorId: validatorAddress
+    }
+  } catch (error) {
+    console.error('Error getting total staked amount:', error)
+    throw new Error(`Failed to get total staked amount: ${error.message}`)
+  }
+}
+
 export const delegateTokens = async (walletAddress, validatorAddress, amount) => {
   try {
     const provider = getProvider()
-    console.log('StarKey Wallet:', starKeyWallet)
-    console.log('---------------------------------Provider initialized:', provider)
-
     const txExpiryTime = Math.ceil(Date.now() / 1000) + 30
     const optionalTransactionPayloadArgs = {
       txExpiryTime
@@ -55,8 +70,6 @@ export const delegateTokens = async (walletAddress, validatorAddress, amount) =>
     ]
 
     const data = await provider.createRawTransactionData(rawTxPayload)
-    console.log('data :: ', data)
-
     const params = {
       data: data,
       from: walletAddress,
@@ -65,7 +78,6 @@ export const delegateTokens = async (walletAddress, validatorAddress, amount) =>
       value: amount * 10 ** 8
     }
     const txHash = await provider.sendTransaction(params)
-    console.log('txHash :: ', txHash)
     return txHash
   } catch (error) {
     console.error('Delegation error:', error)
@@ -74,5 +86,45 @@ export const delegateTokens = async (walletAddress, validatorAddress, amount) =>
       error: error.message || 'Failed to delegate tokens. Please try again.',
       status: 'error'
     }
+  }
+}
+
+export const undelegateTokens = async (walletAddress, validatorAddress, amount) => {
+  try {
+    const provider = getProvider()
+    console.log('Undelegating tokens for:', walletAddress, 'from validator:', validatorAddress)
+
+    const txExpiryTime = Math.ceil(Date.now() / 1000) + 30
+    const optionalTransactionPayloadArgs = {
+      txExpiryTime
+    }
+
+    const rawTxPayload = [
+      walletAddress,
+      0,
+      '0000000000000000000000000000000000000000000000000000000000000001',
+      'supra_staking',
+      'unstake',
+      [],
+      [new HexString(validatorAddress).toUint8Array(), BCS.bcsSerializeUint64(amount * 10 ** 8)],
+      optionalTransactionPayloadArgs
+    ]
+
+    const data = await provider.createRawTransactionData(rawTxPayload)
+    console.log('Undelegate transaction data:', data)
+
+    const params = {
+      data: data,
+      from: walletAddress,
+      to: validatorAddress,
+      chainId: 8
+    }
+
+    const txHash = await provider.sendTransaction(params)
+    console.log('txHash :: ', txHash)
+    return txHash
+  } catch (error) {
+    console.error('Undelegation error:', error)
+    throw new Error(`Failed to undelegate tokens: ${error.message}`)
   }
 }

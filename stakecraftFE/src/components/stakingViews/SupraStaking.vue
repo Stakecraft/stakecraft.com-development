@@ -15,6 +15,23 @@
           <div v-if="!walletConnected" class="network-description">
             <p>{{ network.description }}</p>
           </div>
+
+          <!-- Wallet Warning -->
+          <div v-if="walletError" class="wallet-warning">
+            <div class="warning-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <div class="warning-content">
+              <h3 class="warning-title">Wallet Not Found</h3>
+              <p class="warning-message">
+                To use Supra staking, you need to install the Starkey wallet extension.
+              </p>
+            </div>
+          </div>
           
           <!-- Wallet Connection -->
           <div v-if="!walletConnected" class="wallet-connection">
@@ -80,7 +97,7 @@
                     v-model.number="stakeAmount"
                     type="number"
                     :min="minimumStake"
-                    step="0.1"
+                    step="1"
                     class="form-input"
                     placeholder="Enter amount"
                   />
@@ -101,42 +118,55 @@
                   Validator Address
                 </label>
                 <input
-                  v-model="validatorAddress"
+                  :value="network.validator"
                   type="text"
                   class="form-input"
                   placeholder="Enter validator address"
+                  readonly
                 />
               </div>
-            </div>
-            
-            <!-- Success/Error Messages -->
-            <div v-if="stakingSuccess" class="success-message">
-              Successfully staked SUPRA tokens!
-            </div>
-            <div v-if="stakingError" class="error-message">
-              {{ stakingError }}
-              <div v-if="stakingError.includes('not installed')" class="install-guide">
-                <p>To use Supra staking, you need to:</p>
-                <ol>
-                  <li>
-                    Install the Starkey wallet extension from
-                    <a href="https://starkey.com/" target="_blank">https://starkey.com/</a>
-                  </li>
-                  <li>Create an account in the Starkey wallet</li>
-                  <li>Refresh this page after installation</li>
-                </ol>
+
+              <!-- Staking Info -->
+              <div class="info-card">
+                <h3 class="info-card-title">Staking Status</h3>
+                <div class="info-card-content">
+                  <div class="info-row">
+                    <span class="info-label">Staked Amount:</span>
+                    <span class="info-value">{{ stakedAmount }} SUPRA</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Rewards Earned:</span>
+                    <span class="info-value">{{ rewardsEarned }} SUPRA</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Last Reward:</span>
+                    <span class="info-value">{{
+                      lastRewardTime ? new Date(lastRewardTime).toLocaleString() : 'Never'
+                    }}</span>
+                  </div>
+                </div>
               </div>
             </div>
             
-            <!-- Action Button -->
-            <button
-              @click="delegateTokens"
-              :disabled="!isValidStake"
-              class="primary-button full-width delegate-button"
-              :class="{ 'button-disabled': !isValidStake }"
-            >
-              Delegate SUPRA
-            </button>
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+              <button
+                @click="delegateTokens"
+                :disabled="!isValidStake"
+                class="primary-button full-width delegate-button"
+                :class="{ 'button-disabled': !isValidStake }"
+              >
+                Delegate SUPRA
+              </button>
+              <button
+                @click="undelegateTokens"
+                :disabled="stakedAmount <= 0"
+                class="primary-button full-width delegate-button"
+                :class="{ 'button-disabled': stakedAmount <= 0 }"
+              >
+                Undelegate SUPRA
+              </button>
+            </div>
             
             <!-- Network Links -->
             <div class="network-links-bottom">
@@ -166,7 +196,7 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue'
-import { walletConnect, delegateTokens } from '../../utils/SupraStaking'
+import { walletConnect, delegateTokens, getTotalStakedAmount, undelegateTokens } from '../../utils/SupraStaking'
 
 export default {
   name: 'SupraStaking',
@@ -182,14 +212,18 @@ export default {
     const walletAddress = ref('')
     const stakeAmount = ref(0)
     const validatorAddress = ref('')
+    const stakedAmount = ref(0)
+    const rewardsEarned = ref(0)
+    const lastRewardTime = ref(null)
     const stakingSuccess = ref(false)
     const stakingError = ref(null)
     const transactionHash = ref('')
-    const minimumStake = 0.01
+    const minimumStake = 1
     const isConnecting = ref(false)
+    const walletError = ref(false)
 
     onMounted(() => {
-      if (props.network?.validator) {
+      if (props.network?.validator?.[0]) {
         validatorAddress.value = props.network.validator[0]
       }
     })
@@ -206,9 +240,11 @@ export default {
         const connectedId = await walletConnect()
         walletAddress.value = connectedId
         walletConnected.value = true
+        await refreshStakingInfo()
         return walletAddress.value
       } catch (error) {
         console.error('Failed to connect wallet:', error)
+        walletError.value = true
         stakingError.value = error.message
       } finally {
         isConnecting.value = false
@@ -216,29 +252,57 @@ export default {
     }
 
     const handleDelegateTokens = async () => {
-      if (!isValidStake.value) {
-        stakingError.value = "Please enter a valid stake amount and validator address"
-        return
-      }
+      if (!isValidStake.value) return
 
       try {
         stakingSuccess.value = false
         stakingError.value = null
-        
         const hash = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
           stakeAmount.value
         )
-
-        if (hash) {
-          transactionHash.value = hash
-          stakingSuccess.value = true
-          stakeAmount.value = 0
-        }
+        transactionHash.value = hash
+        stakingSuccess.value = true
+        stakeAmount.value = 0
+        await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to stake tokens:', error)
-        stakingError.value = error.message || 'Failed to delegate tokens. Please try again.'
+        stakingError.value = error.message
+      }
+    }
+
+    const handleUndelegateTokens = async () => {
+      try {
+        stakingSuccess.value = false
+        stakingError.value = null
+        const hash = await undelegateTokens(
+          walletAddress.value,
+          validatorAddress.value,
+          stakedAmount.value
+        )
+        transactionHash.value = hash
+        stakingSuccess.value = true
+        stakedAmount.value = 0
+        await refreshStakingInfo()
+      } catch (error) {
+        console.error('Failed to undelegate tokens:', error)
+        stakingError.value = error.message
+      }
+    }
+
+    const refreshStakingInfo = async () => {
+      if (!walletAddress.value || !validatorAddress.value) return
+
+      try {
+        const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
+        console.log('stakingInfo', stakingInfo)
+        stakedAmount.value = Number(stakingInfo.amount).toFixed(3)
+        rewardsEarned.value = '0'
+        lastRewardTime.value = null
+      } catch (error) {
+        console.error('Failed to refresh staking info:', error)
+        stakingError.value = error.message
       }
     }
 
@@ -258,14 +322,19 @@ export default {
       walletConnected,
       walletAddress,
       stakeAmount,
+      stakedAmount,
+      rewardsEarned,
+      lastRewardTime,
       minimumStake,
       isValidStake,
       stakingSuccess,
       stakingError,
       transactionHash,
       isConnecting,
+      walletError,
       connectWallet: handleConnectWallet,
       delegateTokens: handleDelegateTokens,
+      undelegateTokens: handleUndelegateTokens,
       truncateAddress
     }
   }
@@ -384,6 +453,11 @@ export default {
 }
 
 /* Buttons */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .primary-button {
   background-color: #6366f1;
   color: white;
@@ -505,6 +579,44 @@ export default {
   color: #6b7280;
 }
 
+/* Info Cards */
+.info-card {
+  margin-top: 0.5rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 0.2rem;
+}
+
+.info-card-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1f2937;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.info-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+}
+
+.info-label {
+  color: #6b7280;
+}
+
+.info-value {
+  font-weight: 500;
+  color: #1f2937;
+}
+
 /* Success/Error Messages */
 .success-message {
   color: #059669;
@@ -524,26 +636,37 @@ export default {
   font-size: 0.875rem;
 }
 
-.install-guide {
-  margin-top: 0.75rem;
-  padding: 0.75rem;
-  background-color: #fef2f2;
-  border-radius: 0.375rem;
+/* Wallet Warning */
+.wallet-warning {
+  background-color: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  display: flex;
+  gap: 1rem;
+}
+
+.warning-icon {
+  color: #ea580c;
+  flex-shrink: 0;
+}
+
+.warning-content {
+  flex: 1;
+}
+
+.warning-title {
+  color: #ea580c;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.warning-message {
+  color: #9a3412;
   font-size: 0.875rem;
-}
-
-.install-guide ol {
-  margin: 0.5rem 0;
-  padding-left: 1.5rem;
-}
-
-.install-guide a {
-  color: #6366f1;
-  text-decoration: none;
-}
-
-.install-guide a:hover {
-  text-decoration: underline;
+  margin: 0 0 0.75rem 0;
 }
 
 /* Remove number input arrows */
