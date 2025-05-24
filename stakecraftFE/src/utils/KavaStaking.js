@@ -41,6 +41,7 @@ export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) =
     await window.keplr.enable(KAVA_CHAIN_ID)
     const offlineSigner = window.getOfflineSigner(KAVA_CHAIN_ID)
     const client = await tryRpcEndpoints(offlineSigner)
+    console.log('client', client)
     const stakingInfo = await client.getDelegation(delegatorAddress, validatorAddress)
     return stakingInfo
   } catch (error) {

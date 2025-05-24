@@ -1,94 +1,118 @@
-import { SigningStargateClient } from '@cosmjs/stargate'
-import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing'
-import { GasPrice } from '@cosmjs/stargate'
+import { SigningStargateClient, GasPrice } from '@cosmjs/stargate'
 
-const KI_RPC_ENDPOINT = 'https://rpc-mainnet.kichain.net'
 const KI_CHAIN_ID = 'kichain-2'
-const MINIMUM_GAS_PRICE = '0.025uxki'
 
-export async function connectWallet() {
+const RPC_ENDPOINTS = [
+  'https://rpc-mainnet.kichain.net',
+  'https://rpc-kichain.blockapsis.com',
+  'https://kichain-rpc.polkachu.com'
+]
+
+// Connect wallet
+export const connectWallet = async () => {
   if (!window.keplr) {
-    throw new Error('Keplr wallet is not installed')
+    throw new Error('Please install Keplr extension')
   }
+  await window.keplr.enable(KI_CHAIN_ID)
+  const offlineSigner = window.getOfflineSigner(KI_CHAIN_ID)
+  const accounts = await offlineSigner.getAccounts()
+  return accounts[0].address
+}
 
+// Helper function to try different RPC endpoints
+const tryRpcEndpoints = async (offlineSigner) => {
+  let lastError = null
+  for (const endpoint of RPC_ENDPOINTS) {
+    try {
+      const client = await SigningStargateClient.connectWithSigner(endpoint, offlineSigner, {
+        gasPrice: GasPrice.fromString('0.025uxki')
+      })
+      return client
+    } catch (error) {
+      console.warn(`Failed to connect to ${endpoint}:`, error)
+      lastError = error
+    }
+  }
+  throw new Error(`Failed to connect to any RPC endpoint. Last error: ${lastError?.message}`)
+}
+
+export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) => {
   try {
     await window.keplr.enable(KI_CHAIN_ID)
-    const offlineSigner = window.keplr.getOfflineSigner(KI_CHAIN_ID)
-    const accounts = await offlineSigner.getAccounts()
-    return accounts[0].address
+    const offlineSigner = window.getOfflineSigner(KI_CHAIN_ID)
+    const client = await tryRpcEndpoints(offlineSigner)
+    console.log('client', client)
+    const stakingInfo = await client.getDelegation(delegatorAddress, validatorAddress)
+    return stakingInfo
   } catch (error) {
-    throw new Error('Failed to connect wallet: ' + error.message)
+    console.error('Error getting total staked amount:', error)
+    throw new Error(`Failed to get total staked amount: ${error.message}`)
   }
 }
 
-export async function delegateTokens(walletAddress, validatorAddress, amount) {
-  if (!window.keplr) {
-    throw new Error('Keplr wallet is not installed')
-  }
-
+// Delegate tokens
+export const delegateTokens = async (delegatorAddress, validatorAddress, amount) => {
   try {
-    const offlineSigner = window.keplr.getOfflineSigner(KI_CHAIN_ID)
-    const client = await SigningStargateClient.connectWithSigner(
-      KI_RPC_ENDPOINT,
-      offlineSigner,
-      { gasPrice: GasPrice.fromString(MINIMUM_GAS_PRICE) }
-    )
-
-    const delegationAmount = {
-      denom: 'uxki',
-      amount: Math.floor(amount * 1000000).toString() // Convert to uxki (6 decimals)
-    }
-
+    await window.keplr.enable(KI_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(KI_CHAIN_ID)
+    const client = await tryRpcEndpoints(offlineSigner)
+    console.log('client', client)
     const result = await client.delegateTokens(
-      walletAddress,
+      delegatorAddress,
       validatorAddress,
-      delegationAmount,
-      'auto'
+      {
+        denom: 'uxki',
+        amount: (amount * 1_000_000).toString()
+      },
+      'auto',
+      'Delegate XKI tokens'
     )
-
     return result.transactionHash
   } catch (error) {
-    throw new Error('Failed to delegate tokens: ' + error.message)
+    console.error('Error delegating tokens:', error)
+    throw new Error(`Failed to delegate tokens: ${error.message}`)
   }
 }
 
-export async function getStakingInfo(walletAddress) {
+export const undelegateStake = async (delegatorAddress, validatorAddress) => {
   try {
-    const response = await fetch(`${KI_RPC_ENDPOINT}/cosmos/staking/v1beta1/delegations/${walletAddress}`)
-    const data = await response.json()
+    await window.keplr.enable(KI_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(KI_CHAIN_ID)
+    const client = await tryRpcEndpoints(offlineSigner)
 
-    if (!data.delegation_responses || data.delegation_responses.length === 0) {
-      return {
-        stakedAmount: 0,
-        rewardsEarned: 0,
-        lastRewardTime: null
-      }
+    const delegation = await client.getDelegation(delegatorAddress, validatorAddress)
+    console.log('delegation', delegation)
+    
+    if (!delegation) {
+      throw new Error('No delegation found')
     }
 
-    // Sum up all delegations
-    const totalStaked = data.delegation_responses.reduce((sum, delegation) => {
-      const amount = parseFloat(delegation.balance.amount) / 1000000 // Convert from uxki to XKI
-      return sum + amount
-    }, 0)
+    // Get the delegation amount from the correct path in the object
+    const delegationAmount = delegation?.amount
+    console.log('delegationAmount', delegationAmount)
 
-    // Get rewards
-    const rewardsResponse = await fetch(
-      `${KI_RPC_ENDPOINT}/cosmos/distribution/v1beta1/delegators/${walletAddress}/rewards`
+    if (!delegationAmount) {
+      throw new Error('Could not find delegation amount')
+    }
+
+    // Format the amount properly for undelegation
+    const amount = {
+      denom: 'uxki',
+      amount: delegationAmount.toString()
+    }
+    console.log('formatted amount', amount)
+
+    const result = await client.undelegateTokens(
+      delegatorAddress,
+      validatorAddress,
+      amount,
+      'auto',
+      'Undelegate XKI tokens'
     )
-    const rewardsData = await rewardsResponse.json()
-
-    const totalRewards = rewardsData.total.reduce((sum, reward) => {
-      const amount = parseFloat(reward.amount) / 1000000 // Convert from uxki to XKI
-      return sum + amount
-    }, 0)
-
-    return {
-      stakedAmount: totalStaked,
-      rewardsEarned: totalRewards,
-      lastRewardTime: new Date().toISOString() // This would need to be fetched from the chain
-    }
+    console.log('result', result)
+    return result.transactionHash
   } catch (error) {
-    console.error('Failed to get staking info:', error)
-    throw new Error('Failed to fetch staking information')
+    console.error('Error undelegating stake:', error)
+    throw new Error(`Failed to undelegate stake: ${error.message}`)
   }
 } 

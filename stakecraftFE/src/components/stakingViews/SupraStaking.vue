@@ -212,7 +212,7 @@ export default {
     const walletAddress = ref('')
     const stakeAmount = ref(0)
     const validatorAddress = ref('')
-    const stakedAmount = ref(0)
+    const stakedAmount = ref(1)
     const rewardsEarned = ref(0)
     const lastRewardTime = ref(null)
     const stakingSuccess = ref(false)
@@ -279,7 +279,8 @@ export default {
         const hash = await undelegateTokens(
           walletAddress.value,
           validatorAddress.value,
-          stakedAmount.value
+          // stakedAmount.value
+          1
         )
         transactionHash.value = hash
         stakingSuccess.value = true
@@ -297,7 +298,11 @@ export default {
       try {
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
         console.log('stakingInfo', stakingInfo)
-        stakedAmount.value = Number(stakingInfo.amount).toFixed(3)
+        if(stakingInfo.amount) {
+          stakedAmount.value = Number(stakingInfo.amount).toFixed(3)
+        } else {
+          stakedAmount.value = 0
+        }
         rewardsEarned.value = '0'
         lastRewardTime.value = null
       } catch (error) {

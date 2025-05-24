@@ -149,7 +149,7 @@
                 <div class="info-card-content">
                   <div class="info-row">
                     <span class="info-label">Staked Amount:</span>
-                    <span class="info-value">{{ stakedAmount }} SOL</span>
+                    <span class="info-value">{{ stakedAmount.toFixed(3) }} SOL</span>
                   </div>
                   <div class="info-row">
                     <span class="info-label">Rewards Earned:</span>
@@ -296,6 +296,7 @@ export default {
       try {
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
         stakedAmount.value = stakingInfo.totalStaked
+        console.log('typeof stakedAmount', typeof stakedAmount.value)
         delegatedStakeAccounts.value = stakingInfo.delegatedAccounts || []
         if (stakingInfo.stakeAccounts > 0) {
           const rewards = await getStakeRewards(walletAddress.value)

@@ -289,20 +289,16 @@ export default {
       try {
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
         console.log('stakingInfo', stakingInfo)
-        stakedAmount.value = stakingInfo.amount / 10 ** 6
+        if (stakingInfo.amount) {
+          stakedAmount.value = Number(stakingInfo.amount) / 10 ** 6
+        } else {
+          stakedAmount.value = 0.0
+        }
         console.log('stakedAmount', stakedAmount.value)
 
         rewardsEarned.value = 0
         lastRewardTime.value = null
-        // if (stakedAmount.value > 0) {
-        //   const rewards = await getStakeRewards(walletAddress.value, validatorAddress.value)
-        //   console.log('rewards', rewards)
-        //   rewardsEarned.value = rewards.amount
-        //   lastRewardTime.value = rewards.epoch
-        // } else {
-        //   rewardsEarned.value = 0
-        //   lastRewardTime.value = null
-        // }
+       
       } catch (error) {
         console.error('Failed to refresh staking info:', error)
       }

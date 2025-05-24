@@ -262,7 +262,11 @@ export default {
       try {
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
         console.log('stakingInfo', stakingInfo)
-        stakedAmount.value = stakingInfo.amount / 10 ** 6
+        if (stakingInfo.amount) {
+          stakedAmount.value = Number(stakingInfo.amount) / 10 ** 6
+        } else {
+          stakedAmount.value = 0.0
+        }
         console.log('stakedAmount', stakedAmount.value)
 
         rewardsEarned.value = 0

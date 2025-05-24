@@ -1,88 +1,226 @@
 <template>
-  <Transition name="modal-fade">
-    <div v-if="network" class="modal-backdrop" @click.self="closeModal">
-      <div class="ki-staking">
-        <div class="modal">
-          <header class="modal-header">
-            <div class="headerTitle">{{ network.title }}</div>
-            <button class="btn-close" @click="closeModal">×</button>
-          </header>
-          <div class="modal-content">
-            <div class="network-info">
-              <div class="network-description" v-if="!walletConnected">
-                <p>{{ network.description }}</p>
-              </div>
+  <transition name="modal-fade">
+    <div class="modal-overlay" @click.self="closeModal">
+      <div v-if="network" class="modal-container" @click.stop>
+        <div class="modal-content">
+          <!-- Header -->
+          <div class="modal-header">
+            <h2 class="modal-title">{{ network.title }}</h2>
+            <button @click="closeModal" class="close-button">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-x"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+          </div>
 
-              <div class="staking-header">
-                <button 
-                  class="connect-wallet" 
-                  @click="connectWallet" 
-                  v-if="!walletConnected"
-                  :disabled="isConnecting"
-                >
-                  {{ isConnecting ? 'Connecting...' : 'Connect Keplr Wallet' }}
-                </button>
-                <div class="wallet-info" v-if="walletConnected">
-                  <p>Connected: {{ walletAddress }}</p>
-                  <p v-if="transactionHash" class="transaction-link">
-                    Last Transaction:
-                    <a
-                      :href="`https://www.mintscan.io/ki-chain/txs/${transactionHash}`"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View on Explorer
-                    </a>
-                  </p>
+          <!-- Network Description -->
+          <div v-if="!walletConnected" class="network-description">
+            <p>{{ network.description }}</p>
+          </div>
+
+          <!-- Wallet Warning -->
+          <div v-if="walletError" class="wallet-warning">
+            <div class="warning-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                ></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <div class="warning-content">
+              <h3 class="warning-title">Wallet Not Found</h3>
+              <p class="warning-message">
+                To use Ki Network staking, you need to install the Keplr wallet extension.
+              </p>
+            </div>
+          </div>
+
+          <!-- Wallet Connection -->
+          <div v-if="!walletConnected" class="wallet-connection">
+            <button
+              @click="connectWallet"
+              class="primary-button full-width"
+              :disabled="isConnecting"
+            >
+              {{ isConnecting ? 'Connecting...' : 'Connect Keplr Wallet' }}
+            </button>
+
+            <!-- Network Links -->
+            <div class="network-links">
+              <a
+                v-if="network.explorer"
+                :href="network.explorer[0]"
+                target="_blank"
+                class="link-primary"
+              >
+                View on Explorer
+              </a>
+              <a
+                v-if="network.howToStake"
+                :href="network.howToStake"
+                target="_blank"
+                class="link-primary"
+              >
+                How to Stake
+              </a>
+            </div>
+          </div>
+
+          <!-- Connected Wallet Info -->
+          <div v-if="walletConnected">
+            <div class="wallet-info-card">
+              <div class="wallet-info-row">
+                <span class="info-label">Connected Wallet:</span>
+                <span class="info-value">{{ truncateAddress(walletAddress) }}</span>
+              </div>
+              <div v-if="transactionHash" class="transaction-info">
+                <div class="wallet-info-row">
+                  <span class="info-label">Last Transaction:</span>
+                  <a
+                    :href="`https://www.mintscan.io/ki-chain/txs/${transactionHash}`"
+                    target="_blank"
+                    class="transaction-link"
+                  >
+                    View on Explorer
+                  </a>
                 </div>
               </div>
+            </div>
 
-              <div v-if="stakingSuccess" class="success-message">
-                Successfully staked XKI tokens!
-              </div>
-              <div v-if="stakingError" class="error-message">
-                {{ stakingError }}
-                <div v-if="stakingError.includes('not installed')" class="install-guide">
-                  <p>To use Ki Network staking, you need to:</p>
-                  <ol>
-                    <li>Install the Keplr wallet extension from <a href="https://www.keplr.app/" target="_blank">https://www.keplr.app/</a></li>
-                    <li>Create an account in the Keplr wallet</li>
-                    <li>Add the Ki Network to your Keplr wallet</li>
-                    <li>Refresh this page after installation</li>
-                  </ol>
-                </div>
-              </div>
-
-              <div class="staking-form" v-if="walletConnected">
-                <div class="form-group">
-                  <label>Amount to Stake (XKI)</label>
-                  <input type="number" v-model.number="stakeAmount" :min="minimumStake" step="0.1" />
-                </div>
-
-                <div class="form-group">
-                  <label>Validator Address</label>
+            <!-- Staking Form -->
+            <div class="staking-form">
+              <!-- Staking Amount Input -->
+              <div class="form-group">
+                <label class="form-label"> Amount to Stake (XKI) </label>
+                <div class="input-container">
                   <input
-                    type="text"
-                    v-model="validatorAddress"
-                    placeholder="Enter validator address"
+                    v-model.number="stakeAmount"
+                    type="number"
+                    :min="minimumStake"
+                    step="1"
+                    class="form-input"
+                    placeholder="Enter amount"
                   />
+                  <div class="input-suffix">
+                    <span>XKI</span>
+                  </div>
                 </div>
-
-                <button @click="delegateTokens" :disabled="!isValidStake" class="stake-button">
-                  Delegate
-                </button>
+                <div class="input-hint">
+                  <span> Minimum: {{ minimumStake }} XKI </span>
+                </div>
               </div>
+
+              <!-- Validator Address -->
+              <div class="form-group">
+                <label class="form-label"> Validator Address </label>
+                <input
+                  :value="network.validator"
+                  type="text"
+                  class="form-input"
+                  placeholder="Enter validator address"
+                  readonly
+                />
+              </div>
+
+              <!-- Staking Info -->
+              <div class="info-card">
+                <h3 class="info-card-title">Staking Status</h3>
+                <div class="info-card-content">
+                  <div class="info-row">
+                    <span class="info-label">Staked Amount:</span>
+                    <span class="info-value">{{ stakedAmount }} XKI</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Rewards Earned:</span>
+                    <span class="info-value">{{ rewardsEarned }} XKI</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Last Reward:</span>
+                    <span class="info-value">{{
+                      lastRewardTime ? new Date(lastRewardTime).toLocaleString() : 'Never'
+                    }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="action-buttons">
+              <button
+                @click="delegateTokens"
+                :disabled="!isValidStake"
+                class="primary-button full-width delegate-button"
+                :class="{ 'button-disabled': !isValidStake }"
+              >
+                Delegate XKI
+              </button>
+              <button
+                @click="undelegateStake"
+                :disabled="stakedAmount <= 0"
+                class="primary-button full-width delegate-button"
+                :class="{ 'button-disabled': stakedAmount <= 0 }"
+              >
+                Undelegate XKI
+              </button>
+            </div>
+            <!-- Network Links -->
+            <div class="network-links-bottom">
+              <a
+                v-if="network.explorer"
+                :href="network.explorer[0]"
+                target="_blank"
+                class="link-primary"
+              >
+                View on Explorer
+              </a>
+              <a
+                v-if="network.howToStake"
+                :href="network.howToStake"
+                target="_blank"
+                class="link-primary"
+              >
+                How to Stake
+              </a>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </Transition>
+  </transition>
 </template>
 
 <script>
 import { ref, computed, onMounted } from 'vue'
-import { connectWallet, delegateTokens, getStakingInfo } from '../../utils/KiStaking'
+import {
+  connectWallet,
+  delegateTokens,
+  undelegateStake,
+  getTotalStakedAmount
+} from '../../utils/KiStaking'
 
 export default {
   name: 'KiStaking',
@@ -98,17 +236,19 @@ export default {
     const walletAddress = ref('')
     const stakeAmount = ref(0)
     const validatorAddress = ref('')
-    const stakedAmount = ref(0)
-    const rewardsEarned = ref(0)
-    const lastRewardTime = ref(null)
+    const delegationInfo = ref(null)
+    const minimumStake = 0.01 // Minimum XKI to stake
     const stakingSuccess = ref(false)
     const stakingError = ref(null)
     const transactionHash = ref('')
-    const minimumStake = 0.01
+    const walletError = ref(false)
     const isConnecting = ref(false)
+    const stakedAmount = ref(0)
+    const rewardsEarned = ref(0)
+    const lastRewardTime = ref(null)
 
     onMounted(() => {
-      if (props.network?.validator) {
+      if (props.network?.validator?.[0]) {
         validatorAddress.value = props.network.validator[0]
       }
     })
@@ -121,15 +261,14 @@ export default {
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
-        stakingError.value = null
         const address = await connectWallet()
         walletAddress.value = address
         walletConnected.value = true
-        await refreshStakingInfo()
+        isConnecting.value = false
+        refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
-        stakingError.value = error.message
-      } finally {
+        walletError.value = true
         isConnecting.value = false
       }
     }
@@ -138,10 +277,18 @@ export default {
       if (!walletAddress.value) return
 
       try {
-        const info = await getStakingInfo(walletAddress.value)
-        stakedAmount.value = info.stakedAmount
-        rewardsEarned.value = info.rewardsEarned
-        lastRewardTime.value = info.lastRewardTime
+        const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
+        console.log('stakingInfo', stakingInfo)
+        if (stakingInfo.amount) {
+          stakedAmount.value = Number(stakingInfo.amount) / 10 ** 6
+        } else {
+          stakedAmount.value = 0.0
+        }
+        console.log('stakedAmount', stakedAmount.value)
+
+        rewardsEarned.value = 0
+        lastRewardTime.value = null
+       
       } catch (error) {
         console.error('Failed to refresh staking info:', error)
       }
@@ -153,26 +300,46 @@ export default {
       try {
         stakingSuccess.value = false
         stakingError.value = null
-
         const hash = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
           stakeAmount.value
         )
-
         transactionHash.value = hash
         stakingSuccess.value = true
-        stakeAmount.value = 0
-
-        await refreshStakingInfo()
+        refreshStakingInfo()
       } catch (error) {
-        console.error('Failed to stake tokens:', error)
-        stakingError.value = error.message
+        console.error('Failed to delegate tokens:', error)
+        stakingError.value = error.message || 'Failed to delegate tokens'
       }
     }
 
     const closeModal = () => {
       emit('close')
+    }
+
+    const handleUndelegateStake = async () => {
+      try {
+        console.log('-------vue console. handleUndelegateStake start-------')
+        console.log('vue console. walletAddress', walletAddress.value)
+        console.log('vue console. validatorAddress', validatorAddress.value)
+        stakingSuccess.value = false
+        stakingError.value = null
+        const hash = await undelegateStake(walletAddress.value, validatorAddress.value)
+        console.log('vue console. hash', hash)
+        transactionHash.value = hash
+        stakingSuccess.value = true
+        await refreshStakingInfo()
+      } catch (error) {
+        console.error('Failed to undelegate stake:', error)
+        stakingError.value = error.message || 'Failed to undelegate stake'
+      }
+    }
+
+    const truncateAddress = (address) => {
+      if (!address) return ''
+      if (address.length <= 12) return address
+      return address.substring(0, 6) + '...' + address.substring(address.length - 4)
     }
 
     return {
@@ -181,36 +348,28 @@ export default {
       walletConnected,
       walletAddress,
       stakeAmount,
-      stakedAmount,
-      rewardsEarned,
-      lastRewardTime,
+      delegationInfo,
       minimumStake,
       isValidStake,
       stakingSuccess,
       stakingError,
       transactionHash,
-      isConnecting,
       connectWallet: handleConnectWallet,
-      delegateTokens: handleDelegateTokens
+      delegateTokens: handleDelegateTokens,
+      undelegateStake: handleUndelegateStake,
+      truncateAddress,
+      walletError,
+      isConnecting,
+      stakedAmount,
+      rewardsEarned,
+      lastRewardTime
     }
   }
 }
 </script>
 
-<style>
-/* Reuse styles from other staking components */
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: transparent;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
+<style scoped>
+/* Modal Animation */
 .modal-fade-enter,
 .modal-fade-leave-to {
   opacity: 0;
@@ -221,115 +380,336 @@ export default {
   transition: opacity 0.3s ease;
 }
 
-.ki-staking {
-  background: var(--van-background-2);
-  border-radius: 20px;
-  position: relative;
-  cursor: default;
-}
-
-.modal {
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 30px;
-}
-
-.modal-header {
-  width: 100%;
+/* Modal Layout */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  position: relative;
+  z-index: 50;
+}
+
+.modal-container {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 28rem;
+  width: 100%;
+  overflow: hidden;
 }
 
 .modal-content {
+  padding: 1.5rem;
+}
+
+/* Header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: color 0.2s;
+}
+
+.close-button:hover {
+  color: #374151;
+}
+
+/* Network Description */
+.network-description {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.network-description p {
+  color: #4b5563;
+  margin: 0;
+}
+
+/* Wallet Connection */
+.wallet-connection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Network Links */
+.network-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.network-links-bottom {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.link-primary {
+  color: #6366f1;
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+.link-primary:hover {
+  text-decoration: underline;
+}
+
+/* Buttons */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.primary-button {
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
+}
+
+.primary-button:hover:not(:disabled) {
+  background-color: #4f46e5;
+}
+
+.primary-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.full-width {
   width: 100%;
 }
 
-.staking-info {
-  margin-top: 20px;
-  padding: 15px;
-  background: var(--van-background);
-  border-radius: 8px;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-  margin-top: 10px;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.label {
-  font-size: 0.9em;
-  color: var(--van-text-color-2);
-}
-
-.value {
-  font-weight: 500;
-  margin-top: 5px;
-}
-
-.success-message {
-  color: var(--van-success-color);
-  margin-top: 10px;
-  padding: 10px;
-  background-color: rgba(0, 255, 0, 0.1);
-  border-radius: 4px;
-}
-
-.error-message {
-  color: var(--van-danger-color);
-  margin-top: 10px;
-  padding: 10px;
-  background-color: rgba(255, 0, 0, 0.1);
-  border-radius: 4px;
-}
-
-.install-guide {
-  margin-top: 10px;
-  padding: 10px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-}
-
-.install-guide ol {
-  margin: 10px 0;
-  padding-left: 20px;
-}
-
-.install-guide a {
-  color: var(--van-primary-color);
-  text-decoration: none;
-}
-
-.install-guide a:hover {
-  text-decoration: underline;
-}
-
-.connect-wallet:disabled {
-  opacity: 0.7;
+.button-disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
+.delegate-button {
+  margin-top: 1.5rem;
+}
+
+/* Wallet Info Card */
+.wallet-info-card {
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.wallet-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.transaction-info {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
 .transaction-link {
-  font-size: 0.9em;
-  margin-top: 5px;
-}
-
-.transaction-link a {
-  color: var(--van-primary-color);
+  color: #6366f1;
   text-decoration: none;
+  font-size: 0.75rem;
 }
 
-.transaction-link a:hover {
+.transaction-link:hover {
   text-decoration: underline;
+}
+
+/* Form Elements */
+.staking-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  margin-bottom: 0.5rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.input-container {
+  position: relative;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: #1f2937;
+  background-color: white;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.input-suffix {
+  position: absolute;
+  right: 0.75rem;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  color: #6b7280;
+}
+
+.input-hint {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Info Cards */
+.info-card {
+  margin-top: 0.5rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 0.2rem;
+}
+
+.info-card-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1f2937;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.info-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+}
+
+.info-label {
+  color: #6b7280;
+}
+
+.info-value {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+/* Success/Error Messages */
+.success-message {
+  color: #059669;
+  background-color: #ecfdf5;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+}
+
+.error-message {
+  color: #dc2626;
+  background-color: #fef2f2;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+}
+
+/* Wallet Warning */
+.wallet-warning {
+  background-color: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  display: flex;
+  gap: 1rem;
+}
+
+.warning-icon {
+  color: #ea580c;
+  flex-shrink: 0;
+}
+
+.warning-content {
+  flex: 1;
+}
+
+.warning-title {
+  color: #ea580c;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.warning-message {
+  color: #9a3412;
+  font-size: 0.875rem;
+  margin: 0 0 0.75rem 0;
+}
+
+/* Remove number input arrows */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
 }
 </style> 

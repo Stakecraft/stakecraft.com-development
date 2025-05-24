@@ -321,7 +321,11 @@ export default {
         console.log('stakingInfo', stakingInfo)
         const stakeAmount = utils.format.formatNearAmount(stakingInfo.amount)
         console.log('stakeAmount', typeof stakeAmount)
-        stakedAmount.value = Number(stakeAmount).toFixed(3)
+        if (stakingInfo.amount) {
+          stakedAmount.value = Number(stakeAmount).toFixed(3)
+        } else {
+          stakedAmount.value = 0.0
+        }
         rewardsEarned.value = '0'
         lastRewardTime.value = null
       } catch (error) {

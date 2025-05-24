@@ -37,8 +37,12 @@ export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) =
   try {
     await window.keplr.enable(BAND_CHAIN_ID)
     const offlineSigner = window.getOfflineSigner(BAND_CHAIN_ID)
+
+    console.log('offlineSigner', offlineSigner)
     const client = await tryRpcEndpoints(offlineSigner)
+    console.log('client', client)
     const stakingInfo = await client.getDelegation(delegatorAddress, validatorAddress)
+    console.log('stakingInfo', stakingInfo)
     return stakingInfo
   } catch (error) {
     console.error('Error getting total staked amount:', error)

@@ -130,7 +130,6 @@ import AgoricStaking from './stakingViews/AgoricStaking.vue'
 import BandStaking from './stakingViews/BandStaking.vue'
 import StargazeStaking from './stakingViews/StargazeStaking.vue'  
 import BitsongStaking from './stakingViews/BitsongStaking.vue'
-// import AuraStaking from './stakingViews/AuraStaking.vue'
 import JunoStaking from './stakingViews/JunoStaking.vue'
 import ZetaStaking from './stakingViews/ZetaStaking.vue' // not complted
 import KiStaking from './stakingViews/KiStaking.vue'

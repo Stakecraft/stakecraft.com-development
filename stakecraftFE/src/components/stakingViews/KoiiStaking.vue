@@ -201,7 +201,7 @@
               </button>
               <button
                 @click="undelegateTokens"
-                :disabled="stakedAmount <= 0"
+                :disabled="stakedAmount <= 0" 
                 class="primary-button full-width delegate-button"
                 :class="{ 'button-disabled': stakedAmount <= 0 }"
               >
@@ -258,7 +258,7 @@ export default {
     const walletAddress = ref('')
     const stakeAmount = ref(0)
     const validatorAddress = ref('')
-    const stakedAmount = ref(0)
+    const stakedAmount = ref(1)
     const rewardsEarned = ref(0)
     const attentionScore = ref(0)
     const lastRewardTime = ref(null)
@@ -322,14 +322,15 @@ export default {
     }
 
     const handleUndelegateTokens = async () => {
-      if (!undelegateAmount.value || undelegateAmount.value <= 0) return
+      // if (!undelegateAmount.value || undelegateAmount.value <= 0) return
       try {
+        console.log('start the undelegate');
+        
         undelegateSuccess.value = false
         undelegateError.value = null
         const hash = await undelegateTokens(
           walletAddress.value,
           validatorAddress.value,
-          undelegateAmount.value
         )
         transactionHash.value = hash
         undelegateSuccess.value = true

@@ -7,15 +7,29 @@
           <div class="modal-header">
             <h2 class="modal-title">{{ network.title }}</h2>
             <button @click="closeModal" class="close-button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-x"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
             </button>
           </div>
-          
+
           <!-- Network Description -->
           <div v-if="!walletConnected" class="network-description">
             <p>{{ network.description }}</p>
           </div>
-          
+
           <!-- Wallet Connection -->
           <div v-if="!walletConnected" class="wallet-connection">
             <button
@@ -25,7 +39,7 @@
             >
               {{ isConnecting ? 'Connecting...' : 'Connect Keplr Wallet' }}
             </button>
-            
+
             <!-- Network Links -->
             <div class="network-links">
               <a
@@ -46,7 +60,7 @@
               </a>
             </div>
           </div>
-          
+
           <!-- Connected Wallet Info -->
           <div v-if="walletConnected">
             <div class="wallet-info-card">
@@ -67,14 +81,12 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Staking Form -->
             <div class="staking-form">
               <!-- Staking Amount Input -->
               <div class="form-group">
-                <label class="form-label">
-                  Amount to Stake (BAND)
-                </label>
+                <label class="form-label"> Amount to Stake (BAND) </label>
                 <div class="input-container">
                   <input
                     v-model.number="stakeAmount"
@@ -89,17 +101,13 @@
                   </div>
                 </div>
                 <div class="input-hint">
-                  <span>
-                    Minimum: {{ minimumStake }} BAND
-                  </span>
+                  <span> Minimum: {{ minimumStake }} BAND </span>
                 </div>
               </div>
-              
+
               <!-- Validator Address -->
               <div class="form-group">
-                <label class="form-label">
-                  Validator Address
-                </label>
+                <label class="form-label"> Validator Address </label>
                 <input
                   v-model="validatorAddress"
                   type="text"
@@ -108,7 +116,7 @@
                 />
               </div>
             </div>
-            
+
             <!-- Staking Info -->
             <div class="info-card">
               <h3 class="info-card-title">Staking Status</h3>
@@ -129,7 +137,7 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Success/Error Messages -->
             <div v-if="stakingSuccess" class="success-message">
               Successfully staked BAND tokens!
@@ -149,7 +157,7 @@
                 </ol>
               </div>
             </div>
-            
+
             <!-- Action Buttons -->
             <div class="action-buttons">
               <button
@@ -169,7 +177,7 @@
                 Undelegate BAND
               </button>
             </div>
-            
+
             <!-- Network Links -->
             <div class="network-links-bottom">
               <a
@@ -260,9 +268,15 @@ export default {
       if (!walletAddress.value) return
 
       try {
+        console.log('refreshstaking info start')
+
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
         console.log('stakingInfo', stakingInfo)
-        stakedAmount.value = stakingInfo.amount / 10 ** 6
+        if (stakingInfo.amount) {
+          stakedAmount.value = Number(stakingInfo.amount) / 10 ** 6
+        } else {
+          stakedAmount.value = 0.0
+        }
         console.log('stakedAmount', stakedAmount.value)
 
         rewardsEarned.value = 0
@@ -372,7 +386,9 @@ export default {
 .modal-container {
   background-color: white;
   border-radius: 0.75rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   max-width: 28rem;
   width: 100%;
   overflow: hidden;
@@ -468,7 +484,9 @@ export default {
   padding: 0.75rem 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
 }
 
 .primary-button:hover:not(:disabled) {
@@ -553,7 +571,9 @@ export default {
   font-size: 0.875rem;
   color: #1f2937;
   background-color: white;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .form-input:focus {
@@ -660,13 +680,13 @@ export default {
 }
 
 /* Remove number input arrows */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
-  margin: 0; 
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-input[type=number] {
+input[type='number'] {
   -moz-appearance: textfield;
 }
-</style> 
+</style>
