@@ -56,7 +56,6 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
     await window.keplr.enable(KAVA_CHAIN_ID)
     const offlineSigner = window.getOfflineSigner(KAVA_CHAIN_ID)
     const client = await tryRpcEndpoints(offlineSigner)
-    console.log('client', client)
     const result = await client.delegateTokens(
       delegatorAddress,
       validatorAddress,

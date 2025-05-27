@@ -82,6 +82,11 @@
       :network="selectedNetwork"
       @close="closeModal"
     />
+    <zeta-staking
+      v-if="selectedNetwork?.title === 'Zachain'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
 
     <modal
       v-if="!['Solana', 'Kava', 'Koii', 'Agoric', 
