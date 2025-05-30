@@ -36,6 +36,23 @@ const tryRpcEndpoints = async (offlineSigner) => {
   throw new Error(`Failed to connect to any RPC endpoint. Last error: ${lastError?.message}`)
 }
 
+// Get BTSG balance for a wallet address
+export const getBtsgBalance = async (walletAddress) => {
+  try {
+    await window.keplr.enable(BITSONG_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(BITSONG_CHAIN_ID)
+    const client = await tryRpcEndpoints(offlineSigner)
+    const balances = await client.getAllBalances(walletAddress)
+    // Find the BTSG balance (denom: 'ubtsg')
+    const btsgBalance = balances.find(b => b.denom === 'ubtsg')
+    // Convert from micro-BTSG to BTSG
+    return btsgBalance ? Number(btsgBalance.amount) / 1_000_000 : 0
+  } catch (error) {
+    console.error('Error getting BTSG balance:', error)
+    throw new Error(`Failed to get BTSG balance: ${error.message}`)
+  }
+}
+
 export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) => {
   try {
     await window.keplr.enable(BITSONG_CHAIN_ID)
@@ -55,7 +72,6 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
     await window.keplr.enable(BITSONG_CHAIN_ID)
     const offlineSigner = window.getOfflineSigner(BITSONG_CHAIN_ID)
     const client = await tryRpcEndpoints(offlineSigner)
-    console.log('client', client)
     const result = await client.delegateTokens(
       delegatorAddress,
       validatorAddress,
@@ -73,7 +89,7 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
   }
 }
 
-export const undelegateStake = async (delegatorAddress, validatorAddress) => {
+export const undelegateStake = async (delegatorAddress, validatorAddress, unstakeAmount) => {
   try {
     await window.keplr.enable(BITSONG_CHAIN_ID)
     const offlineSigner = window.getOfflineSigner(BITSONG_CHAIN_ID)
@@ -86,18 +102,14 @@ export const undelegateStake = async (delegatorAddress, validatorAddress) => {
       throw new Error('No delegation found')
     }
 
-    // Get the delegation amount from the correct path in the object
-    const delegationAmount = delegation?.amount
-    console.log('delegationAmount', delegationAmount)
-
-    if (!delegationAmount) {
+    if (!unstakeAmount) {
       throw new Error('Could not find delegation amount')
     }
 
     // Format the amount properly for undelegation
     const amount = {
       denom: 'ubtsg',
-      amount: delegationAmount.toString()
+      amount: (unstakeAmount * 1_000_000).toString()
     }
     console.log('formatted amount', amount)
 

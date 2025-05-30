@@ -42,6 +42,23 @@ const tryRpcEndpoints = async (offlineSigner) => {
   throw new Error(`Failed to connect to any RPC endpoint. Last error: ${lastError?.message}`)
 }
 
+// Get STARS balance for a wallet address
+export const getStarsBalance = async (walletAddress) => {
+  try {
+    await window.keplr.enable(STARGAZE_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(STARGAZE_CHAIN_ID)
+    const client = await tryRpcEndpoints(offlineSigner)
+    const balances = await client.getAllBalances(walletAddress)
+    // Find the STARS balance (denom: 'ustars')
+    const starsBalance = balances.find(b => b.denom === 'ustars')
+    // Convert from micro-STARS to STARS
+    return starsBalance ? Number(starsBalance.amount) / 1_000_000 : 0
+  } catch (error) {
+    console.error('Error getting STARS balance:', error)
+    throw new Error(`Failed to get STARS balance: ${error.message}`)
+  }
+}
+
 // Get total staked amount
 export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) => {
   try {
@@ -87,7 +104,7 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
   }
 }
 
-export const undelegateStake = async (delegatorAddress, validatorAddress) => {
+export const undelegateStake = async (delegatorAddress, validatorAddress, unstakeAmount) => {
   try {
     await window.keplr.enable(STARGAZE_CHAIN_ID)
     const offlineSigner = window.getOfflineSigner(STARGAZE_CHAIN_ID)
@@ -100,18 +117,14 @@ export const undelegateStake = async (delegatorAddress, validatorAddress) => {
       throw new Error('No delegation found')
     }
 
-    // Get the delegation amount
-    const delegationAmount = delegation?.amount
-    console.log('delegationAmount', delegationAmount)
-
-    if (!delegationAmount) {
+    if (!unstakeAmount) {
       throw new Error('Could not find delegation amount')
     }
 
     // Format the amount properly for undelegation
     const amount = {
       denom: 'ustars',
-      amount: delegationAmount.toString()
+      amount: (unstakeAmount * 1_000_000).toString()
     }
     console.log('formatted amount', amount)
 

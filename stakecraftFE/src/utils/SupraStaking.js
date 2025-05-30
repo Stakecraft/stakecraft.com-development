@@ -30,11 +30,29 @@ export const walletConnect = async () => {
   }
 }
 
+// Get SUPRA balance for a wallet address
+export const getSupraBalance = async (walletAddress) => {
+  try {
+    const provider = getProvider()
+    let supraClient = await SupraClient.init('https://rpc-mainnet.supra.com/')
+    const balance = await supraClient.getAccountSupraCoinBalance(walletAddress)
+    console.log('balance', balance)
+    // Convert from smallest unit to SUPRA
+    return Number(balance) / 10 ** 8
+  } catch (error) {
+    console.error('Error getting SUPRA balance:', error)
+    throw new Error(`Failed to get SUPRA balance: ${error.message}`)
+  }
+  // return 100
+}
+
 export const getTotalStakedAmount = async (walletAddress, validatorAddress) => {
   try {
     const provider = getProvider()
 
     let supraClient = await SupraClient.init('https://rpc-mainnet.supra.com/')
+    console.log('supraClient', supraClient)
+
     const viewResult = await supraClient.invokeViewMethod(
       '0x1::pbo_delegation_pool::get_stake',
       [],
@@ -78,57 +96,69 @@ export const delegateTokens = async (walletAddress, validatorAddress, amount) =>
     return txHash
   } catch (error) {
     console.error('Delegation error:', error)
-    return {
-      success: false,
-      error: error.message || 'Failed to delegate tokens. Please try again.',
-      status: 'error'
+    throw new Error(`Failed to delegate tokens: ${error.message}`)
+  }
+}
+
+export const undelegateTokens = async (walletAddress, validatorAddress, unstakeAmount) => {
+  try {
+    const provider = getProvider()
+    const value = unstakeAmount * 10 ** 8
+    const raw = [
+      walletAddress,
+      0,
+      '0x1',
+      'pbo_delegation_pool',
+      'unlock',
+      [],
+      [new HexString(validatorAddress).toUint8Array(), BCS.bcsSerializeUint64(value)],
+      { txExpiryTime: Math.floor(Date.now() / 1000) + 120 }
+    ]
+
+    const data = await provider.createRawTransactionData(raw)
+    const params = {
+      data,
+      from: walletAddress,
+      to: '0x1',
+      chainId: 8
     }
+    const txHash = await provider.sendTransaction(params)
+    return txHash
+  } catch (error) {
+    console.error('Error undelegating tokens:', error)
+    throw new Error(`Failed to undelegate tokens: ${error.message}`)
   }
 }
 
-export const undelegateTokens = async (walletAddress, validatorAddress, amount) => {
-  const provider = getProvider()
+// Withdraw function (run after the lock cycle clears)
+export const withdrawStake = async (walletAddress, validatorAddress, amount) => {
+  try {
+    const provider = getProvider()
+    const value = amount * 10 ** 8
+    const seq = (await provider.accountInfo(walletAddress)).sequence_number
 
-  const value = amount * 10 ** 8
-  const raw = [
-    walletAddress,
-    0,
-    '0x1',
-    'pbo_delegation_pool',
-    'unlock',
-    [],
-    [new HexString(validatorAddress).toUint8Array(), BCS.bcsSerializeUint64(value)], //pool address
-    { txExpiryTime: Math.floor(Date.now() / 1000) + 120 }
-  ]
+    const raw = [
+      walletAddress,
+      seq,
+      '0x1',
+      'pbo_delegation_pool',
+      'withdraw',
+      [],
+      [new HexString(validatorAddress).toUint8Array(), BCS.bcsSerializeUint64(value)],
+      { txExpiryTime: Math.floor(Date.now() / 1000) + 120 }
+    ]
 
-  const data = await provider.createRawTransactionData(raw)
-  const params = {
-    data,
-    from: walletAddress,
-    to: '0x1',
-    chainId: 8
+    const data = await provider.createRawTransactionData(raw)
+    const params = {
+      data,
+      from: walletAddress,
+      to: '0x1',
+      chainId: 8
+    }
+    const txHash = await provider.sendTransaction(params)
+    return txHash
+  } catch (error) {
+    console.error('Error withdrawing stake:', error)
+    throw new Error(`Failed to withdraw stake: ${error.message}`)
   }
-  const txHash = await provider.sendTransaction(params)
-  return txHash
-}
-
-// 4. Withdraw (run **after** the next lock cycle clears)
-export const withdrawStake = async (wallet, poolAddr, supra) => {
-  const provider = getProvider()
-  const amountQ = BigInt(supra) * QUANTS
-  const seq = (await provider.accountInfo(wallet)).sequence_number
-
-  const raw = [
-    wallet,
-    seq,
-    '0x1',
-    'pbo_delegation_pool',
-    'withdraw',
-    [],
-    [new HexString(poolAddr).toUint8Array(), BCS.bcsSerializeUint64(amountQ)],
-    { txExpiryTime: Math.floor(Date.now() / 1000) + 120 }
-  ]
-
-  const data = await provider.createRawTransactionData(raw)
-  return provider.sendTransaction({ data, from: wallet, to: '0x1', chainId: CHAIN_ID })
 }

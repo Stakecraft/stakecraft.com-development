@@ -58,7 +58,7 @@
       @close="closeModal"
     /> -->
     <juno-staking
-        v-if="selectedNetwork?.title === 'Juno'"
+      v-if="selectedNetwork?.title === 'Juno'"
       :network="selectedNetwork"
       @close="closeModal"
     />
@@ -87,17 +87,33 @@
       :network="selectedNetwork"
       @close="closeModal"
     />
+    <polygon-staking
+      v-if="selectedNetwork?.title === 'Polygon'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
 
     <modal
-      v-if="!['Solana', 'Kava', 'Koii', 'Agoric', 
-      'Band Protocol', 'Stargaze', 'Bitsong', 'Juno',
-       'Zetachain', 'Ki Foundation', 'Supra Oracles', 'Near Protocol'].includes(selectedNetwork?.title)"
+      v-if="
+        ![
+          'Solana',
+          'Kava',
+          'Koii',
+          'Agoric',
+          'Band Protocol',
+          'Stargaze',
+          'Bitsong',
+          'Juno',
+          'Zetachain',
+          'Ki Foundation',
+          'Supra Oracles',
+          'Near Protocol'
+        ].includes(selectedNetwork?.title)
+      "
       v-show="isModalVisible"
       @close="closeModal"
       :network="selectedNetwork"
     />
-
-
   </div>
 </template>
 
@@ -126,6 +142,8 @@ import covalentImg from '../assets/covalent.png'
 import subqueryImg from '../assets/subquery.png'
 import koiiImg from '../assets/koii.png'
 import supraoraclesImg from '../assets/supraoracles.png'
+import walrusImg from '../assets/walrus.png'
+
 import modal from './Modal.vue'
 import { ref } from 'vue'
 import SolanaStaking from './stakingViews/SolanaStaking.vue'
@@ -133,17 +151,32 @@ import KavaStaking from './stakingViews/KavaStaking.vue'
 import KoiiStaking from './stakingViews/KoiiStaking.vue' // not complted
 import AgoricStaking from './stakingViews/AgoricStaking.vue'
 import BandStaking from './stakingViews/BandStaking.vue'
-import StargazeStaking from './stakingViews/StargazeStaking.vue'  
+import StargazeStaking from './stakingViews/StargazeStaking.vue'
 import BitsongStaking from './stakingViews/BitsongStaking.vue'
 import JunoStaking from './stakingViews/JunoStaking.vue'
 import ZetaStaking from './stakingViews/ZetaStaking.vue' // not complted
 import KiStaking from './stakingViews/KiStaking.vue'
 import SupraStaking from './stakingViews/SupraStaking.vue' // not complted
 import NearStaking from './stakingViews/NearStaking.vue'
-
+import PolygonStaking from './stakingViews/PolygonStaking.vue'
 
 export default {
-  components: { SolanaStaking, KavaStaking, KoiiStaking, AgoricStaking, BandStaking, StargazeStaking, BitsongStaking, JunoStaking, ZetaStaking, KiStaking, SupraStaking, NearStaking, modal },
+  components: {
+    SolanaStaking,
+    KavaStaking,
+    KoiiStaking,
+    AgoricStaking,
+    BandStaking,
+    StargazeStaking,
+    BitsongStaking,
+    JunoStaking,
+    ZetaStaking,
+    KiStaking,
+    SupraStaking,
+    NearStaking,
+    modal,
+    PolygonStaking
+  },
   setup() {
     const networks = [
       {
@@ -396,6 +429,15 @@ export default {
           'NEAR is the chain abstraction stack, empowering builders to create apps that scale to billions of users and across all blockchains.',
         validator: ['stakecraft.poolv1.near'],
         explorer: ['https://nearscope.net/validator/stakecraft.poolv1.near/tab/dashboard']
+      },
+      {
+        image: walrusImg, // Add the Walrus logo to your assets folder
+        title: 'Walrus',
+        description:
+          'Walrus is a decentralized storage and data availability protocol built on Sui, designed for large binary files. It features delegated proof of stake (dPoS) with the WAL token for governance and staking.',
+        validator: ['stakecraft walrus validator address'], // Replace with actual validator address if available
+        explorer: ['https://walrus.xyz/explorer'], // Replace with actual explorer link if available
+        howToStake: 'https://docs.wal.app/7-staking-and-unstaking.html'
       }
     ]
 

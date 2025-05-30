@@ -54,7 +54,7 @@
             <div class="warning-content">
               <h3 class="warning-title">Wallet Not Found</h3>
               <p class="warning-message">
-                To use Agoric staking, you need to install the Keplr wallet extension.
+                To use Polygon staking, you need to install the MetaMask wallet extension.
               </p>
             </div>
           </div>
@@ -66,7 +66,7 @@
               class="primary-button full-width"
               :disabled="isConnecting"
             >
-              {{ isConnecting ? 'Connecting...' : 'Connect Keplr Wallet' }}
+              {{ isConnecting ? 'Connecting...' : 'Connect MetaMask Wallet' }}
             </button>
 
             <!-- Network Links -->
@@ -95,16 +95,13 @@
             <div class="wallet-info-card">
               <div class="wallet-info-row">
                 <span class="info-label">Connected Wallet:</span>
-                <span class="info-value tooltip-container">
-                  {{ truncateAddress(walletAddress) }}
-                  <span class="tooltip">{{ walletAddress }}</span>
-                </span>
+                <span class="info-value">{{ truncateAddress(walletAddress) }}</span>
               </div>
               <div v-if="transactionHash" class="transaction-info">
                 <div class="wallet-info-row">
                   <span class="info-label">Last Transaction:</span>
                   <a
-                    :href="`https://atomscan.com/agoric/transactions/${transactionHash}`"
+                    :href="`https://polygonscan.com/tx/${transactionHash}`"
                     target="_blank"
                     class="transaction-link"
                   >
@@ -114,179 +111,97 @@
               </div>
             </div>
 
-            <!-- Tab Navigation -->
-            <div class="tab-container">
-              <button 
-                class="tab-button"
-                :class="{ 'tab-active': activeTab === 'stake' }"
-                @click="activeTab = 'stake'"
-              >
-                Stake
-              </button>
-              <button 
-                class="tab-button"
-                :class="{ 'tab-active': activeTab === 'unstake' }"
-                @click="activeTab = 'unstake'"
-              >
-                Unstake
-              </button>
-            </div>
-
-            <!-- Staking Tab Content -->
-            <div v-if="activeTab === 'stake'" class="tab-content">
-              <div class="staking-form">
-                <!-- Staking Amount Input -->
-                <div class="form-group">
-                  <label class="form-label">Amount to Stake (BLD)</label>
-                  <div class="input-container">
-                    <input
-                      v-model.number="stakeAmount"
-                      type="number"
-                      :min="minimumStake"
-                      step="1"
-                      class="form-input"
-                      placeholder="Enter amount"
-                    />
-                    <div class="input-suffix">
-                      <span>BLD</span>
-                    </div>
-                  </div>
-                  <div class="input-hint">
-                    <span>Minimum: {{ minimumStake }} BLD</span>
-                    <button 
-                      @click="stakeAmount = Number(totalBldBalance)"
-                      class="max-button"
-                      :disabled="Number(totalBldBalance) <= 0"
-                    >
-                      Max
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Validator Address -->
-                <div class="form-group">
-                  <label class="form-label">Validator Address</label>
+            <!-- Staking Form -->
+            <div class="staking-form">
+              <!-- Staking Amount Input -->
+              <div class="form-group">
+                <label class="form-label">Amount to Stake (MATIC)</label>
+                <div class="input-container">
                   <input
-                    :value="network.validator"
-                    type="text"
+                    v-model.number="stakeAmount"
+                    type="number"
+                    :min="minimumStake"
+                    step="0.01"
                     class="form-input"
-                    placeholder="Enter validator address"
-                    readonly
+                    placeholder="Enter amount"
                   />
-                </div>
-
-                <!-- Staking Info -->
-                <div class="info-card">
-                  <h3 class="info-card-title">Current Staking Status</h3>
-                  <div class="info-card-content">
-                    <div class="info-row">
-                      <span class="info-label">Available Balance:</span>
-                      <span class="info-value">{{ availableBalance }} BLD</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} BLD</span>
-                    </div>
+                  <div class="input-suffix">
+                    <span>MATIC</span>
                   </div>
                 </div>
-
-                <!-- Success/Error Messages for Staking -->
-                <div v-if="stakingSuccess" class="success-message">
-                  Successfully delegated !
+                <div class="input-hint">
+                  <span>Minimum: {{ minimumStake }} MATIC</span>
                 </div>
-                <div v-if="stakingError" class="error-message">
-                  {{ stakingError }}
-                </div>
+              </div>
 
-                <!-- Stake Action Button -->
-                <button
-                  @click="delegateTokens"
-                  :disabled="!isValidStake || isProcessing"
-                  class="primary-button full-width delegate-button"
-                  :class="{ 'button-disabled': !isValidStake || isProcessing }"
-                >
-                  {{ isProcessing ? 'Processing...' : 'Delegate BLD' }}
-                </button>
+              <!-- Validator Address -->
+              <div class="form-group">
+                <label class="form-label">Validator Address</label>
+                <input
+                  :value="network.validator"
+                  type="text"
+                  class="form-input"
+                  placeholder="Enter validator address"
+                  readonly
+                />
+              </div>
+
+              <!-- Staking Info -->
+              <div class="info-card">
+                <h3 class="info-card-title">Staking Status</h3>
+                <div class="info-card-content">
+                  <div class="info-row">
+                    <span class="info-label">Staked Amount:</span>
+                    <span class="info-value">{{ stakedAmount }} MATIC</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Rewards Earned:</span>
+                    <span class="info-value">{{ rewardsEarned }} MATIC</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="info-label">Last Reward:</span>
+                    <span class="info-value">{{
+                      lastRewardTime ? new Date(lastRewardTime).toLocaleString() : 'Never'
+                    }}</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <!-- Unstaking Tab Content -->
-            <div v-if="activeTab === 'unstake'" class="tab-content">
-              <div class="staking-form">
-                <!-- Unstaking Amount Input -->
-                <div class="form-group">
-                  <label class="form-label">Amount to Unstake (BLD)</label>
-                  <div class="input-container">
-                    <input
-                      v-model.number="unstakeAmount"
-                      type="number"
-                      :min="0"
-                      :max="stakedAmount"
-                      step="1"
-                      class="form-input"
-                      placeholder="Enter amount to unstake"
-                    />
-                    <div class="input-suffix">
-                      <span>BLD</span>
-                    </div>
-                  </div>
-                  <div class="input-hint">
-                    <span>Available to unstake: {{ stakedAmount }} BLD</span>
-                    <button 
-                      @click="unstakeAmount = stakedAmount"
-                      class="max-button"
-                      :disabled="stakedAmount <= 0"
-                    >
-                      Max
-                    </button>
-                  </div>
-                </div>
+            <!-- Success/Error Messages -->
+            <div v-if="stakingSuccess" class="success-message">
+              Successfully delegated MATIC tokens!
+            </div>
+            <div v-if="stakingError" class="error-message">
+              {{ stakingError }}
+            </div>
 
-                <!-- Unstaking Info -->
-                <div class="info-card">
-                  <h3 class="info-card-title">Unstaking Information</h3>
-                  <div class="info-card-content">
-                    <div class="info-row">
-                      <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} BLD</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Rewards Earned:</span>
-                      <span class="info-value">{{ rewardsEarned }} BLD</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Unbonding Period:</span>
-                      <span class="info-value">21 days</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Unstaking Warning -->
-                <div class="warning-card">
-                  <div class="warning-icon-small">⚠️</div>
-                  <div class="warning-text">
-                    <strong>Important:</strong> Unstaked tokens will be locked for 21 days before becoming available for withdrawal.
-                  </div>
-                </div>
-
-                <!-- Success/Error Messages for Unstaking -->
-                <div v-if="unstakingSuccess" class="success-message">
-                  Successfully Undelegated !
-                </div>
-                <div v-if="unstakingError" class="error-message">
-                  {{ unstakingError }}
-                </div>
-
-                <!-- Unstake Action Button -->
-                <button
-                  @click="undelegateStake"
-                  :disabled="!isValidUnstake || isProcessing"
-                  class="primary-button full-width delegate-button unstake-button"
-                  :class="{ 'button-disabled': !isValidUnstake || isProcessing }"
-                >
-                  {{ isProcessing ? 'Processing...' : 'Undelegate BLD' }}
-                </button>
-              </div>
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+              <button
+                @click="delegateTokens"
+                :disabled="!isValidStake"
+                class="primary-button full-width delegate-button"
+                :class="{ 'button-disabled': !isValidStake }"
+              >
+                Delegate MATIC
+              </button>
+              <button
+                @click="undelegateStake"
+                :disabled="stakedAmount <= 0"
+                class="primary-button full-width delegate-button"
+                :class="{ 'button-disabled': stakedAmount <= 0 }"
+              >
+                Undelegate MATIC
+              </button>
+              <button
+                @click="claimRewards"
+                :disabled="rewardsEarned <= 0"
+                class="primary-button full-width delegate-button"
+                :class="{ 'button-disabled': rewardsEarned <= 0 }"
+              >
+                Claim Rewards
+              </button>
             </div>
 
             <!-- Network Links -->
@@ -316,17 +231,17 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import {
   connectWallet,
   delegateTokens,
   undelegateStake,
   getTotalStakedAmount,
-  getBldBalance
-} from '../../utils/AgoricStaking'
+  claimRewards
+} from '../../utils/PolygonStaking'
 
 export default {
-  name: 'AgoricStaking',
+  name: 'PolygonStaking',
   props: {
     network: {
       type: Object,
@@ -338,24 +253,17 @@ export default {
     const walletConnected = ref(false)
     const walletAddress = ref('')
     const stakeAmount = ref(0)
-    const unstakeAmount = ref(0)
     const validatorAddress = ref('')
     const delegationInfo = ref(null)
-    const minimumStake = 0.02
+    const minimumStake = 1 // Minimum MATIC to stake
     const stakingSuccess = ref(false)
-    const unstakingSuccess = ref(false)
     const stakingError = ref(null)
-    const unstakingError = ref(null)
     const transactionHash = ref('')
     const walletError = ref(false)
     const isConnecting = ref(false)
-    const isProcessing = ref(false)
     const stakedAmount = ref(0)
     const rewardsEarned = ref(0)
     const lastRewardTime = ref(null)
-    const availableBalance = ref(0)
-    const activeTab = ref('stake')
-    const totalBldBalance = ref(0)
 
     onMounted(() => {
       if (props.network?.validator?.[0]) {
@@ -363,33 +271,20 @@ export default {
       }
     })
 
-    // Add watch on activeTab to clear messages
-    watch(activeTab, () => {
-      stakingSuccess.value = false
-      stakingError.value = null
-      unstakingSuccess.value = false
-      unstakingError.value = null
-      transactionHash.value = ''
-    })
-
     const isValidStake = computed(() => {
       const amount = parseFloat(stakeAmount.value)
-      return !isNaN(amount) && amount >= minimumStake && validatorAddress.value && amount <= Number(totalBldBalance.value)
-    })
-
-    const isValidUnstake = computed(() => {
-      const amount = parseFloat(unstakeAmount.value)
-      return !isNaN(amount) && amount > 0 && amount <= stakedAmount.value
+      return !isNaN(amount) && amount >= minimumStake && validatorAddress.value
     })
 
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
         const address = await connectWallet()
+        console.log('address', address)
         walletAddress.value = address
         walletConnected.value = true
         isConnecting.value = false
-        refreshStakingInfo()
+        // refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         walletError.value = true
@@ -401,18 +296,21 @@ export default {
       if (!walletAddress.value) return
 
       try {
-        const bldBalance = await getBldBalance(walletAddress.value)
-        totalBldBalance.value = bldBalance
-        availableBalance.value = Number(bldBalance).toFixed(4)
-
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
+        console.log('stakingInfo', stakingInfo)
         if (stakingInfo.amount) {
-          stakedAmount.value = Number(stakingInfo.amount) / 10 ** 6
+          stakedAmount.value = Number(stakingInfo.amount) / 10 ** 18 // MATIC has 18 decimals
         } else {
           stakedAmount.value = 0.0
         }
+        if (stakingInfo.reward) {
+          rewardsEarned.value = Number(stakingInfo.reward) / 10 ** 18
+        } else {
+          rewardsEarned.value = 0.0
+        }
+        console.log('stakedAmount', stakedAmount.value)
+        console.log('rewardsEarned', rewardsEarned.value)
 
-        rewardsEarned.value = 0
         lastRewardTime.value = null
       } catch (error) {
         console.error('Failed to refresh staking info:', error)
@@ -423,12 +321,8 @@ export default {
       if (!isValidStake.value) return
 
       try {
-        isProcessing.value = true
         stakingSuccess.value = false
         stakingError.value = null
-        unstakingSuccess.value = false
-        unstakingError.value = null
-        
         const hash = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
@@ -436,38 +330,38 @@ export default {
         )
         transactionHash.value = hash
         stakingSuccess.value = true
-        stakeAmount.value = 0 // Reset form
         refreshStakingInfo()
       } catch (error) {
         console.error('Failed to delegate tokens:', error)
         stakingError.value = error.message || 'Failed to delegate tokens'
-      } finally {
-        isProcessing.value = false
       }
     }
 
     const handleUndelegateStake = async () => {
       try {
-        isProcessing.value = true
         stakingSuccess.value = false
         stakingError.value = null
-        unstakingSuccess.value = false
-        unstakingError.value = null
-        
-        const hash = await undelegateStake(
-          walletAddress.value,
-          validatorAddress.value,
-          unstakeAmount.value
-        )
+        const hash = await undelegateStake(walletAddress.value, validatorAddress.value)
         transactionHash.value = hash
-        unstakingSuccess.value = true
-        unstakeAmount.value = 0 // Reset form
+        stakingSuccess.value = true
         await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to undelegate stake:', error)
-        unstakingError.value = error.message || 'Failed to undelegate stake'
-      } finally {
-        isProcessing.value = false
+        stakingError.value = error.message || 'Failed to undelegate stake'
+      }
+    }
+
+    const handleClaimRewards = async () => {
+      try {
+        stakingSuccess.value = false
+        stakingError.value = null
+        const hash = await claimRewards(walletAddress.value, validatorAddress.value)
+        transactionHash.value = hash
+        stakingSuccess.value = true
+        await refreshStakingInfo()
+      } catch (error) {
+        console.error('Failed to claim rewards:', error)
+        stakingError.value = error.message || 'Failed to claim rewards'
       }
     }
 
@@ -487,29 +381,21 @@ export default {
       walletConnected,
       walletAddress,
       stakeAmount,
-      unstakeAmount,
-      delegationInfo,
-      minimumStake,
-      isValidStake,
-      isValidUnstake,
-      stakingSuccess,
-      unstakingSuccess,
-      stakingError,
-      unstakingError,
-      transactionHash,
-      connectWallet: handleConnectWallet,
-      delegateTokens: handleDelegateTokens,
-      undelegateStake: handleUndelegateStake,
-      truncateAddress,
-      walletError,
-      isConnecting,
-      isProcessing,
       stakedAmount,
       rewardsEarned,
       lastRewardTime,
-      availableBalance,
-      activeTab,
-      totalBldBalance
+      minimumStake,
+      isValidStake,
+      stakingSuccess,
+      stakingError,
+      transactionHash,
+      isConnecting,
+      walletError,
+      connectWallet: handleConnectWallet,
+      delegateTokens: handleDelegateTokens,
+      undelegateStake: handleUndelegateStake,
+      claimRewards: handleClaimRewards,
+      truncateAddress
     }
   }
 }
@@ -619,7 +505,7 @@ export default {
 }
 
 .link-primary {
-  color: #6366f1;
+  color: #8247e5;
   text-decoration: none;
   font-size: 0.875rem;
 }
@@ -631,11 +517,13 @@ export default {
 /* Buttons */
 .action-buttons {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
+  margin-top: 1.5rem;
 }
 
 .primary-button {
-  background-color: #6366f1;
+  background-color: #8247e5;
   color: white;
   border: none;
   border-radius: 0.375rem;
@@ -648,7 +536,7 @@ export default {
 }
 
 .primary-button:hover:not(:disabled) {
-  background-color: #4f46e5;
+  background-color: #6b3db3;
 }
 
 .primary-button:active:not(:disabled) {
@@ -665,7 +553,7 @@ export default {
 }
 
 .delegate-button {
-  margin-top: 1.5rem;
+  margin-top: 0.5rem;
 }
 
 /* Wallet Info Card */
@@ -689,7 +577,7 @@ export default {
 }
 
 .transaction-link {
-  color: #6366f1;
+  color: #8247e5;
   text-decoration: none;
   font-size: 0.75rem;
 }
@@ -736,8 +624,8 @@ export default {
 
 .form-input:focus {
   outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  border-color: #8247e5;
+  box-shadow: 0 0 0 3px rgba(130, 71, 229, 0.1);
 }
 
 .input-suffix {
@@ -859,138 +747,4 @@ input[type='number']::-webkit-outer-spin-button {
 input[type='number'] {
   -moz-appearance: textfield;
 }
-
-/* Add new styles for tabs and unstaking */
-.tab-container {
-  display: flex;
-  background-color: #f3f4f6;
-  border-radius: 0.5rem;
-  padding: 0.25rem;
-  margin-bottom: 1.5rem;
-}
-
-.tab-button {
-  flex: 1;
-  padding: 0.5rem 1rem;
-  border: none;
-  background: none;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: #6b7280;
-}
-
-.tab-button.tab-active {
-  background-color: #6366f1;
-  color: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.tab-button:hover:not(.tab-active) {
-  color: #374151;
-  background-color: #e5e7eb;
-}
-
-.tab-content {
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.warning-card {
-  background-color: #fef3c7;
-  border: 1px solid #f59e0b;
-  border-radius: 0.5rem;
-  padding: 0.75rem;
-  margin: 1rem 0;
-  display: flex;
-  gap: 0.75rem;
-  align-items: flex-start;
-}
-
-.warning-icon-small {
-  font-size: 1.25rem;
-  flex-shrink: 0;
-}
-
-.warning-text {
-  font-size: 0.875rem;
-  color: #92400e;
-}
-
-.unstake-button {
-  background-color: #dc2626;
-}
-
-.unstake-button:hover:not(:disabled) {
-  background-color: #b91c1c;
-}
-
-.max-button {
-  background: none;
-  border: none;
-  color: #6366f1;
-  cursor: pointer;
-  font-size: 0.75rem;
-  text-decoration: underline;
-}
-
-.max-button:hover:not(:disabled) {
-  color: #4f46e5;
-}
-
-.max-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.tooltip-container {
-  position: relative;
-  cursor: help;
-}
-
-.tooltip {
-  visibility: hidden;
-  position: absolute;
-  bottom: 100%;
-  left: 10%;
-  transform: translateX(-70%);
-  padding: 0.5rem;
-  background-color: #1f2937;
-  color: white;
-  text-align: center;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
-  white-space: nowrap;
-  z-index: 10;
-  margin-bottom: 0.5rem;
-  opacity: 0;
-  transition: opacity 0.2s, visibility 0.2s;
-}
-
-.tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 80%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: #1f2937 transparent transparent transparent;
-}
-
-.tooltip-container:hover .tooltip {
-  visibility: visible;
-  opacity: 1;
-}
-</style>
+</style> 

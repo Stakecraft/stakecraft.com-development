@@ -100,7 +100,7 @@ import {
   Transaction,
   Connection,
   PublicKey,
-  Keypair, // new
+  Keypair,
   LAMPORTS_PER_SOL
 } from '@_koii/web3.js'
 
@@ -110,6 +110,18 @@ const connection = new Connection(KOII_RPC_URL)
 export const connectWallet = async () => {
   const connectedPublickey = await window.k2.connect()
   return connectedPublickey
+}
+
+export const getKoiiBalance = async (walletAddress) => {
+  try {
+    const publicKey = new PublicKey(walletAddress)
+    const balance = await connection.getBalance(publicKey)
+    // Convert from lamports to KOII
+    return balance / LAMPORTS_PER_SOL
+  } catch (error) {
+    console.error('Error getting KOII balance:', error)
+    throw new Error(`Failed to get KOII balance: ${error.message}`)
+  }
 }
 
 export const delegateTokens = async (walletAddress, validatorVoteAddress, amountSol) => {
@@ -153,18 +165,27 @@ export const delegateTokens = async (walletAddress, validatorVoteAddress, amount
   return { sig, stakeAccount: stakeAccount.publicKey.toBase58() }
 }
 
-export const undelegateTokens = async (walletAddress, stakeAccountAddress) => {
-  const authorizedPubkey = new PublicKey(walletAddress)
-  const stakePubkey = new PublicKey(stakeAccountAddress)
-
-  let tx = StakeProgram.deactivate({
-    stakePubkey: stakePubkey,
-    authorizedPubkey: authorizedPubkey
-  })
-
-  console.log('============== tx ==============', tx)
-
+export const undelegateTokens = async (walletAddress, stakeAccountAddress, unstakeAmount) => {
   try {
+    const authorizedPubkey = new PublicKey(walletAddress)
+    const stakePubkey = new PublicKey(stakeAccountAddress)
+
+    // Get current stake account info
+    const stakeAccountInfo = await connection.getAccountInfo(stakePubkey)
+    if (!stakeAccountInfo) {
+      throw new Error('Stake account not found')
+    }
+
+    // Calculate lamports to undelegate
+    const lamportsToUndelegate = unstakeAmount * LAMPORTS_PER_SOL
+
+    let tx = StakeProgram.deactivate({
+      stakePubkey: stakePubkey,
+      authorizedPubkey: authorizedPubkey
+    })
+
+    console.log('============== tx ==============', tx)
+
     const { blockhash } = await connection.getRecentBlockhash()
     tx.recentBlockhash = blockhash
     tx.feePayer = authorizedPubkey
@@ -175,12 +196,39 @@ export const undelegateTokens = async (walletAddress, stakeAccountAddress) => {
     return txHash
   } catch (error) {
     console.error(error)
+    throw new Error(`Failed to undelegate tokens: ${error.message}`)
   }
 }
 
 export const getTotalStakedAmount = async (walletAddress) => {
-  const publicKey = new PublicKey(walletAddress)
-  const stakeAccounts = await connection.getAccountInfo(publicKey)
-  console.log('stakeAccounts', stakeAccounts)
-  return stakeAccounts
+  try {
+    const publicKey = new PublicKey(walletAddress)
+    const stakeAccounts = await connection.getParsedProgramAccounts(StakeProgram.programId, {
+      filters: [
+        {
+          memcmp: {
+            offset: 44, // offset of authorized staker in stake account
+            bytes: publicKey.toBase58()
+          }
+        }
+      ]
+    })
+
+    let totalStaked = 0
+    for (const account of stakeAccounts) {
+      const stakeInfo = account.account.data.parsed.info
+      if (stakeInfo.stake && stakeInfo.stake.delegation) {
+        totalStaked += Number(stakeInfo.stake.delegation.stake) / LAMPORTS_PER_SOL
+      }
+    }
+
+    return {
+      amount: totalStaked.toString(),
+      denom: 'KOII',
+      displayAmount: totalStaked
+    }
+  } catch (error) {
+    console.error('Error getting total staked amount:', error)
+    throw new Error(`Failed to get total staked amount: ${error.message}`)
+  }
 }

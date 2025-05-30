@@ -32,17 +32,30 @@ const tryRpcEndpoints = async (offlineSigner) => {
   throw new Error(`Failed to connect to any RPC endpoint. Last error: ${lastError?.message}`)
 }
 
+// Get BAND balance for a wallet address
+export const getBandBalance = async (walletAddress) => {
+  try {
+    await window.keplr.enable(BAND_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(BAND_CHAIN_ID)
+    const client = await tryRpcEndpoints(offlineSigner)
+    const balances = await client.getAllBalances(walletAddress)
+    // Find the BAND balance (denom: 'uband')
+    const bandBalance = balances.find(b => b.denom === 'uband')
+    // Convert from micro-BAND to BAND
+    return bandBalance ? Number(bandBalance.amount) / 1_000_000 : 0
+  } catch (error) {
+    console.error('Error getting BAND balance:', error)
+    throw new Error(`Failed to get BAND balance: ${error.message}`)
+  }
+}
+
 // Get total staked amount
 export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) => {
   try {
     await window.keplr.enable(BAND_CHAIN_ID)
     const offlineSigner = window.getOfflineSigner(BAND_CHAIN_ID)
-
-    console.log('offlineSigner', offlineSigner)
     const client = await tryRpcEndpoints(offlineSigner)
-    console.log('client', client)
     const stakingInfo = await client.getDelegation(delegatorAddress, validatorAddress)
-    console.log('stakingInfo', stakingInfo)
     return stakingInfo
   } catch (error) {
     console.error('Error getting total staked amount:', error)
@@ -71,7 +84,8 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
 
     const result = await client.signAndBroadcast(delegatorAddress, [msg], {
       amount: [{ denom: 'uband', amount: String(amount * 1_000_000) }],
-      gas: '200000'
+      gas: '200000',
+      memo: 'Delegate BAND tokens'
     })
 
     return result.transactionHash
@@ -81,7 +95,7 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
   }
 }
 
-export const undelegateStake = async (delegatorAddress, validatorAddress) => {
+export const undelegateStake = async (delegatorAddress, validatorAddress, unstakeAmount) => {
   try {
     await window.keplr.enable(BAND_CHAIN_ID)
     const offlineSigner = window.getOfflineSigner(BAND_CHAIN_ID)
@@ -94,18 +108,14 @@ export const undelegateStake = async (delegatorAddress, validatorAddress) => {
       throw new Error('No delegation found')
     }
 
-    // Get the delegation amount
-    const delegationAmount = delegation?.amount
-    console.log('delegationAmount', delegationAmount)
-
-    if (!delegationAmount) {
+    if (!unstakeAmount) {
       throw new Error('Could not find delegation amount')
     }
 
     // Format the amount properly for undelegation
     const amount = {
       denom: 'uband',
-      amount: delegationAmount.toString()
+      amount: (unstakeAmount * 1_000_000).toString()
     }
     console.log('formatted amount', amount)
 

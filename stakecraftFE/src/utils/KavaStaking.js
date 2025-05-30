@@ -20,7 +20,7 @@ export const connectWallet = async () => {
 }
 
 // Helper function to try different RPC endpoints
-const tryRpcEndpoints = async (offlineSigner) => {
+export const tryRpcEndpoints = async (offlineSigner) => {
   let lastError = null
   for (const endpoint of RPC_ENDPOINTS) {
     try {
@@ -34,6 +34,23 @@ const tryRpcEndpoints = async (offlineSigner) => {
     }
   }
   throw new Error(`Failed to connect to any RPC endpoint. Last error: ${lastError?.message}`)
+}
+
+// Get KAVA balance for a wallet address
+export const getKavaBalance = async (walletAddress) => {
+  try {
+    await window.keplr.enable(KAVA_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(KAVA_CHAIN_ID)
+    const client = await tryRpcEndpoints(offlineSigner)
+    const balances = await client.getAllBalances(walletAddress)
+    // Find the KAVA balance (denom: 'ukava')
+    const kavaBalance = balances.find(b => b.denom === 'ukava')
+    // Convert from micro-KAVA to KAVA
+    return kavaBalance ? Number(kavaBalance.amount) / 1_000_000 : 0
+  } catch (error) {
+    console.error('Error getting KAVA balance:', error)
+    throw new Error(`Failed to get KAVA balance: ${error.message}`)
+  }
 }
 
 export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) => {
@@ -73,7 +90,7 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
   }
 }
 
-export const undelegateStake = async (delegatorAddress, validatorAddress) => {
+export const undelegateStake = async (delegatorAddress, validatorAddress, unstakeAmount) => {
   try {
     await window.keplr.enable(KAVA_CHAIN_ID)
     const offlineSigner = window.getOfflineSigner(KAVA_CHAIN_ID)
@@ -87,17 +104,18 @@ export const undelegateStake = async (delegatorAddress, validatorAddress) => {
     }
 
     // Get the delegation amount from the correct path in the object
-    const delegationAmount = delegation?.amount
-    console.log('delegationAmount', delegationAmount)
+    // const delegationAmount = delegation?.amount
+    // console.log('delegationAmount', delegationAmount)
+    console.log('unstakeAmount', unstakeAmount)
 
-    if (!delegationAmount) {
+    if (!unstakeAmount) {
       throw new Error('Could not find delegation amount')
     }
 
     // Format the amount properly for undelegation
     const amount = {
       denom: 'ukava',
-      amount: delegationAmount.toString()
+      amount: (unstakeAmount * 1_000_000).toString()
     }
     console.log('formatted amount', amount)
 

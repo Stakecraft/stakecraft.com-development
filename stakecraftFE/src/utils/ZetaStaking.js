@@ -184,12 +184,15 @@ export async function getTotalStakedAmount(delegatorAddress, validatorAddress) {
 
     if (data.delegation_response) {
       const amount = data.delegation_response.balance.amount
+      console.log('amount', amount)
       return {
         amount,
         denom: data.delegation_response.balance.denom,
         displayAmount: Number(amount) / Math.pow(10, ZETA_CONFIG.displayDecimals)
       }
     }
+    console.log('data', data);
+    
     return { amount: '0', denom: ZETA_CONFIG.denom, displayAmount: 0 }
   } catch (error) {
     console.error('Error getting total staked amount:', error)
@@ -434,14 +437,32 @@ export async function delegateTokens(delegatorAddress, validatorAddress, amount)
   }
 }
 
-export async function undelegateStake(delegatorAddress, validatorAddress, amount) {
+export async function getZetaBalance(walletAddress) {
+  try {
+    await window.keplr.enable(ZETA_CONFIG.chainId)
+    const offlineSigner = window.keplr.getOfflineSigner(ZETA_CONFIG.chainId)
+    const client = await SigningStargateClient.connectWithSigner(ZETA_CONFIG.rpc, offlineSigner, {
+      accountParser: ethAccountParser
+    })
+    const balances = await client.getAllBalances(walletAddress)
+    // Find the ZETA balance (denom: 'azeta')
+    const zetaBalance = balances.find(b => b.denom === ZETA_CONFIG.denom)
+    // Convert from micro-ZETA to ZETA
+    return zetaBalance ? Number(zetaBalance.amount) / Math.pow(10, ZETA_CONFIG.decimals) : 0
+  } catch (error) {
+    console.error('Error getting ZETA balance:', error)
+    throw new Error(`Failed to get ZETA balance: ${error.message}`)
+  }
+}
+
+export async function undelegateStake(delegatorAddress, validatorAddress, unstakeAmount) {
   if (!window.keplr) {
     throw new Error('Keplr wallet is not installed')
   }
 
   try {
     await window.keplr.enable(ZETA_CONFIG.chainId)
-    const amountInAzeta = Math.floor(amount * Math.pow(10, ZETA_CONFIG.displayDecimals)).toString()
+    const amountInAzeta = Math.floor(unstakeAmount * Math.pow(10, ZETA_CONFIG.displayDecimals)).toString()
 
     // Convert Ethereum address to ZetaChain address if needed
     const zetaAddress = delegatorAddress.startsWith('0x')

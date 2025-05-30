@@ -95,8 +95,10 @@
             <div class="wallet-info-card">
               <div class="wallet-info-row">
                 <span class="info-label">Connected Wallet:</span>
-                <span class="info-value">{{ truncateAddress(walletAddress) }}</span>
-                <!-- <span class="info-value">{{ walletAddress }}</span> -->
+                <span class="info-value tooltip-container">
+                  {{ truncateAddress(walletAddress) }}
+                  <span class="tooltip">{{ walletAddress }}</span>
+                </span>
               </div>
               <div v-if="transactionHash" class="transaction-info">
                 <div class="wallet-info-row">
@@ -112,101 +114,179 @@
               </div>
             </div>
 
-            <!-- Staking Form -->
-            <div class="staking-form">
-              <!-- Staking Amount Input -->
-              <div class="form-group">
-                <label class="form-label"> Amount to Stake (KOII) </label>
-                <div class="input-container">
-                  <input
-                    v-model.number="stakeAmount"
-                    type="number"
-                    :min="minimumStake"
-                    step="0.1"
-                    class="form-input"
-                    placeholder="Enter amount"
-                  />
-                  <div class="input-suffix">
-                    <span>KOII</span>
+            <!-- Tab Navigation -->
+            <div class="tab-container">
+              <button 
+                class="tab-button"
+                :class="{ 'tab-active': activeTab === 'stake' }"
+                @click="activeTab = 'stake'"
+              >
+                Stake
+              </button>
+              <button 
+                class="tab-button"
+                :class="{ 'tab-active': activeTab === 'unstake' }"
+                @click="activeTab = 'unstake'"
+              >
+                Unstake
+              </button>
+            </div>
+
+            <!-- Staking Tab Content -->
+            <div v-if="activeTab === 'stake'" class="tab-content">
+              <div class="staking-form">
+                <!-- Staking Amount Input -->
+                <div class="form-group">
+                  <label class="form-label">Amount to Stake (KOII)</label>
+                  <div class="input-container">
+                    <input
+                      v-model.number="stakeAmount"
+                      type="number"
+                      :min="minimumStake"
+                      step="0.1"
+                      class="form-input"
+                      placeholder="Enter amount"
+                    />
+                    <div class="input-suffix">
+                      <span>KOII</span>
+                    </div>
+                  </div>
+                  <div class="input-hint">
+                    <span>Minimum: {{ minimumStake }} KOII</span>
+                    <button 
+                      @click="stakeAmount = Number(totalKoiiBalance)"
+                      class="max-button"
+                      :disabled="Number(totalKoiiBalance) <= 0"
+                    >
+                      Max
+                    </button>
                   </div>
                 </div>
-                <div class="input-hint">
-                  <span> Minimum: {{ minimumStake }} KOII </span>
-                </div>
-              </div>
 
-              <!-- Validator Address -->
-              <div class="form-group">
-                <label class="form-label"> Validator Address </label>
-                <input
-                  v-model="validatorAddress"
-                  type="text"
-                  class="form-input"
-                  placeholder="Enter validator address"
-                />
+                <!-- Validator Address -->
+                <div class="form-group">
+                  <label class="form-label">Validator Address</label>
+                  <input
+                    :value="network.validator"
+                    type="text"
+                    class="form-input"
+                    placeholder="Enter validator address"
+                    readonly
+                  />
+                </div>
+
+                <!-- Staking Info -->
+                <div class="info-card">
+                  <h3 class="info-card-title">Current Staking Status</h3>
+                  <div class="info-card-content">
+                    <div class="info-row">
+                      <span class="info-label">Available Balance:</span>
+                      <span class="info-value">{{ availableBalance }} KOII</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Currently Staked:</span>
+                      <span class="info-value">{{ stakedAmount }} KOII</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Success/Error Messages for Staking -->
+                <div v-if="stakingSuccess" class="success-message">
+                  Successfully delegated!
+                </div>
+                <div v-if="stakingError" class="error-message">
+                  {{ stakingError }}
+                </div>
+
+                <!-- Stake Action Button -->
+                <button
+                  @click="delegateTokens"
+                  :disabled="!isValidStake || isProcessing"
+                  class="primary-button full-width delegate-button"
+                  :class="{ 'button-disabled': !isValidStake || isProcessing }"
+                >
+                  {{ isProcessing ? 'Processing...' : 'Delegate KOII' }}
+                </button>
               </div>
             </div>
 
-            <!-- Staking Info -->
-            <div class="info-card">
-              <h3 class="info-card-title">Staking Status</h3>
-              <div class="info-card-content">
-                <div class="info-row">
-                  <span class="info-label">Staked Amount:</span>
-                  <span class="info-value">{{ stakedAmount }} KOII</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Rewards Earned:</span>
-                  <span class="info-value">{{ rewardsEarned }} KOII</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Last Reward:</span>
-                  <span class="info-value">{{
-                    lastRewardTime ? new Date(lastRewardTime).toLocaleString() : 'Never'
-                  }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Success/Error Messages -->
-            <div v-if="stakingSuccess" class="success-message">
-              Successfully staked KOII tokens!
-            </div>
-            <div v-if="stakingError" class="error-message">
-              {{ stakingError }}
-              <div v-if="stakingError.includes('not installed')" class="install-guide">
-                <p>To use KOII staking, you need to:</p>
-                <ol>
-                  <li>
-                    Install the Finnie wallet extension from
-                    <a href="https://finnie.koii.network/" target="_blank"
-                      >https://finnie.koii.network/</a
+            <!-- Unstaking Tab Content -->
+            <div v-if="activeTab === 'unstake'" class="tab-content">
+              <div class="staking-form">
+                <!-- Unstaking Amount Input -->
+                <div class="form-group">
+                  <label class="form-label">Amount to Unstake (KOII)</label>
+                  <div class="input-container">
+                    <input
+                      v-model.number="unstakeAmount"
+                      type="number"
+                      :min="0"
+                      :max="stakedAmount"
+                      step="0.1"
+                      class="form-input"
+                      placeholder="Enter amount to unstake"
+                    />
+                    <div class="input-suffix">
+                      <span>KOII</span>
+                    </div>
+                  </div>
+                  <div class="input-hint">
+                    <span>Available to unstake: {{ stakedAmount }} KOII</span>
+                    <button 
+                      @click="unstakeAmount = stakedAmount"
+                      class="max-button"
+                      :disabled="stakedAmount <= 0"
                     >
-                  </li>
-                  <li>Create an account in the Finnie wallet</li>
-                  <li>Refresh this page after installation</li>
-                </ol>
-              </div>
-            </div>
+                      Max
+                    </button>
+                  </div>
+                </div>
 
-            <!-- Action Button -->
-            <div class="action-buttons">
-              <button
-                @click="delegateTokens"
-                :disabled="!isValidStake"
-                class="primary-button full-width delegate-button"
-                :class="{ 'button-disabled': !isValidStake }"
-              >
-                Delegate KOII
-              </button>
-              <button
-                @click="undelegateTokens"
-                :disabled="stakedAmount <= 0" 
-                class="primary-button full-width delegate-button"
-                :class="{ 'button-disabled': stakedAmount <= 0 }"
-              >
-                Undelegate KOII
-              </button>
+                <!-- Unstaking Info -->
+                <div class="info-card">
+                  <h3 class="info-card-title">Unstaking Information</h3>
+                  <div class="info-card-content">
+                    <div class="info-row">
+                      <span class="info-label">Currently Staked:</span>
+                      <span class="info-value">{{ stakedAmount }} KOII</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Rewards Earned:</span>
+                      <span class="info-value">{{ rewardsEarned }} KOII</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Unbonding Period:</span>
+                      <span class="info-value">21 days</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Unstaking Warning -->
+                <div class="warning-card">
+                  <div class="warning-icon-small">⚠️</div>
+                  <div class="warning-text">
+                    <strong>Important:</strong> Unstaked tokens will be locked for 21 days before becoming available for withdrawal.
+                  </div>
+                </div>
+
+                <!-- Success/Error Messages for Unstaking -->
+                <div v-if="unstakingSuccess" class="success-message">
+                  Successfully Undelegated!
+                </div>
+                <div v-if="unstakingError" class="error-message">
+                  {{ unstakingError }}
+                </div>
+
+                <!-- Unstake Action Button -->
+                <button
+                  @click="undelegateTokens"
+                  :disabled="!isValidUnstake || isProcessing"
+                  class="primary-button full-width delegate-button unstake-button"
+                  :class="{ 'button-disabled': !isValidUnstake || isProcessing }"
+                >
+                  {{ isProcessing ? 'Processing...' : 'Undelegate KOII' }}
+                </button>
+              </div>
             </div>
 
             <!-- Network Links -->
@@ -236,12 +316,13 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import {
   connectWallet,
   delegateTokens,
   undelegateTokens,
-  getTotalStakedAmount
+  getTotalStakedAmount,
+  getKoiiBalance
 } from '../../utils/KoiiStaking'
 
 export default {
@@ -257,45 +338,86 @@ export default {
     const walletConnected = ref(false)
     const walletAddress = ref('')
     const stakeAmount = ref(0)
+    const unstakeAmount = ref(0)
     const validatorAddress = ref('')
-    const stakedAmount = ref(1)
-    const rewardsEarned = ref(0)
-    const attentionScore = ref(0)
-    const lastRewardTime = ref(null)
-    const stakingSuccess = ref(false)
-    const stakingError = ref(null)
-    const transactionHash = ref('')
+    const delegationInfo = ref(null)
     const minimumStake = 0.01
+    const stakingSuccess = ref(false)
+    const unstakingSuccess = ref(false)
+    const stakingError = ref(null)
+    const unstakingError = ref(null)
+    const transactionHash = ref('')
+    const walletError = ref(false)
     const isConnecting = ref(false)
-    const undelegateAmount = ref(0)
-    const undelegateSuccess = ref(false)
-    const undelegateError = ref(null)
-    const totalStaked = ref(0)
+    const isProcessing = ref(false)
+    const stakedAmount = ref(0)
+    const rewardsEarned = ref(0)
+    const lastRewardTime = ref(null)
+    const availableBalance = ref(0)
+    const activeTab = ref('stake')
+    const totalKoiiBalance = ref(0)
 
     onMounted(() => {
-      if (props.network?.validator) {
+      if (props.network?.validator?.[0]) {
         validatorAddress.value = props.network.validator[0]
       }
     })
 
+    // Add watch on activeTab to clear messages
+    watch(activeTab, () => {
+      stakingSuccess.value = false
+      stakingError.value = null
+      unstakingSuccess.value = false
+      unstakingError.value = null
+      transactionHash.value = ''
+    })
+
     const isValidStake = computed(() => {
       const amount = parseFloat(stakeAmount.value)
-      return !isNaN(amount) && amount >= minimumStake && validatorAddress.value
+      return !isNaN(amount) && amount >= minimumStake && validatorAddress.value && amount <= Number(totalKoiiBalance.value)
+    })
+
+    const isValidUnstake = computed(() => {
+      const amount = parseFloat(unstakeAmount.value)
+      return !isNaN(amount) && amount > 0 && amount <= stakedAmount.value
     })
 
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
-        stakingError.value = null
         const address = await connectWallet()
         walletAddress.value = address
         walletConnected.value = true
-        await refreshStakingInfo()
+        isConnecting.value = false
+        refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
-        stakingError.value = error.message
-      } finally {
+        walletError.value = true
         isConnecting.value = false
+      }
+    }
+
+    const refreshStakingInfo = async () => {
+      if (!walletAddress.value) return
+
+      try {
+        const koiiBalance = await getKoiiBalance(walletAddress.value)
+        totalKoiiBalance.value = koiiBalance
+        availableBalance.value = Number(koiiBalance).toFixed(4)
+
+        const stakingInfo = await getTotalStakedAmount(walletAddress.value)
+        console.log('stakingInfo', stakingInfo)
+        if (stakingInfo.amount) {
+          stakedAmount.value = Number(stakingInfo.amount)
+        } else {
+          stakedAmount.value = 0.0
+        }
+        console.log('stakedAmount', stakedAmount.value)
+
+        rewardsEarned.value = 0
+        lastRewardTime.value = null
+      } catch (error) {
+        console.error('Failed to refresh staking info:', error)
       }
     }
 
@@ -303,52 +425,56 @@ export default {
       if (!isValidStake.value) return
 
       try {
+        isProcessing.value = true
         stakingSuccess.value = false
         stakingError.value = null
-
-        const hash = await delegateTokens(
+        unstakingSuccess.value = false
+        unstakingError.value = null
+        
+        const result = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
           stakeAmount.value
         )
-
-        transactionHash.value = hash
+        transactionHash.value = result.sig
         stakingSuccess.value = true
-        stakeAmount.value = 0
+        stakeAmount.value = 0 // Reset form
+        refreshStakingInfo()
       } catch (error) {
-        console.error('Failed to stake tokens:', error)
-        stakingError.value = error.message
+        console.error('Failed to delegate tokens:', error)
+        stakingError.value = error.message || 'Failed to delegate tokens'
+      } finally {
+        isProcessing.value = false
       }
     }
 
     const handleUndelegateTokens = async () => {
-      // if (!undelegateAmount.value || undelegateAmount.value <= 0) return
       try {
-        console.log('start the undelegate');
+        isProcessing.value = true
+        console.log('-------vue console. handleUndelegateStake start-------')
+        console.log('vue console. walletAddress', walletAddress.value)
+        console.log('vue console. validatorAddress', validatorAddress.value)
         
-        undelegateSuccess.value = false
-        undelegateError.value = null
+        stakingSuccess.value = false
+        stakingError.value = null
+        unstakingSuccess.value = false
+        unstakingError.value = null
+        
         const hash = await undelegateTokens(
           walletAddress.value,
           validatorAddress.value,
+          unstakeAmount.value
         )
+        console.log('vue console. hash', hash)
         transactionHash.value = hash
-        undelegateSuccess.value = true
-        undelegateAmount.value = 0
+        unstakingSuccess.value = true
+        unstakeAmount.value = 0 // Reset form
         await refreshStakingInfo()
       } catch (error) {
-        console.error('Failed to undelegate tokens:', error)
-        undelegateError.value = error.message
-      }
-    }
-
-    const refreshStakingInfo = async () => {
-      try {
-        console.log('walletAddress.value', walletAddress.value)
-        const totalInfo = await getTotalStakedAmount(walletAddress.value)
-        console.log('totalInfo', totalInfo)
-      } catch (error) {
-        console.error('Failed to refresh staking info:', error)
+        console.error('Failed to undelegate stake:', error)
+        unstakingError.value = error.message || 'Failed to undelegate stake'
+      } finally {
+        isProcessing.value = false
       }
     }
 
@@ -370,25 +496,29 @@ export default {
       walletConnected,
       walletAddress,
       stakeAmount,
-      stakedAmount,
-      rewardsEarned,
-      attentionScore,
-      lastRewardTime,
+      unstakeAmount,
+      delegationInfo,
       minimumStake,
       isValidStake,
+      isValidUnstake,
       stakingSuccess,
+      unstakingSuccess,
       stakingError,
+      unstakingError,
       transactionHash,
-      isConnecting,
       connectWallet: handleConnectWallet,
       delegateTokens: handleDelegateTokens,
       undelegateTokens: handleUndelegateTokens,
       truncateAddress,
-      undelegateAmount,
-      undelegateSuccess,
-      undelegateError,
-      totalStaked,
-      refreshStakingInfo
+      walletError,
+      isConnecting,
+      isProcessing,
+      stakedAmount,
+      rewardsEarned,
+      lastRewardTime,
+      availableBalance,
+      activeTab,
+      totalKoiiBalance
     }
   }
 }
@@ -543,8 +673,30 @@ export default {
   cursor: not-allowed;
 }
 
-.delegate-button {
-  margin-top: 1.5rem;
+.unstake-button {
+  background-color: #dc2626;
+}
+
+.unstake-button:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+.max-button {
+  background: none;
+  border: none;
+  color: #6366f1;
+  cursor: pointer;
+  font-size: 0.75rem;
+  text-decoration: underline;
+}
+
+.max-button:hover:not(:disabled) {
+  color: #4f46e5;
+}
+
+.max-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Wallet Info Card */
@@ -675,6 +827,27 @@ export default {
   color: #1f2937;
 }
 
+.warning-card {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin: 1rem 0;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.warning-icon-small {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.warning-text {
+  font-size: 0.875rem;
+  color: #92400e;
+}
+
 /* Success/Error Messages */
 .success-message {
   color: #059669;
@@ -694,26 +867,97 @@ export default {
   font-size: 0.875rem;
 }
 
-.install-guide {
-  margin-top: 0.75rem;
-  padding: 0.75rem;
-  background-color: #fef2f2;
-  border-radius: 0.375rem;
+
+/* Wallet Warning */
+.wallet-warning {
+  background-color: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  display: flex;
+  gap: 1rem;
+}
+
+.warning-icon {
+  color: #ea580c;
+  flex-shrink: 0;
+}
+
+.warning-content {
+  flex: 1;
+}
+
+.warning-title {
+  color: #ea580c;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.warning-message {
+  color: #9a3412;
   font-size: 0.875rem;
+  margin: 0 0 0.75rem 0;
 }
 
-.install-guide ol {
-  margin: 0.5rem 0;
-  padding-left: 1.5rem;
+/* Tab Navigation */
+.tab-container {
+  display: flex;
+  background-color: #f3f4f6;
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+  margin-bottom: 1.5rem;
 }
 
-.install-guide a {
-  color: #6366f1;
-  text-decoration: none;
+.tab-button {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #6b7280;
 }
 
-.install-guide a:hover {
-  text-decoration: underline;
+.tab-button.tab-active {
+  background-color: #6366f1;
+  color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tab-button:hover:not(.tab-active) {
+  color: #374151;
+  background-color: #e5e7eb;
+}
+
+/* Tab Content */
+.tab-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Warning Card */
+.warning-card {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin: 1rem 0;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.warning-icon-small {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.warning-text {
+  font-size: 0.875rem;
+  color: #92400e;
 }
 
 /* Remove number input arrows */
@@ -725,5 +969,47 @@ input[type='number']::-webkit-outer-spin-button {
 
 input[type='number'] {
   -moz-appearance: textfield;
+}
+
+.tooltip-container {
+  position: relative;
+  cursor: help;
+}
+
+.tooltip {
+  visibility: hidden;
+  position: absolute;
+  bottom: 100%;
+  left: 10%;
+  transform: translateX(-70%);
+  padding: 0.5rem;
+  background-color: #1f2937;
+  color: white;
+  text-align: center;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 10;
+  margin-bottom: 0.5rem;
+  opacity: 0;
+  transition:
+    opacity 0.2s,
+    visibility 0.2s;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 80%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #1f2937 transparent transparent transparent;
+}
+
+.tooltip-container:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
 }
 </style>

@@ -41,6 +41,37 @@ const tryRpcEndpoints = async (offlineSigner) => {
   throw new Error(`Failed to connect to any RPC endpoint. Last error: ${lastError?.message}`)
 }
 
+// Get BLD balance for a wallet address
+export const getBldBalance = async (walletAddress) => {
+  try {
+    await window.keplr.enable(AGORIC_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(AGORIC_CHAIN_ID)
+    const client = await tryRpcEndpoints(offlineSigner)
+    const balances = await client.getAllBalances(walletAddress)
+    // Find the BLD balance (denom: 'ubld')
+    const bldBalance = balances.find(b => b.denom === 'ubld')
+    // Convert from micro-BLD to BLD
+    return bldBalance ? Number(bldBalance.amount) / 1_000_000 : 0
+  } catch (error) {
+    console.error('Error getting BLD balance:', error)
+    throw new Error(`Failed to get BLD balance: ${error.message}`)
+  }
+}
+
+// Get total staked amount
+export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) => {
+  try {
+    await window.keplr.enable(AGORIC_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(AGORIC_CHAIN_ID)
+    const client = await tryRpcEndpoints(offlineSigner)
+    const stakingInfo = await client.getDelegation(delegatorAddress, validatorAddress)
+    return stakingInfo
+  } catch (error) {
+    console.error('Error getting total staked amount:', error)
+    throw new Error(`Failed to get total staked amount: ${error.message}`)
+  }
+}
+
 // Delegate tokens
 export const delegateTokens = async (delegatorAddress, validatorAddress, amount) => {
   try {
@@ -62,7 +93,8 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
 
     const result = await client.signAndBroadcast(delegatorAddress, [msg], {
       amount: [{ denom: 'ubld', amount: String(amount * 1_000_000) }],
-      gas: '300000'
+      gas: '300000',
+      memo: 'Delegate BLD tokens'
     })
 
     return result.transactionHash
@@ -72,21 +104,7 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
   }
 }
 
-// Get total staked amount
-export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) => {
-  try {
-    await window.keplr.enable(AGORIC_CHAIN_ID)
-    const offlineSigner = window.getOfflineSigner(AGORIC_CHAIN_ID)
-    const client = await tryRpcEndpoints(offlineSigner)
-    const stakingInfo = await client.getDelegation(delegatorAddress, validatorAddress)
-    return stakingInfo
-  } catch (error) {
-    console.error('Error getting total staked amount:', error)
-    throw new Error(`Failed to get total staked amount: ${error.message}`)
-  }
-}
-
-export const undelegateStake = async (delegatorAddress, validatorAddress) => {
+export const undelegateStake = async (delegatorAddress, validatorAddress, unstakeAmount) => {
   try {
     await window.keplr.enable(AGORIC_CHAIN_ID)
     const offlineSigner = window.getOfflineSigner(AGORIC_CHAIN_ID)
@@ -99,18 +117,14 @@ export const undelegateStake = async (delegatorAddress, validatorAddress) => {
       throw new Error('No delegation found')
     }
 
-    // Get the delegation amount
-    const delegationAmount = delegation?.amount
-    console.log('delegationAmount', delegationAmount)
-
-    if (!delegationAmount) {
+    if (!unstakeAmount) {
       throw new Error('Could not find delegation amount')
     }
 
     // Format the amount properly for undelegation
     const amount = {
       denom: 'ubld',
-      amount: delegationAmount.toString()
+      amount: (unstakeAmount * 1_000_000).toString()
     }
     console.log('formatted amount', amount)
 

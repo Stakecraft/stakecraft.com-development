@@ -63,6 +63,32 @@ export const getAccountId = async () => {
   return accountId
 }
 
+// Get NEAR balance for a wallet address
+export const getNearBalance = async (walletAddress) => {
+  try {
+    if (!selector) {
+      await walletConnect()
+    }
+
+    // Create a NEAR connection
+    const near = new Near({
+      networkId: config.networkId,
+      nodeUrl: config.nodeUrl,
+      walletUrl: config.walletUrl,
+      helperUrl: config.helperUrl,
+      explorerUrl: config.explorerUrl
+    })
+
+    const account = await near.account(walletAddress)
+    const balance = await account.getAccountBalance()
+    // Convert from yoctoNEAR to NEAR
+    return Number(utils.format.formatNearAmount(balance.total))
+  } catch (error) {
+    console.error('Error getting NEAR balance:', error)
+    throw new Error(`Failed to get NEAR balance: ${error.message}`)
+  }
+}
+
 export const delegateTokens = async (walletAddress, validatorAccountId, amountNEAR) => {
   try {
     if (!selector) {
@@ -127,14 +153,14 @@ export const getTotalStakedAmount = async (walletAddress, validatorAccountId) =>
   }
 }
 
-export const undelegateTokens = async (walletAddress, validatorAccountId, amountNEAR) => {
+export const undelegateTokens = async (walletAddress, validatorAccountId, unstakeAmount) => {
   try {
     if (!selector) {
       await walletConnect()
     }
 
     const wallet = await selector.wallet('meteor-wallet')
-    const amountYocto = utils.format.parseNearAmount(amountNEAR.toString())
+    const amountYocto = utils.format.parseNearAmount(unstakeAmount.toString())
     
     const result = await wallet.signAndSendTransaction({
       signerId: walletAddress,

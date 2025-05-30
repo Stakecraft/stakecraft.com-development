@@ -95,7 +95,10 @@
             <div class="wallet-info-card">
               <div class="wallet-info-row">
                 <span class="info-label">Connected Wallet:</span>
-                <span class="info-value">{{ truncateAddress(walletAddress) }}</span>
+                <span class="info-value tooltip-container">
+                  {{ truncateAddress(walletAddress) }}
+                  <span class="tooltip">{{ walletAddress }}</span>
+                </span>
               </div>
               <div v-if="transactionHash" class="transaction-info">
                 <div class="wallet-info-row">
@@ -111,82 +114,181 @@
               </div>
             </div>
 
-            <!-- Staking Form -->
-            <div class="staking-form">
-              <!-- Staking Amount Input -->
-              <div class="form-group">
-                <label class="form-label"> Amount to Stake (ZETA) </label>
-                <div class="input-container">
+            <!-- Tab Navigation -->
+            <div class="tab-container">
+              <button 
+                class="tab-button"
+                :class="{ 'tab-active': activeTab === 'stake' }"
+                @click="activeTab = 'stake'"
+              >
+                Stake
+              </button>
+              <button 
+                class="tab-button"
+                :class="{ 'tab-active': activeTab === 'unstake' }"
+                @click="activeTab = 'unstake'"
+              >
+                Unstake
+              </button>
+            </div>
+
+            <!-- Staking Tab Content -->
+            <div v-if="activeTab === 'stake'" class="tab-content">
+              <div class="staking-form">
+                <!-- Staking Amount Input -->
+                <div class="form-group">
+                  <label class="form-label">Amount to Stake (ZETA)</label>
+                  <div class="input-container">
+                    <input
+                      v-model.number="stakeAmount"
+                      type="number"
+                      :min="minimumStake"
+                      step="1"
+                      class="form-input"
+                      placeholder="Enter amount"
+                    />
+                    <div class="input-suffix">
+                      <span>ZETA</span>
+                    </div>
+                  </div>
+                  <div class="input-hint">
+                    <span>Minimum: {{ minimumStake }} ZETA</span>
+                    <button 
+                      @click="stakeAmount = Number(totalZetaBalance)"
+                      class="max-button"
+                      :disabled="Number(totalZetaBalance) <= 0"
+                    >
+                      Max
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Validator Address -->
+                <div class="form-group">
+                  <label class="form-label">Validator Address</label>
                   <input
-                    v-model.number="stakeAmount"
-                    type="number"
-                    :min="minimumStake"
-                    step="1"
+                    :value="network.validator"
+                    type="text"
                     class="form-input"
-                    placeholder="Enter amount"
+                    placeholder="Enter validator address"
+                    readonly
                   />
-                  <div class="input-suffix">
-                    <span>ZETA</span>
-                  </div>
                 </div>
-                <div class="input-hint">
-                  <span> Minimum: {{ minimumStake }} ZETA </span>
-                </div>
-              </div>
 
-              <!-- Validator Address -->
-              <div class="form-group">
-                <label class="form-label"> Validator Address </label>
-                <input
-                  :value="network.validator"
-                  type="text"
-                  class="form-input"
-                  placeholder="Enter validator address"
-                  readonly
-                />
-              </div>
-
-              <!-- Staking Info -->
-              <div class="info-card">
-                <h3 class="info-card-title">Staking Status</h3>
-                <div class="info-card-content">
-                  <div class="info-row">
-                    <span class="info-label">Staked Amount:</span>
-                    <span class="info-value">{{ stakedAmount }} ZETA</span>
-                  </div>
-                  <div class="info-row">
-                    <span class="info-label">Rewards Earned:</span>
-                    <span class="info-value">{{ rewardsEarned }} ZETA</span>
-                  </div>
-                  <div class="info-row">
-                    <span class="info-label">Last Reward:</span>
-                    <span class="info-value">{{
-                      lastRewardTime ? new Date(lastRewardTime).toLocaleString() : 'Never'
-                    }}</span>
+                <!-- Staking Info -->
+                <div class="info-card">
+                  <h3 class="info-card-title">Current Staking Status</h3>
+                  <div class="info-card-content">
+                    <div class="info-row">
+                      <span class="info-label">Available Balance:</span>
+                      <span class="info-value">{{ availableBalance }} ZETA</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Currently Staked:</span>
+                      <span class="info-value">{{ stakedAmount }} ZETA</span>
+                    </div>
                   </div>
                 </div>
+
+                <!-- Success/Error Messages for Staking -->
+                <div v-if="stakingSuccess" class="success-message">
+                  Successfully delegated!
+                </div>
+                <div v-if="stakingError" class="error-message">
+                  {{ stakingError }}
+                </div>
+
+                <!-- Stake Action Button -->
+                <button
+                  @click="delegateTokens"
+                  :disabled="!isValidStake || isProcessing"
+                  class="primary-button full-width delegate-button"
+                  :class="{ 'button-disabled': !isValidStake || isProcessing }"
+                >
+                  {{ isProcessing ? 'Processing...' : 'Delegate ZETA' }}
+                </button>
               </div>
             </div>
 
-            <!-- Action Button -->
-            <div class="action-buttons">
-              <button
-                @click="delegateTokens"
-                :disabled="!isValidStake"
-                class="primary-button full-width delegate-button"
-                :class="{ 'button-disabled': !isValidStake }"
-              >
-                Delegate ZETA
-              </button>
-              <button
-                @click="undelegateStake"
-                :disabled="stakedAmount <= 0"
-                class="primary-button full-width delegate-button"
-                :class="{ 'button-disabled': stakedAmount <= 0 }"
-              >
-                Undelegate ZETA
-              </button>
+            <!-- Unstaking Tab Content -->
+            <div v-if="activeTab === 'unstake'" class="tab-content">
+              <div class="staking-form">
+                <!-- Unstaking Amount Input -->
+                <div class="form-group">
+                  <label class="form-label">Amount to Unstake (ZETA)</label>
+                  <div class="input-container">
+                    <input
+                      v-model.number="unstakeAmount"
+                      type="number"
+                      :min="0"
+                      :max="stakedAmount"
+                      step="1"
+                      class="form-input"
+                      placeholder="Enter amount to unstake"
+                    />
+                    <div class="input-suffix">
+                      <span>ZETA</span>
+                    </div>
+                  </div>
+                  <div class="input-hint">
+                    <span>Available to unstake: {{ stakedAmount }} ZETA</span>
+                    <button 
+                      @click="unstakeAmount = stakedAmount"
+                      class="max-button"
+                      :disabled="stakedAmount <= 0"
+                    >
+                      Max
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Unstaking Info -->
+                <div class="info-card">
+                  <h3 class="info-card-title">Unstaking Information</h3>
+                  <div class="info-card-content">
+                    <div class="info-row">
+                      <span class="info-label">Currently Staked:</span>
+                      <span class="info-value">{{ stakedAmount }} ZETA</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Rewards Earned:</span>
+                      <span class="info-value">{{ rewardsEarned }} ZETA</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Unbonding Period:</span>
+                      <span class="info-value">21 days</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Unstaking Warning -->
+                <div class="warning-card">
+                  <div class="warning-icon-small">⚠️</div>
+                  <div class="warning-text">
+                    <strong>Important:</strong> Unstaked tokens will be locked for 21 days before becoming available for withdrawal.
+                  </div>
+                </div>
+
+                <!-- Success/Error Messages for Unstaking -->
+                <div v-if="unstakingSuccess" class="success-message">
+                  Successfully Undelegated!
+                </div>
+                <div v-if="unstakingError" class="error-message">
+                  {{ unstakingError }}
+                </div>
+
+                <!-- Unstake Action Button -->
+                <button
+                  @click="undelegateStake"
+                  :disabled="!isValidUnstake || isProcessing"
+                  class="primary-button full-width delegate-button unstake-button"
+                  :class="{ 'button-disabled': !isValidUnstake || isProcessing }"
+                >
+                  {{ isProcessing ? 'Processing...' : 'Undelegate ZETA' }}
+                </button>
+              </div>
             </div>
+
             <!-- Network Links -->
             <div class="network-links-bottom">
               <a
@@ -214,13 +316,13 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import {
   connectWallet,
   delegateTokens,
   undelegateStake,
-  initializeAccount,
-  getTotalStakedAmount
+  getTotalStakedAmount,
+  getZetaBalance
 } from '../../utils/ZetaStaking'
 
 export default {
@@ -236,17 +338,24 @@ export default {
     const walletConnected = ref(false)
     const walletAddress = ref('')
     const stakeAmount = ref(0)
+    const unstakeAmount = ref(0)
     const validatorAddress = ref('')
     const delegationInfo = ref(null)
-    const minimumStake = 0.02 // Minimum ZETA to stake
+    const minimumStake = 0.02
     const stakingSuccess = ref(false)
+    const unstakingSuccess = ref(false)
     const stakingError = ref(null)
+    const unstakingError = ref(null)
     const transactionHash = ref('')
     const walletError = ref(false)
     const isConnecting = ref(false)
+    const isProcessing = ref(false)
     const stakedAmount = ref(0)
     const rewardsEarned = ref(0)
     const lastRewardTime = ref(null)
+    const availableBalance = ref(0)
+    const activeTab = ref('stake')
+    const totalZetaBalance = ref(0)
 
     onMounted(() => {
       if (props.network?.validator?.[0]) {
@@ -254,9 +363,23 @@ export default {
       }
     })
 
+    // Add watch on activeTab to clear messages
+    watch(activeTab, () => {
+      stakingSuccess.value = false
+      stakingError.value = null
+      unstakingSuccess.value = false
+      unstakingError.value = null
+      transactionHash.value = ''
+    })
+
     const isValidStake = computed(() => {
       const amount = parseFloat(stakeAmount.value)
-      return !isNaN(amount) && amount >= minimumStake && validatorAddress.value
+      return !isNaN(amount) && amount >= minimumStake && validatorAddress.value && amount <= Number(totalZetaBalance.value)
+    })
+
+    const isValidUnstake = computed(() => {
+      const amount = parseFloat(unstakeAmount.value)
+      return !isNaN(amount) && amount > 0 && amount <= stakedAmount.value
     })
 
     const handleConnectWallet = async () => {
@@ -278,10 +401,14 @@ export default {
       if (!walletAddress.value) return
 
       try {
+        const zetaBalance = await getZetaBalance(walletAddress.value)
+        totalZetaBalance.value = zetaBalance
+        availableBalance.value = Number(zetaBalance).toFixed(4)
+
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
         console.log('stakingInfo', stakingInfo)
         if (stakingInfo.amount) {
-          stakedAmount.value = Number(stakingInfo.amount) / 10 ** 18 // Zeta has 18 decimals
+          stakedAmount.value = Number(stakingInfo.amount) / Math.pow(10, 18)
         } else {
           stakedAmount.value = 0.0
         }
@@ -295,48 +422,60 @@ export default {
     }
 
     const handleDelegateTokens = async () => {
-      console.log('-------vue console. handleDelegateTokens start-------')
+      if (!isValidStake.value) return
+
       try {
+        isProcessing.value = true
         stakingSuccess.value = false
         stakingError.value = null
-        const result = await initializeAccount(walletAddress.value)
-        console.log('vue console. result', result)
+        unstakingSuccess.value = false
+        unstakingError.value = null
         
-        const hash = await delegateTokens(
+        const result = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
           stakeAmount.value
         )
-        console.log('vue console. hash', hash)
-        transactionHash.value = hash.txHash
+        transactionHash.value = result.txHash
         stakingSuccess.value = true
+        stakeAmount.value = 0 // Reset form
         refreshStakingInfo()
       } catch (error) {
         console.error('Failed to delegate tokens:', error)
         stakingError.value = error.message || 'Failed to delegate tokens'
+      } finally {
+        isProcessing.value = false
+      }
+    }
+
+    const handleUndelegateStake = async () => {
+      try {
+        isProcessing.value = true
+        console.log('-------vue console. handleUndelegateStake start-------')
+        console.log('vue console. walletAddress', walletAddress.value)
+        console.log('vue console. validatorAddress', validatorAddress.value)
+        
+        stakingSuccess.value = false
+        stakingError.value = null
+        unstakingSuccess.value = false
+        unstakingError.value = null
+        
+        const result = await undelegateStake(walletAddress.value, validatorAddress.value, unstakeAmount.value)
+        console.log('vue console. result', result)
+        transactionHash.value = result.txHash
+        unstakingSuccess.value = true
+        unstakeAmount.value = 0 // Reset form
+        await refreshStakingInfo()
+      } catch (error) {
+        console.error('Failed to undelegate stake:', error)
+        unstakingError.value = error.message || 'Failed to undelegate stake'
+      } finally {
+        isProcessing.value = false
       }
     }
 
     const closeModal = () => {
       emit('close')
-    }
-
-    const handleUndelegateStake = async () => {
-      try {
-        console.log('-------vue console. handleUndelegateStake start-------')
-        console.log('vue console. walletAddress', walletAddress.value)
-        console.log('vue console. validatorAddress', validatorAddress.value)
-        stakingSuccess.value = false
-        stakingError.value = null
-        const hash = await undelegateStake(walletAddress.value, validatorAddress.value)
-        console.log('vue console. hash', hash)
-        transactionHash.value = hash
-        stakingSuccess.value = true
-        await refreshStakingInfo()
-      } catch (error) {
-        console.error('Failed to undelegate stake:', error)
-        stakingError.value = error.message || 'Failed to undelegate stake'
-      }
     }
 
     const truncateAddress = (address) => {
@@ -351,11 +490,15 @@ export default {
       walletConnected,
       walletAddress,
       stakeAmount,
+      unstakeAmount,
       delegationInfo,
       minimumStake,
       isValidStake,
+      isValidUnstake,
       stakingSuccess,
+      unstakingSuccess,
       stakingError,
+      unstakingError,
       transactionHash,
       connectWallet: handleConnectWallet,
       delegateTokens: handleDelegateTokens,
@@ -363,9 +506,13 @@ export default {
       truncateAddress,
       walletError,
       isConnecting,
+      isProcessing,
       stakedAmount,
       rewardsEarned,
-      lastRewardTime
+      lastRewardTime,
+      availableBalance,
+      activeTab,
+      totalZetaBalance
     }
   }
 }
@@ -714,5 +861,139 @@ input[type='number']::-webkit-outer-spin-button {
 
 input[type='number'] {
   -moz-appearance: textfield;
+}
+
+/* Add these new styles */
+.tab-container {
+  display: flex;
+  background-color: #f3f4f6;
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #6b7280;
+}
+
+.tab-button.tab-active {
+  background-color: #6366f1;
+  color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tab-button:hover:not(.tab-active) {
+  color: #374151;
+  background-color: #e5e7eb;
+}
+
+.tab-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.warning-card {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin: 1rem 0;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.warning-icon-small {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.warning-text {
+  font-size: 0.875rem;
+  color: #92400e;
+}
+
+.unstake-button {
+  background-color: #dc2626;
+}
+
+.unstake-button:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+.max-button {
+  background: none;
+  border: none;
+  color: #6366f1;
+  cursor: pointer;
+  font-size: 0.75rem;
+  text-decoration: underline;
+}
+
+.max-button:hover:not(:disabled) {
+  color: #4f46e5;
+}
+
+.max-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tooltip-container {
+  position: relative;
+  cursor: help;
+}
+
+.tooltip {
+  visibility: hidden;
+  position: absolute;
+  bottom: 100%;
+  left: 10%;
+  transform: translateX(-70%);
+  padding: 0.5rem;
+  background-color: #1f2937;
+  color: white;
+  text-align: center;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 10;
+  margin-bottom: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 80%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #1f2937 transparent transparent transparent;
+}
+
+.tooltip-container:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
 }
 </style>

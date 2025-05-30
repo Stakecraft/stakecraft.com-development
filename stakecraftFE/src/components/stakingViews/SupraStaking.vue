@@ -95,7 +95,10 @@
             <div class="wallet-info-card">
               <div class="wallet-info-row">
                 <span class="info-label">Connected Wallet:</span>
-                <span class="info-value">{{ truncateAddress(walletAddress) }}</span>
+                <span class="info-value tooltip-container">
+                  {{ truncateAddress(walletAddress) }}
+                  <span class="tooltip">{{ walletAddress }}</span>
+                </span>
               </div>
               <div v-if="transactionHash" class="transaction-info">
                 <div class="wallet-info-row">
@@ -111,79 +114,179 @@
               </div>
             </div>
 
-            <!-- Staking Form -->
-            <div class="staking-form">
-              <!-- Staking Amount Input -->
-              <div class="form-group">
-                <label class="form-label"> Amount to Stake (SUPRA) </label>
-                <div class="input-container">
+            <!-- Tab Navigation -->
+            <div class="tab-container">
+              <button 
+                class="tab-button"
+                :class="{ 'tab-active': activeTab === 'stake' }"
+                @click="activeTab = 'stake'"
+              >
+                Stake
+              </button>
+              <button 
+                class="tab-button"
+                :class="{ 'tab-active': activeTab === 'unstake' }"
+                @click="activeTab = 'unstake'"
+              >
+                Unstake
+              </button>
+            </div>
+
+            <!-- Staking Tab Content -->
+            <div v-if="activeTab === 'stake'" class="tab-content">
+              <div class="staking-form">
+                <!-- Staking Amount Input -->
+                <div class="form-group">
+                  <label class="form-label">Amount to Stake (SUPRA)</label>
+                  <div class="input-container">
+                    <input
+                      v-model.number="stakeAmount"
+                      type="number"
+                      :min="minimumStake"
+                      step="1"
+                      class="form-input"
+                      placeholder="Enter amount"
+                    />
+                    <div class="input-suffix">
+                      <span>SUPRA</span>
+                    </div>
+                  </div>
+                  <div class="input-hint">
+                    <span>Minimum: {{ minimumStake }} SUPRA</span>
+                    <button 
+                      @click="stakeAmount = Number(totalSupraBalance)"
+                      class="max-button"
+                      :disabled="Number(totalSupraBalance) <= 0"
+                    >
+                      Max
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Validator Address -->
+                <div class="form-group">
+                  <label class="form-label">Validator Address</label>
                   <input
-                    v-model.number="stakeAmount"
-                    type="number"
-                    :min="minimumStake"
-                    step="1"
+                    :value="network.validator"
+                    type="text"
                     class="form-input"
-                    placeholder="Enter amount"
+                    placeholder="Enter validator address"
+                    readonly
                   />
-                  <div class="input-suffix">
-                    <span>SUPRA</span>
-                  </div>
                 </div>
-                <div class="input-hint">
-                  <span> Minimum: {{ minimumStake }} SUPRA </span>
-                </div>
-              </div>
 
-              <!-- Validator Address -->
-              <div class="form-group">
-                <label class="form-label"> Validator Address </label>
-                <input
-                  :value="network.validator"
-                  type="text"
-                  class="form-input"
-                  placeholder="Enter validator address"
-                  readonly
-                />
-              </div>
-
-              <!-- Staking Info -->
-              <div class="info-card">
-                <h3 class="info-card-title">Staking Status</h3>
-                <div class="info-card-content">
-                  <div class="info-row">
-                    <span class="info-label">Staked Amount:</span>
-                    <span class="info-value">{{ stakedAmount.toFixed(3) }} SUPRA</span>
-                  </div>
-                  <div class="info-row">
-                    <span class="info-label">Inactive Amount:</span>
-                    <span class="info-value">{{ inactiveAmount.toFixed(3) }} SUPRA</span>
-                  </div>
-                  <div class="info-row">
-                    <span class="info-label">Pending Amount:</span>
-                    <span class="info-value">{{ pendingAmount.toFixed(3) }} SUPRA</span>
+                <!-- Staking Info -->
+                <div class="info-card">
+                  <h3 class="info-card-title">Current Staking Status</h3>
+                  <div class="info-card-content">
+                    <div class="info-row">
+                      <span class="info-label">Available Balance:</span>
+                      <span class="info-value">{{ availableBalance }} SUPRA</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Currently Staked:</span>
+                      <span class="info-value">{{ stakedAmount }} SUPRA</span>
+                    </div>
                   </div>
                 </div>
+
+                <!-- Success/Error Messages for Staking -->
+                <div v-if="stakingSuccess" class="success-message">
+                  Successfully delegated !
+                </div>
+                <div v-if="stakingError" class="error-message">
+                  {{ stakingError }}
+                </div>
+
+                <!-- Stake Action Button -->
+                <button
+                  @click="delegateTokens"
+                  :disabled="!isValidStake || isProcessing"
+                  class="primary-button full-width delegate-button"
+                  :class="{ 'button-disabled': !isValidStake || isProcessing }"
+                >
+                  {{ isProcessing ? 'Processing...' : 'Delegate SUPRA' }}
+                </button>
               </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="action-buttons">
-              <button
-                @click="delegateTokens"
-                :disabled="!isValidStake"
-                class="primary-button full-width delegate-button"
-                :class="{ 'button-disabled': !isValidStake }"
-              >
-                Delegate SUPRA
-              </button>
-              <button
-                @click="undelegateTokens"
-                :disabled="stakedAmount <= 0"
-                class="primary-button full-width delegate-button"
-                :class="{ 'button-disabled': stakedAmount <= 0 }"
-              >
-                Undelegate SUPRA
-              </button>
+            <!-- Unstaking Tab Content -->
+            <div v-if="activeTab === 'unstake'" class="tab-content">
+              <div class="staking-form">
+                <!-- Unstaking Amount Input -->
+                <div class="form-group">
+                  <label class="form-label">Amount to Unstake (SUPRA)</label>
+                  <div class="input-container">
+                    <input
+                      v-model.number="unstakeAmount"
+                      type="number"
+                      :min="0"
+                      :max="stakedAmount"
+                      step="1"
+                      class="form-input"
+                      placeholder="Enter amount to unstake"
+                    />
+                    <div class="input-suffix">
+                      <span>SUPRA</span>
+                    </div>
+                  </div>
+                  <div class="input-hint">
+                    <span>Available to unstake: {{ stakedAmount }} SUPRA</span>
+                    <button 
+                      @click="unstakeAmount = stakedAmount"
+                      class="max-button"
+                      :disabled="stakedAmount <= 0"
+                    >
+                      Max
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Unstaking Info -->
+                <div class="info-card">
+                  <h3 class="info-card-title">Unstaking Information</h3>
+                  <div class="info-card-content">
+                    <div class="info-row">
+                      <span class="info-label">Currently Staked:</span>
+                      <span class="info-value">{{ stakedAmount }} SUPRA</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Inactive Amount:</span>
+                      <span class="info-value">{{ inactiveAmount }} SUPRA</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Pending Amount:</span>
+                      <span class="info-value">{{ pendingAmount }} SUPRA</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Unstaking Warning -->
+                <div class="warning-card">
+                  <div class="warning-icon-small">⚠️</div>
+                  <div class="warning-text">
+                    <strong>Important:</strong> Unstaked tokens will be locked for 7 days before becoming available for withdrawal.
+                  </div>
+                </div>
+
+                <!-- Success/Error Messages for Unstaking -->
+                <div v-if="unstakingSuccess" class="success-message">
+                  Successfully Undelegated !
+                </div>
+                <div v-if="unstakingError" class="error-message">
+                  {{ unstakingError }}
+                </div>
+
+                <!-- Unstake Action Button -->
+                <button
+                  @click="undelegateTokens"
+                  :disabled="!isValidUnstake || isProcessing"
+                  class="primary-button full-width delegate-button unstake-button"
+                  :class="{ 'button-disabled': !isValidUnstake || isProcessing }"
+                >
+                  {{ isProcessing ? 'Processing...' : 'Undelegate SUPRA' }}
+                </button>
+              </div>
             </div>
 
             <!-- Network Links -->
@@ -213,12 +316,13 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import {
   walletConnect,
   delegateTokens,
   getTotalStakedAmount,
-  undelegateTokens
+  undelegateTokens,
+  getSupraBalance
 } from '../../utils/SupraStaking'
 
 export default {
@@ -234,17 +338,24 @@ export default {
     const walletConnected = ref(false)
     const walletAddress = ref('')
     const stakeAmount = ref(0)
+    const unstakeAmount = ref(0)
     const validatorAddress = ref('')
     const stakedAmount = ref(0)
     const inactiveAmount = ref(0)
     const pendingAmount = ref(0)
     const lastRewardTime = ref(null)
     const stakingSuccess = ref(false)
+    const unstakingSuccess = ref(false)
     const stakingError = ref(null)
+    const unstakingError = ref(null)
     const transactionHash = ref('')
     const minimumStake = 10
     const isConnecting = ref(false)
+    const isProcessing = ref(false)
     const walletError = ref(false)
+    const availableBalance = ref(0)
+    const activeTab = ref('stake')
+    const totalSupraBalance = ref(0)
 
     onMounted(() => {
       if (props.network?.validator?.[0]) {
@@ -252,9 +363,23 @@ export default {
       }
     })
 
+    // Add watch on activeTab to clear messages
+    watch(activeTab, () => {
+      stakingSuccess.value = false
+      stakingError.value = null
+      unstakingSuccess.value = false
+      unstakingError.value = null
+      transactionHash.value = ''
+    })
+
     const isValidStake = computed(() => {
       const amount = parseFloat(stakeAmount.value)
-      return !isNaN(amount) && amount >= minimumStake && validatorAddress.value
+      return !isNaN(amount) && amount >= minimumStake && validatorAddress.value && amount <= Number(totalSupraBalance.value)
+    })
+
+    const isValidUnstake = computed(() => {
+      const amount = parseFloat(unstakeAmount.value)
+      return !isNaN(amount) && amount > 0 && amount <= stakedAmount.value
     })
 
     const handleConnectWallet = async () => {
@@ -275,51 +400,14 @@ export default {
       }
     }
 
-    const handleDelegateTokens = async () => {
-      if (!isValidStake.value) return
-
-      try {
-        stakingSuccess.value = false
-        stakingError.value = null
-        const hash = await delegateTokens(
-          walletAddress.value,
-          validatorAddress.value,
-          stakeAmount.value
-        )
-        transactionHash.value = hash
-        stakingSuccess.value = true
-        stakeAmount.value = 0
-        await refreshStakingInfo()
-      } catch (error) {
-        console.error('Failed to stake tokens:', error)
-        stakingError.value = error.message
-      }
-    }
-
-    const handleUndelegateTokens = async () => {
-      try {
-        stakingSuccess.value = false
-        stakingError.value = null
-        const hash = await undelegateTokens(
-          walletAddress.value,
-          validatorAddress.value,
-          // stakedAmount.value
-          10
-        )
-        transactionHash.value = hash
-        stakingSuccess.value = true
-        stakedAmount.value = 0
-        await refreshStakingInfo()
-      } catch (error) {
-        console.error('Failed to undelegate tokens:', error)
-        stakingError.value = error.message
-      }
-    }
-
     const refreshStakingInfo = async () => {
       if (!walletAddress.value || !validatorAddress.value) return
 
       try {
+        const supraBalance = await getSupraBalance(walletAddress.value)
+        totalSupraBalance.value = supraBalance
+        availableBalance.value = Number(supraBalance).toFixed(4)
+
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
         if (stakingInfo[0]) {
           stakedAmount.value = Number(stakingInfo[0]) / 10 ** 8
@@ -344,6 +432,58 @@ export default {
       }
     }
 
+    const handleDelegateTokens = async () => {
+      if (!isValidStake.value) return
+
+      try {
+        isProcessing.value = true
+        stakingSuccess.value = false
+        stakingError.value = null
+        unstakingSuccess.value = false
+        unstakingError.value = null
+        
+        const hash = await delegateTokens(
+          walletAddress.value,
+          validatorAddress.value,
+          stakeAmount.value
+        )
+        transactionHash.value = hash
+        stakingSuccess.value = true
+        stakeAmount.value = 0 // Reset form
+        await refreshStakingInfo()
+      } catch (error) {
+        console.error('Failed to stake tokens:', error)
+        stakingError.value = error.message
+      } finally {
+        isProcessing.value = false
+      }
+    }
+
+    const handleUndelegateTokens = async () => {
+      try {
+        isProcessing.value = true
+        stakingSuccess.value = false
+        stakingError.value = null
+        unstakingSuccess.value = false
+        unstakingError.value = null
+        
+        const hash = await undelegateTokens(
+          walletAddress.value,
+          validatorAddress.value,
+          unstakeAmount.value
+        )
+        transactionHash.value = hash
+        unstakingSuccess.value = true
+        unstakeAmount.value = 0 // Reset form
+        await refreshStakingInfo()
+      } catch (error) {
+        console.error('Failed to undelegate tokens:', error)
+        unstakingError.value = error.message
+      } finally {
+        isProcessing.value = false
+      }
+    }
+
     const closeModal = () => {
       emit('close')
     }
@@ -360,17 +500,25 @@ export default {
       walletConnected,
       walletAddress,
       stakeAmount,
+      unstakeAmount,
       stakedAmount,
       inactiveAmount,
       pendingAmount,
       lastRewardTime,
       minimumStake,
       isValidStake,
+      isValidUnstake,
       stakingSuccess,
+      unstakingSuccess,
       stakingError,
+      unstakingError,
       transactionHash,
       isConnecting,
+      isProcessing,
       walletError,
+      availableBalance,
+      activeTab,
+      totalSupraBalance,
       connectWallet: handleConnectWallet,
       delegateTokens: handleDelegateTokens,
       undelegateTokens: handleUndelegateTokens,
@@ -723,5 +871,139 @@ input[type='number']::-webkit-outer-spin-button {
 
 input[type='number'] {
   -moz-appearance: textfield;
+}
+
+/* Add new styles for tabs and unstaking */
+.tab-container {
+  display: flex;
+  background-color: #f3f4f6;
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #6b7280;
+}
+
+.tab-button.tab-active {
+  background-color: #6366f1;
+  color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tab-button:hover:not(.tab-active) {
+  color: #374151;
+  background-color: #e5e7eb;
+}
+
+.tab-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.warning-card {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin: 1rem 0;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.warning-icon-small {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.warning-text {
+  font-size: 0.875rem;
+  color: #92400e;
+}
+
+.unstake-button {
+  background-color: #dc2626;
+}
+
+.unstake-button:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+.max-button {
+  background: none;
+  border: none;
+  color: #6366f1;
+  cursor: pointer;
+  font-size: 0.75rem;
+  text-decoration: underline;
+}
+
+.max-button:hover:not(:disabled) {
+  color: #4f46e5;
+}
+
+.max-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tooltip-container {
+  position: relative;
+  cursor: help;
+}
+
+.tooltip {
+  visibility: hidden;
+  position: absolute;
+  bottom: 100%;
+  left: 10%;
+  transform: translateX(-70%);
+  padding: 0.5rem;
+  background-color: #1f2937;
+  color: white;
+  text-align: center;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 10;
+  margin-bottom: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 80%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #1f2937 transparent transparent transparent;
+}
+
+.tooltip-container:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
 }
 </style>

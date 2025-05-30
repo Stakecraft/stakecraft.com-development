@@ -41,6 +41,37 @@ const tryRpcEndpoints = async (offlineSigner) => {
   throw new Error(`Failed to connect to any RPC endpoint. Last error: ${lastError?.message}`)
 }
 
+// Get JUNO balance for a wallet address
+export const getJunoBalance = async (walletAddress) => {
+  try {
+    await window.keplr.enable(JUNO_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(JUNO_CHAIN_ID)
+    const client = await tryRpcEndpoints(offlineSigner)
+    const balances = await client.getAllBalances(walletAddress)
+    // Find the JUNO balance (denom: 'ujuno')
+    const junoBalance = balances.find(b => b.denom === 'ujuno')
+    // Convert from micro-JUNO to JUNO
+    return junoBalance ? Number(junoBalance.amount) / 1_000_000 : 0
+  } catch (error) {
+    console.error('Error getting JUNO balance:', error)
+    throw new Error(`Failed to get JUNO balance: ${error.message}`)
+  }
+}
+
+// Get total staked amount
+export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) => {
+  try {
+    await window.keplr.enable(JUNO_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(JUNO_CHAIN_ID)
+    const client = await tryRpcEndpoints(offlineSigner)
+    const stakingInfo = await client.getDelegation(delegatorAddress, validatorAddress)
+    return stakingInfo
+  } catch (error) {
+    console.error('Error getting total staked amount:', error)
+    throw new Error(`Failed to get total staked amount: ${error.message}`)
+  }
+}
+
 // Delegate tokens
 export const delegateTokens = async (delegatorAddress, validatorAddress, amount) => {
   try {
@@ -72,39 +103,7 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
   }
 }
 
-// Get staking information
-export const getStakingInfo = async (address) => {
-  try {
-    if (!address) {
-      throw new Error('Wallet address is required')
-    }
-
-    return {
-      stakedAmount: 0,
-      rewardsEarned: 0,
-      lastRewardTime: null
-    }
-  } catch (error) {
-    console.error('Error getting staking info:', error)
-    throw new Error(`Failed to get staking information: ${error.message}`)
-  }
-}
-
-// Get total staked amount
-export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) => {
-  try {
-    await window.keplr.enable(JUNO_CHAIN_ID)
-    const offlineSigner = window.getOfflineSigner(JUNO_CHAIN_ID)
-    const client = await tryRpcEndpoints(offlineSigner)
-    const stakingInfo = await client.getDelegation(delegatorAddress, validatorAddress)
-    return stakingInfo
-  } catch (error) {
-    console.error('Error getting total staked amount:', error)
-    throw new Error(`Failed to get total staked amount: ${error.message}`)
-  }
-}
-
-export const undelegateStake = async (delegatorAddress, validatorAddress) => {
+export const undelegateStake = async (delegatorAddress, validatorAddress, unstakeAmount) => {
   try {
     await window.keplr.enable(JUNO_CHAIN_ID)
     const offlineSigner = window.getOfflineSigner(JUNO_CHAIN_ID)
@@ -117,18 +116,14 @@ export const undelegateStake = async (delegatorAddress, validatorAddress) => {
       throw new Error('No delegation found')
     }
 
-    // Get the delegation amount
-    const delegationAmount = delegation?.amount
-    console.log('delegationAmount', delegationAmount)
-
-    if (!delegationAmount) {
+    if (!unstakeAmount) {
       throw new Error('Could not find delegation amount')
     }
 
     // Format the amount properly for undelegation
     const amount = {
       denom: 'ujuno',
-      amount: delegationAmount.toString()
+      amount: (unstakeAmount * 1_000_000).toString()
     }
     console.log('formatted amount', amount)
 
@@ -144,5 +139,23 @@ export const undelegateStake = async (delegatorAddress, validatorAddress) => {
   } catch (error) {
     console.error('Error undelegating stake:', error)
     throw new Error(`Failed to undelegate stake: ${error.message}`)
+  }
+}
+
+// Get staking information
+export const getStakingInfo = async (address) => {
+  try {
+    if (!address) {
+      throw new Error('Wallet address is required')
+    }
+
+    return {
+      stakedAmount: 0,
+      rewardsEarned: 0,
+      lastRewardTime: null
+    }
+  } catch (error) {
+    console.error('Error getting staking info:', error)
+    throw new Error(`Failed to get staking information: ${error.message}`)
   }
 } 
