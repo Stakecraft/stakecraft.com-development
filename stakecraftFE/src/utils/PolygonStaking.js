@@ -1,89 +1,59 @@
 import { ethers } from 'ethers'
 import { StakingContractABI } from '../constants/abis/PolygonStakingABI'
+import { ERC20_ABI } from '../constants/abis/ERC20ABI'
 
 const STAKING_CONTRACT_ADDRESS = '0x5e3Ef299fDDf15eAa0432E6e66473ace8c13D908' // Polygon Staking Contract
-const MATIC_TOKEN_ADDRESS = '0x0000000000000000000000000000000000001010' // Polygon MATIC token
+// const MATIC_TOKEN_ADDRESS = '0x0000000000000000000000000000000000001010' // Polygon MATIC token
+export const MATIC_TOKEN = '0x455e53CBB86018Ac2B8092FdCd39d8444aFFC3F6'
+export const ETHEREUM_CHAIN_ID_HEX = '0x1'
 
 export const isMetaMaskInstalled = async () => {
-  console.log('window.ethereum', window.ethereum)
-  console.log('window.ethereum.isMetaMask', window.ethereum.isMetaMask)
   return window.ethereum && window.ethereum.isMetaMask
 }
 
+// Guarantee we’re on Ethereum mainnet (chain-id 1)
+await window.ethereum.request({
+  method: 'wallet_switchEthereumChain',
+  params: [{ chainId: ETHEREUM_CHAIN_ID_HEX }]
+})
+
 export const connectWallet = async () => {
   try {
-    console.log('Starting wallet connection process...')
-    
-    // Check if MetaMask is installed
     const walletProvider = await isMetaMaskInstalled()
-    console.log('MetaMask installation status:', walletProvider)
-    
     if (!walletProvider) {
       throw new Error('Please install MetaMask to use this feature')
     }
-
-    console.log('Requesting account access...')
-    // Request account access
-    const accounts = await window.ethereum.request({ 
+    const accounts = await window.ethereum.request({
       method: 'eth_requestAccounts'
     })
-    console.log('Connected accounts:', accounts)
-
     if (!accounts || accounts.length === 0) {
       throw new Error('No accounts found')
     }
-
-    console.log('Creating Web3Provider...')
-    // Create Web3Provider instance
     const provider = new ethers.BrowserProvider(window.ethereum)
     const signer = await provider.getSigner()
     const address = await signer.getAddress()
-    console.log('Connected wallet address:', address)
-
-    // Check if we're on Polygon network
     const network = await provider.getNetwork()
-    console.log('Current network:', network)
-    
-    // if (network.chainId !== 137n) { // Polygon Mainnet
-    //   console.log('Switching to Polygon network...')
-    //   try {
-    //     // Try to switch to Polygon
-    //     await window.ethereum.request({
-    //       method: 'wallet_switchEthereumChain',
-    //       params: [{ chainId: '0x89' }], // 137 in hex
-    //     })
-    //     console.log('Successfully switched to Polygon network')
-    //   } catch (switchError) {
-    //     console.log('Switch error:', switchError)
-    //     // If Polygon is not added to MetaMask, add it
-    //     if (switchError.code === 4902) {
-    //       console.log('Adding Polygon network to MetaMask...')
-    //       await window.ethereum.request({
-    //         method: 'wallet_addEthereumChain',
-    //         params: [{
-    //           chainId: '0x89',
-    //           chainName: 'Polygon Mainnet',
-    //           nativeCurrency: {
-    //             name: 'MATIC',
-    //             symbol: 'MATIC',
-    //             decimals: 18
-    //           },
-    //           rpcUrls: ['https://polygon-rpc.com'],
-    //           blockExplorerUrls: ['https://polygonscan.com']
-    //         }]
-    //       })
-    //       console.log('Successfully added Polygon network')
-    //     } else {
-    //       throw switchError
-    //     }
-    //   }
-    // }
-
     return address
   } catch (error) {
     console.error('Error connecting wallet:', error)
     throw error
   }
+}
+
+export const getPolygonBalance = async (address) => {
+  console.log('-----get polygon balance-----', address)
+  const provider = new ethers.BrowserProvider(window.ethereum)
+  const { chainId, name } = await provider.getNetwork()
+  console.log('provider', provider)
+  console.log('provider.network.chainId', provider.network.chainId)
+  if (chainId !== 137n) console.log('Not on Polygon mainnet - call switchToPolygon() first')
+  if (chainId !== 1n) console.log('Not on Ethereum mainnet - call switchToEthereum() first')
+
+  const erc20 = new ethers.Contract(MATIC_TOKEN, ERC20_ABI, provider)
+  console.log('erc20', erc20)
+  const raw = await erc20.balanceOf(address)
+  console.log('raw', raw)
+  return Number(ethers.formatEther(raw))
 }
 
 export const getTotalStakedAmount = async (walletAddress, validatorAddress) => {
@@ -119,11 +89,7 @@ export const delegateTokens = async (walletAddress, validatorAddress, amount) =>
     const provider = new ethers.BrowserProvider(window.ethereum)
     const signer = await provider.getSigner()
     console.log('signer', signer)
-    const contract = new ethers.Contract(
-      STAKING_CONTRACT_ADDRESS,
-      StakingContractABI,
-      signer
-    )
+    const contract = new ethers.Contract(STAKING_CONTRACT_ADDRESS, StakingContractABI, signer)
 
     console.log('contract', contract)
     // Convert amount to wei
@@ -157,11 +123,7 @@ export const undelegateStake = async (walletAddress, validatorAddress) => {
 
     const provider = new ethers.BrowserProvider(window.ethereum)
     const signer = await provider.getSigner()
-    const contract = new ethers.Contract(
-      STAKING_CONTRACT_ADDRESS,
-      StakingContractABI,
-      signer
-    )
+    const contract = new ethers.Contract(STAKING_CONTRACT_ADDRESS, StakingContractABI, signer)
 
     const tx = await contract.undelegate(validatorAddress)
     const receipt = await tx.wait()
@@ -180,11 +142,7 @@ export const claimRewards = async (walletAddress, validatorAddress) => {
 
     const provider = new ethers.BrowserProvider(window.ethereum)
     const signer = await provider.getSigner()
-    const contract = new ethers.Contract(
-      STAKING_CONTRACT_ADDRESS,
-      StakingContractABI,
-      signer
-    )
+    const contract = new ethers.Contract(STAKING_CONTRACT_ADDRESS, StakingContractABI, signer)
 
     const tx = await contract.claimRewards(validatorAddress)
     const receipt = await tx.wait()
@@ -193,4 +151,4 @@ export const claimRewards = async (walletAddress, validatorAddress) => {
     console.error('Error claiming rewards:', error)
     throw error
   }
-} 
+}
