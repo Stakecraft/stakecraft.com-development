@@ -136,7 +136,7 @@
             <div v-if="activeTab === 'stake'" class="tab-content">
               <div class="staking-form">
                 <div class="form-group">
-                  <label class="form-label">Amount to Stake (MATIC)</label>
+                  <label class="form-label">Amount to Stake (POL)</label>
                   <div class="input-container">
                     <input
                       v-model.number="stakeAmount"
@@ -147,11 +147,11 @@
                       placeholder="Enter amount"
                     />
                     <div class="input-suffix">
-                      <span>MATIC</span>
+                      <span>POL</span>
                     </div>
                   </div>
                   <div class="input-hint">
-                    <span>Minimum: {{ minimumStake }} MATIC</span>
+                    <span>Minimum: {{ minimumStake }} POL</span>
                     <button
                       @click="stakeAmount = Number(totalPolygonBalance)"
                       class="max-button"
@@ -176,16 +176,16 @@
                   <div class="info-card-content">
                     <div class="info-row">
                       <span class="info-label">Available Balance:</span>
-                      <span class="info-value">{{ stakedAmount }} MATIC</span>
+                      <span class="info-value">{{ availableBalance }} POL</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ rewardsEarned }} MATIC</span>
+                      <span class="info-value">{{ stakedAmount.toFixed(4) }} POL</span>
                     </div>
                   </div>
                 </div>
                 <div v-if="stakingSuccess" class="success-message">
-                  Successfully delegated MATIC tokens!
+                  Successfully delegated POL tokens!
                 </div>
                 <div v-if="stakingError" class="error-message">{{ stakingError }}</div>
                 <button
@@ -194,7 +194,7 @@
                   class="primary-button full-width delegate-button"
                   :class="{ 'button-disabled': !isValidStake || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Delegate MATIC' }}
+                  {{ isProcessing ? 'Processing...' : 'Delegate POL' }}
                 </button>
               </div>
             </div>
@@ -203,7 +203,7 @@
             <div v-if="activeTab === 'unstake'" class="tab-content">
               <div class="staking-form">
                 <div class="form-group">
-                  <label class="form-label">Amount to Unstake (MATIC)</label>
+                  <label class="form-label">Amount to Unstake (POL)</label>
                   <div class="input-container">
                     <input
                       v-model.number="unstakeAmount"
@@ -215,11 +215,11 @@
                       placeholder="Enter amount to unstake"
                     />
                     <div class="input-suffix">
-                      <span>MATIC</span>
+                      <span>POL</span>
                     </div>
                   </div>
                   <div class="input-hint">
-                    <span>Available to unstake: {{ stakedAmount }} MATIC</span>
+                    <span>Available to unstake: {{ stakedAmount }} POL</span>
                     <button
                       @click="unstakeAmount = Number(stakedAmount)"
                       class="max-button"
@@ -234,11 +234,11 @@
                   <div class="info-card-content">
                     <div class="info-row">
                       <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} MATIC</span>
+                      <span class="info-value">{{ stakedAmount }} POL</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Rewards Earned:</span>
-                      <span class="info-value">{{ rewardsEarned }} MATIC</span>
+                      <span class="info-value">{{ rewardsEarned }} POL</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Unstaking Period:</span>
@@ -251,13 +251,13 @@
                 <div class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
-                    <strong>Important:</strong> Unstaked tokens will be locked for 21 days before becoming available for withdrawal.
+                    <strong>Important:</strong> Unstaked tokens will be locked for 21 days before
+                    becoming available for withdrawal.
                   </div>
                 </div>
 
-
                 <div v-if="unstakingSuccess" class="success-message">
-                  Successfully undelegated MATIC tokens!
+                  Successfully undelegated POL tokens!
                 </div>
                 <div v-if="unstakingError" class="error-message">{{ unstakingError }}</div>
                 <button
@@ -266,7 +266,7 @@
                   class="primary-button full-width delegate-button unstake-button"
                   :class="{ 'button-disabled': !isValidUnstake || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Undelegate MATIC' }}
+                  {{ isProcessing ? 'Processing...' : 'Undelegate POL' }}
                 </button>
               </div>
             </div>
@@ -304,7 +304,6 @@ import {
   delegateTokens,
   undelegateStake,
   getTotalStakedAmount,
-  claimRewards,
   getPolygonBalance
 } from '../../utils/PolygonStaking'
 
@@ -323,7 +322,7 @@ export default {
     const stakeAmount = ref(0)
     const unstakeAmount = ref(0)
     const validatorAddress = ref('')
-    const minimumStake = 1
+    const minimumStake = 0.1
     const stakingSuccess = ref(false)
     const unstakingSuccess = ref(false)
     const stakingError = ref(null)
@@ -337,7 +336,7 @@ export default {
     const activeTab = ref('stake')
     const totalPolygonBalance = ref(0)
     const availableBalance = ref(0)
-
+    const signer = ref(null)
     onMounted(() => {
       if (props.network?.validator?.[0]) {
         validatorAddress.value = props.network.validator[0]
@@ -370,8 +369,9 @@ export default {
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
-        const address = await connectWallet()
+        const { address, signer } = await connectWallet()
         walletAddress.value = address
+        signer.value = signer
         walletConnected.value = true
         isConnecting.value = false
         refreshStakingInfo()
@@ -384,25 +384,20 @@ export default {
     const refreshStakingInfo = async () => {
       if (!walletAddress.value) return
       try {
-        const polygonBalance = await getPolygonBalance(walletAddress.value)
-        totalPolygonBalance.value = polygonBalance
-        availableBalance.value = Number(polygonBalance).toFixed(4)
+        const polygonBalance = await getPolygonBalance(walletAddress.value, signer.value)
+        console.log('polygonBalance', polygonBalance)
+        totalPolygonBalance.value = Number(polygonBalance) / 10 ** 18
+        availableBalance.value = totalPolygonBalance.value.toFixed(4)
         console.log('totalPolygonBalance', totalPolygonBalance.value)
         console.log('availableBalance', availableBalance.value)
 
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
         console.log('stakingInfo', stakingInfo)
-        if (stakingInfo.amount) {
-          stakedAmount.value = Number(stakingInfo.amount) / 10 ** 18
+        if (stakingInfo) {
+          stakedAmount.value = stakingInfo / 10 ** 18
         } else {
-          stakedAmount.value = 0.0
+          stakedAmount.value = 0
         }
-        if (stakingInfo.reward) {
-          rewardsEarned.value = Number(stakingInfo.reward) / 10 ** 18
-        } else {
-          rewardsEarned.value = 0.0
-        }
-        totalPolygonBalance.value = Number(stakingInfo.total) / 10 ** 18
       } catch (error) {
         // handle error
       }
@@ -416,6 +411,12 @@ export default {
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
+
+        console.log('---handleDelegateTokens---')
+        console.log('walletAddress.value', walletAddress.value)
+        console.log('validatorAddress.value', validatorAddress.value)
+        console.log('stakeAmount.value', stakeAmount.value)
+
         const hash = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
@@ -487,7 +488,8 @@ export default {
       rewardsEarned,
       activeTab,
       availableBalance,
-      totalPolygonBalance
+      totalPolygonBalance,
+      signer
     }
   }
 }
@@ -965,5 +967,4 @@ input[type='number'] {
   font-size: 0.875rem;
   color: #92400e;
 }
-
 </style>
