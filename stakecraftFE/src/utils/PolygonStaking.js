@@ -62,7 +62,7 @@ export async function delegateTokens(signer, validatorId, amountEth) {
     const we3Instance = new Web3(window.ethereum)
     const pol = await new we3Instance.eth.Contract(ERC20_ABI, POL_ADDRESS)
     // const stake = await new we3Instance.eth.Contract(STAKE_MANNAGE_ABI, STAKE_MANNAGE)
-    const stake = await new we3Instance.eth.Contract(STAKE_ABI, STAKE_MANAGER_PROXY)
+    const stake = await new we3Instance.eth.Contract(STAKE_MANNAGE_ABI, STAKE_MANNAGE)
 
     const allowance = await pol.methods.allowance(signer, STAKE_MANAGER_PROXY).call()
 

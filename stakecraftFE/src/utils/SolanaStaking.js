@@ -20,10 +20,55 @@ const connection = new Connection(endpoint, {
 
 const wallet = new PhantomWalletAdapter()
 
+export const connectPhantomWallet = async () => {
+  try {
+    const { solana } = window
+
+    if (solana?.isPhantom) {
+      const response = await solana.connect({ onlyIfTrusted: false })
+      return response.publicKey
+    } else {
+      throw new Error('Phantom wallet not found')
+    }
+  } catch (error) {
+    console.error('Error connecting to Phantom wallet:', error)
+    throw error
+  }
+}
+
+export const connectSolflareWallet = async () => {
+  try {
+    const { solflare } = window
+    console.log('solfalre', solflare)
+
+    if (solflare) {
+      await solflare.connect()
+      return solflare.publicKey
+    } else {
+      throw new Error('Solflare wallet not found')
+    }
+  } catch (error) {
+    console.error('Error connecting to Solflare wallet:', error)
+    throw error
+  }
+}
+
+const getProvider = () => {
+  if (window.solana?.isPhantom) {
+    return window.solana
+  } else if (window.solflare) {
+    return window.solflare
+  }
+  throw new Error('No supported wallet found')
+}
+
 export const connectWallet = async () => {
   try {
-    await wallet.connect()
-    return wallet.publicKey
+    const provider = getProvider()
+    console.log('provider', provider)
+
+    await provider.connect()
+    return provider.publicKey
   } catch (error) {
     console.error('Error connecting wallet:', error)
     throw error
