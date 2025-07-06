@@ -54,8 +54,15 @@
             <div class="warning-content">
               <h3 class="warning-title">Wallet Not Found</h3>
               <p class="warning-message">
-                To use Solana staking, you need to install the Phantom wallet extension.
+                To use Solana staking, you need to install either the Phantom or Solflare wallet extension.
               </p>
+              <div class="warning-steps">
+                <ol>
+                  <li>Install <a href="https://phantom.app/" target="_blank">Phantom Wallet</a> or <a href="https://solflare.com/" target="_blank">Solflare Wallet</a></li>
+                  <li>Refresh this page after installation</li>
+                  <li>Click "Connect Wallet" to start staking</li>
+                </ol>
+              </div>
             </div>
           </div>
 
@@ -93,6 +100,10 @@
                   {{ truncateAddress(walletAddress) }}
                   <span class="tooltip">{{ walletAddress }}</span>
                 </span>
+              </div>
+              <div class="wallet-info-row">
+                <span class="info-label">Wallet Type:</span>
+                <span class="info-value">{{ connectedWalletType }}</span>
               </div>
               <div v-if="transactionSignature" class="transaction-info">
                 <div class="wallet-info-row">
@@ -169,20 +180,20 @@
             <div class="action-buttons">
               <button
                 @click="delegateStake"
-                :disabled="!isValidStake"
+                :disabled="!isValidStake || isStaking"
                 class="primary-button full-width delegate-button"
-                :class="{ 'button-disabled': !isValidStake }"
+                :class="{ 'button-disabled': !isValidStake || isStaking }"
               >
-                Delegate Solana
+                {{ isStaking ? 'Delegating...' : 'Delegate Solana' }}
               </button>
 
               <button
                 @click="undelegateStake"
-                :disabled="stakedAmount <= 0"
+                :disabled="stakedAmount <= 0 || isUnstaking"
                 class="primary-button full-width delegate-button"
-                :class="{ 'button-disabled': stakedAmount <= 0 }"
+                :class="{ 'button-disabled': stakedAmount <= 0 || isUnstaking }"
               >
-                Undelegate Solana
+                {{ isUnstaking ? 'Undelegating...' : 'Undelegate Solana' }}
               </button>
             </div>
 
@@ -250,6 +261,9 @@ export default {
       '7fXr2zoyFCePcyLD1gnepxBEVyXwVbrgtKmr81GWUiF6',
       '7fvq1pzmtwALR7ShXbBKEbyCKicZSCqGMWkQYmpeiZa5'
     ])
+    const connectedWalletType = ref('')
+    const isStaking = ref(false)
+    const isUnstaking = ref(false)
     onMounted(() => {
       if (props.network?.validator?.[0]) {
         validatorAddress.value = props.network.validator[0]
@@ -270,22 +284,40 @@ export default {
     const handleConnectWallet = async () => {
       try {
         walletError.value = null
-        if (typeof window.solana === 'undefined' || !window.solana.isPhantom) {
-          walletError.value = 'Phantom wallet not found'
+        console.log('-----------');
+        console.log('solana', window?.solana);
+        console.log('solflare', window?.solflare);
+        console.log('-----------');
+        
+        // Check if any supported wallet is available
+        const hasPhantom = window.solana?.isPhantom
+        const hasSolflare = window.solflare
+        
+        if (!hasPhantom && !hasSolflare) {
+          walletError.value = 'No supported wallet found. Please install Phantom or Solflare wallet.'
           return
         }
+        
         const publicKey = await connectWallet()
         walletAddress.value = publicKey.toString()
         walletConnected.value = true
+        
+        // Determine wallet type
+        if (window.solana?.isPhantom) {
+          connectedWalletType.value = 'Phantom'
+        } else if (window.solflare) {
+          connectedWalletType.value = 'Solflare'
+        }
+        
         await refreshStakingInfo()
         console.log('delegatedStakeAccounts', delegatedStakeAccounts.value)
         console.log('completedStakeAccounts', completedStakeAccounts.value)
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         if (error.message.includes('not installed') || error.message.includes('not found')) {
-          walletError.value = 'Phantom wallet not found'
+          walletError.value = 'No supported wallet found. Please install Phantom or Solflare wallet.'
         } else {
-          stakingError.value = error.message
+          walletError.value = error.message
         }
       }
     }
@@ -313,30 +345,77 @@ export default {
 
     const handleDelegateStake = async () => {
       if (!isValidStake.value) return
+      
+      isStaking.value = true
       try {
+        console.log('Starting stake delegation process...')
+        
+        // Create and initialize stake account
+        console.log('Creating stake account...')
         const { stakeAccount } = await createAndInitializeStakeAccount(
           stakeAmount.value * LAMPORTS_PER_SOL
         )
+        
         if (!stakeAccount) {
           throw new Error('Failed to create stake account')
         }
+        
+        console.log('Stake account created:', stakeAccount)
+        
+        // Wait a moment for the account to be fully created
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        // Get initial stake info
         const initialStakeInfo = await getStakeAccountInfo(stakeAccount)
         stakeAccountInfo.value = initialStakeInfo
+        
+        // Get validator address
         const validator = props.network?.validator?.[0] || validatorAddress.value
         if (!validator) {
           throw new Error('Validator address is required')
         }
+        
+        console.log('Delegating to validator:', validator)
+        
+        // Delegate the stake
         const signature = await delegateStake(stakeAccount, validator)
         transactionSignature.value = signature
+        
+        console.log('Delegation successful, signature:', signature)
+        
+        // Update stake account info
         stakeAccountInfo.value = await getStakeAccountInfo(stakeAccount)
         rewards.value = await getStakeRewards(stakeAccount)
         await refreshStakingInfo()
+        
+        console.log('Stake delegation completed successfully')
+        
       } catch (error) {
         console.error('Failed to delegate stake:', error)
+        
+        // Provide user-friendly error messages
+        let errorMessage = 'Failed to delegate stake'
+        if (error.message.includes('Insufficient balance')) {
+          errorMessage = 'Insufficient SOL balance in your wallet'
+        } else if (error.message.includes('already delegated')) {
+          errorMessage = 'This stake account is already delegated'
+        } else if (error.message.includes('Validator account not found')) {
+          errorMessage = 'Invalid validator address'
+        } else if (error.message.includes('Stake account not found')) {
+          errorMessage = 'Stake account creation failed'
+        } else if (error.message.includes('0x1902')) {
+          errorMessage = 'Stake account is not properly initialized. Please try again.'
+        }
+        
+        // You can add a toast notification here if you have one
+        console.error(errorMessage)
+      } finally {
+        isStaking.value = false
       }
     }
 
     const handleUndelegateStake = async () => {
+      isUnstaking.value = true
       try {
         if (!delegatedStakeAccounts.value.length) {
           throw new Error('No delegated stake accounts found')
@@ -347,7 +426,11 @@ export default {
         if (!activeStakeAccounts.length) {
           throw new Error('No active stake accounts found')
         }
-        const stakeAccountAddress = activeStakeAccounts[1]
+        // Always use the first active stake account
+        const stakeAccountAddress = activeStakeAccounts[0]
+        if (!stakeAccountAddress) {
+          throw new Error('Stake account address is undefined')
+        }
         console.log('stakeAccountAddress', stakeAccountAddress)
         const signature = await undelegateStake(stakeAccountAddress)
         transactionSignature.value = signature
@@ -363,6 +446,8 @@ export default {
       } catch (error) {
         console.error('Failed to undelegate stake:', error)
         throw new Error(`Failed to undelegate stake: ${error.message}`)
+      } finally {
+        isUnstaking.value = false
       }
     }
 
@@ -392,7 +477,10 @@ export default {
       stakedAmount,
       rewardsEarned,
       lastRewardTime,
-      delegatedStakeAccounts
+      delegatedStakeAccounts,
+      connectedWalletType,
+      isStaking,
+      isUnstaking
     }
   }
 }
@@ -679,6 +767,8 @@ export default {
   font-weight: 500;
   color: #1f2937;
 }
+
+
 
 /* Progress Bar */
 .progress-section {
