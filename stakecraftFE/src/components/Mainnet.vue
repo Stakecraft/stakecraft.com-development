@@ -27,12 +27,12 @@
       :network="selectedNetwork"
       @close="closeModal"
     />
-    <koii-staking
+    <!-- <koii-staking
       v-if="selectedNetwork?.title === 'Koii'"
       :network="selectedNetwork"
       @close="closeModal"
-    />
-    <agoric-staking
+    /> -->
+    <!-- <agoric-staking
       v-if="selectedNetwork?.title === 'Agoric'"
       :network="selectedNetwork"
       @close="closeModal"
@@ -51,13 +51,13 @@
       v-if="selectedNetwork?.title === 'Bitsong'"
       :network="selectedNetwork"
       @close="closeModal"
-    />
+    /> -->
     <!-- <aura-staking
       v-if="selectedNetwork?.title === 'Aura Network'"
       :network="selectedNetwork"
       @close="closeModal"
     /> -->
-    <juno-staking
+    <!-- <juno-staking
       v-if="selectedNetwork?.title === 'Juno'"
       :network="selectedNetwork"
       @close="closeModal"
@@ -71,7 +71,7 @@
       v-if="selectedNetwork?.title === 'Ki Foundation'"
       :network="selectedNetwork"
       @close="closeModal"
-    />
+    /> -->
     <supra-staking
       v-if="selectedNetwork?.title === 'Supra Oracles'"
       :network="selectedNetwork"
@@ -82,16 +82,16 @@
       :network="selectedNetwork"
       @close="closeModal"
     />
-    <zeta-staking
+    <!-- <zeta-staking
       v-if="selectedNetwork?.title === 'Zachain'"
       :network="selectedNetwork"
       @close="closeModal"
-    />
-    <polygon-staking
+    /> -->
+    <!-- <polygon-staking
       v-if="selectedNetwork?.title === 'Polygon'"
       :network="selectedNetwork"
       @close="closeModal"
-    />
+    /> -->
 
     <modal
       v-if="
@@ -148,34 +148,34 @@ import modal from './Modal.vue'
 import { ref } from 'vue'
 import SolanaStaking from './stakingViews/SolanaStaking.vue'
 import KavaStaking from './stakingViews/KavaStaking.vue'
-import KoiiStaking from './stakingViews/KoiiStaking.vue' // not complted
-import AgoricStaking from './stakingViews/AgoricStaking.vue'
-import BandStaking from './stakingViews/BandStaking.vue'
-import StargazeStaking from './stakingViews/StargazeStaking.vue'
-import BitsongStaking from './stakingViews/BitsongStaking.vue'
-import JunoStaking from './stakingViews/JunoStaking.vue'
-import ZetaStaking from './stakingViews/ZetaStaking.vue' // not complted
-import KiStaking from './stakingViews/KiStaking.vue'
-import SupraStaking from './stakingViews/SupraStaking.vue' // not complted
 import NearStaking from './stakingViews/NearStaking.vue'
-import PolygonStaking from './stakingViews/PolygonStaking.vue'
+import SupraStaking from './stakingViews/SupraStaking.vue' 
+// import AgoricStaking from './stakingViews/AgoricStaking.vue'
+// import BandStaking from './stakingViews/BandStaking.vue'
+// import StargazeStaking from './stakingViews/StargazeStaking.vue'
+// import BitsongStaking from './stakingViews/BitsongStaking.vue'
+// import JunoStaking from './stakingViews/JunoStaking.vue'
+// import KiStaking from './stakingViews/KiStaking.vue'
+// import PolygonStaking from './stakingViews/PolygonStaking.vue'
+// import KoiiStaking from './stakingViews/KoiiStaking.vue' // not complted
+// import ZetaStaking from './stakingViews/ZetaStaking.vue' // not complted
 
 export default {
   components: {
     SolanaStaking,
     KavaStaking,
-    KoiiStaking,
-    AgoricStaking,
-    BandStaking,
-    StargazeStaking,
-    BitsongStaking,
-    JunoStaking,
-    ZetaStaking,
-    KiStaking,
     SupraStaking,
     NearStaking,
+    // KoiiStaking,
+    // AgoricStaking,
+    // BandStaking,
+    // StargazeStaking,
+    // BitsongStaking,
+    // JunoStaking,
+    // ZetaStaking,
+    // KiStaking,
     modal,
-    PolygonStaking
+    // PolygonStaking
   },
   setup() {
     const networks = [

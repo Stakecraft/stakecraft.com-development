@@ -1,6 +1,6 @@
 <template>
   <!-- <div>connect</div> -->
-  <!-- <div class="testNet mainAreas" id="contacts">
+  <div class="testNet mainAreas" id="contacts">
     <div class="titleHeader">Let's Connect</div>
     <div class="contactsContent">
       <div class="email">
@@ -27,7 +27,7 @@
         <a href="/policy">Privacy policy</a>
       </div>
     </div>
-  </div> -->
+  </div>
 </template>
 
 <script>
