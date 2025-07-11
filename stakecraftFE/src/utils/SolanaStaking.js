@@ -494,37 +494,6 @@ export const getTotalStakedAmount = async (walletAddress, validatorAddress) => {
         delegatedAccounts.push(account.pubkey.toBase58())
       }
     }
-
-    // let totalDelegated = 0n
-    // let totalUnbonding = 0n
-    // let totalLastEpochReward = 0n
-
-    // const { epoch: currEpoch } = await connection.getEpochInfo() // current epoch #
-
-    // for (const acc of stakeAccounts) {
-    //   const stakePubkey = acc.pubkey
-    //   const parsedInfo = acc.account.data.parsed.info
-
-    //   const delegated = BigInt(parsedInfo?.stake?.delegation?.stake ?? 0)
-    //   totalDelegated += delegated
-    //   console.log('totalDelegated', totalDelegated)
-
-    //   const act = await connection.getStakeActivation(stakePubkey)
-    //   if (act.state === 'deactivating') {
-    //     totalUnbonding += BigInt(act.active) 
-    //     console.log('totalUnbonding', totalUnbonding)
-    //   }
-
-    //   const rewardArr = await connection.getInflationReward(
-    //     [stakePubkey],
-    //     currEpoch - 1 
-    //   ) 
-    //   const reward = BigInt(rewardArr[0]?.amount ?? 0)
-    //   totalLastEpochReward += reward
-    //   console.log('totalLastEpochReward', totalLastEpochReward)
-    // }
-
-    
     return {
       totalStaked,
       stakeAccounts: stakeAccounts.length,
