@@ -8,6 +8,7 @@
         <li><a href="#mainnet">Mainnet</a></li>
         <li><a href="#testnet">Testnet</a></li>
         <li><a href="#partnership">Partnership</a></li>
+        <li><a href="/swap">Swap</a></li>
         <li><a href="#aboutUs">About Us</a></li>
         <li><a href="#contacts">Contacts</a></li>
       </ul>
@@ -48,6 +49,7 @@
           <li><a href="#mainnet">Mainnet</a></li>
           <li><a href="#testnet">Testnet</a></li>
           <li><a href="#partnership">Partnership</a></li>
+          <li><a href="/swap">Swap</a></li>
           <li><a href="#aboutUs">About Us</a></li>
           <li><a href="#contacts">Contacts</a></li>
           <li class="externalLink">
@@ -166,7 +168,9 @@ export default {
   position: fixed;
   left: 70px;
   width: calc(100% - 140px);
-  transition: backdrop-filter 0.3s ease, background-color 0.3s ease;
+  transition:
+    backdrop-filter 0.3s ease,
+    background-color 0.3s ease;
   top: 0;
 }
 
@@ -258,7 +262,9 @@ export default {
 
 .slide-enter-active,
 .slide-leave-active {
-  transition: transform 0.5s ease, opacity 0.3s ease;
+  transition:
+    transform 0.5s ease,
+    opacity 0.3s ease;
 }
 
 .slide-enter-from {

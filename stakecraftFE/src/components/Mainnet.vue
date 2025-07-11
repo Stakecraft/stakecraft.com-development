@@ -149,7 +149,7 @@ import { ref } from 'vue'
 import SolanaStaking from './stakingViews/SolanaStaking.vue'
 import KavaStaking from './stakingViews/KavaStaking.vue'
 import NearStaking from './stakingViews/NearStaking.vue'
-import SupraStaking from './stakingViews/SupraStaking.vue' 
+import SupraStaking from './stakingViews/SupraStaking.vue'
 // import AgoricStaking from './stakingViews/AgoricStaking.vue'
 // import BandStaking from './stakingViews/BandStaking.vue'
 // import StargazeStaking from './stakingViews/StargazeStaking.vue'
@@ -174,7 +174,7 @@ export default {
     // JunoStaking,
     // ZetaStaking,
     // KiStaking,
-    modal,
+    modal
     // PolygonStaking
   },
   setup() {
@@ -191,6 +191,14 @@ export default {
         ]
       },
       {
+        image: nearImg,
+        title: 'Near Protocol',
+        description:
+          'NEAR is the chain abstraction stack, empowering builders to create apps that scale to billions of users and across all blockchains.',
+        validator: ['stakecraft.poolv1.near'],
+        explorer: ['https://nearscope.net/validator/stakecraft.poolv1.near/tab/dashboard']
+      },
+      {
         image: kavaImg,
         title: 'Kava',
         description:
@@ -203,16 +211,6 @@ export default {
         ]
       },
       {
-        image: koiiImg,
-        title: 'Koii',
-        description:
-          'Koii is a compute-sharing marketplace. Anyone can run a validator node on a personal device, making compute cheaper for everyone.',
-        validator: ['DJT1msZdLdN7zzMZo7DaBDjMZW7nPMvjbKNbHKWj9pUA'],
-        explorer: [
-          'https://explorer.koii.live/address/DJT1msZdLdN7zzMZo7DaBDjMZW7nPMvjbKNbHKWj9pUA'
-        ]
-      },
-      {
         image: supraoraclesImg,
         title: 'Supra Oracles',
         description:
@@ -222,6 +220,17 @@ export default {
           'https://suprascan.io/address/0x93b153fe97b6b677b7af943cbb80cc8bbf7a7878e69ffe9a04fc7eebfc1d750f'
         ]
       },
+      {
+        image: koiiImg,
+        title: 'Koii',
+        description:
+          'Koii is a compute-sharing marketplace. Anyone can run a validator node on a personal device, making compute cheaper for everyone.',
+        validator: ['DJT1msZdLdN7zzMZo7DaBDjMZW7nPMvjbKNbHKWj9pUA'],
+        explorer: [
+          'https://explorer.koii.live/address/DJT1msZdLdN7zzMZo7DaBDjMZW7nPMvjbKNbHKWj9pUA'
+        ]
+      },
+
       {
         image: bandprotocolImg,
         title: 'Band Protocol',
@@ -422,14 +431,7 @@ export default {
         validator: ['0xA'],
         explorer: ['']
       },
-      {
-        image: nearImg,
-        title: 'Near Protocol',
-        description:
-          'NEAR is the chain abstraction stack, empowering builders to create apps that scale to billions of users and across all blockchains.',
-        validator: ['stakecraft.poolv1.near'],
-        explorer: ['https://nearscope.net/validator/stakecraft.poolv1.near/tab/dashboard']
-      },
+
       {
         image: walrusImg, // Add the Walrus logo to your assets folder
         title: 'Walrus',

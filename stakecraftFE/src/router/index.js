@@ -18,6 +18,11 @@ const router = createRouter({
       path: '/policy',
       name: 'policy',
       component: async () => await import('../components/privacyPolicy/PrivacyPolicy.vue')
+    },
+    {
+      path: '/swap',
+      name: 'swap',
+      component: async () => await import('../views/Swap.vue')
     }
   ]
 })
