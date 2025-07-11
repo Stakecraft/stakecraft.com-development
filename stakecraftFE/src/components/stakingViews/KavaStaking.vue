@@ -116,14 +116,14 @@
 
             <!-- Tab Navigation -->
             <div class="tab-container">
-              <button 
+              <button
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'stake' }"
                 @click="activeTab = 'stake'"
               >
                 Stake
               </button>
-              <button 
+              <button
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'unstake' }"
                 @click="activeTab = 'unstake'"
@@ -153,7 +153,7 @@
                   </div>
                   <div class="input-hint">
                     <span>Minimum: {{ minimumStake }} KAVA</span>
-                    <button 
+                    <button
                       @click="stakeAmount = Number(totalKavaBalance)"
                       class="max-button"
                       :disabled="Number(totalKavaBalance) <= 0"
@@ -187,13 +187,15 @@
                       <span class="info-label">Currently Staked:</span>
                       <span class="info-value">{{ stakedAmount }} KAVA</span>
                     </div>
+                    <div class="info-row">
+                      <span class="info-label">Rewards Earned:</span>
+                      <span class="info-value">{{ formattedRewards }} KAVA</span>
+                    </div>
                   </div>
                 </div>
 
                 <!-- Success/Error Messages for Staking -->
-                <div v-if="stakingSuccess" class="success-message">
-                  Successfully delegated !
-                </div>
+                <div v-if="stakingSuccess" class="success-message">Successfully delegated !</div>
                 <div v-if="stakingError" class="error-message">
                   {{ stakingError }}
                 </div>
@@ -232,7 +234,7 @@
                   </div>
                   <div class="input-hint">
                     <span>Available to unstake: {{ stakedAmount }} KAVA</span>
-                    <button 
+                    <button
                       @click="unstakeAmount = stakedAmount"
                       class="max-button"
                       :disabled="stakedAmount <= 0"
@@ -252,11 +254,28 @@
                     </div>
                     <div class="info-row">
                       <span class="info-label">Rewards Earned:</span>
-                      <span class="info-value">{{ rewardsEarned }} KAVA</span>
+                      <span class="info-value">{{ formattedRewards }} KAVA</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Unbonding Amount:</span>
+                      <span class="info-value"
+                        >{{
+                          unbondingSummary.reduce((sum, e) => sum + Number(e.amount), 0).toFixed(6)
+                        }}
+                        KAVA
+                      </span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Unbonding Period:</span>
                       <span class="info-value">21 days</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">End Date:</span>
+                      <span class="info-value">{{
+                        unbondingSummary[0].completionTime.slice(0, 10) +
+                        " : " +
+                        unbondingSummary[0].completionTime.slice(11, 19)
+                      }}</span>
                     </div>
                   </div>
                 </div>
@@ -265,7 +284,8 @@
                 <div class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
-                    <strong>Important:</strong> Unstaked tokens will be locked for 21 days before becoming available for withdrawal.
+                    <strong>Important:</strong> Unstaked tokens will be locked for 21 days before
+                    becoming available for withdrawal.
                   </div>
                 </div>
 
@@ -323,9 +343,20 @@ import {
   undelegateStake,
   getTotalStakedAmount,
   getKavaBalance,
-  // getStakeRewards
-  // getDelegationStatus
+  getKavaRewards,
+  getKavaUnbonding
 } from '../../utils/KavaStaking'
+
+function ukavaToKava(amount) {
+  return (Number(amount) / 1_000_000).toFixed(10)
+}
+
+function daysLeft(completionTime) {
+  const now = new Date()
+  const end = new Date(completionTime)
+  const diff = (end - now) / (1000 * 60 * 60 * 24)
+  return diff > 0 ? Math.ceil(diff) : 0
+}
 
 export default {
   name: 'KavaStaking',
@@ -354,10 +385,13 @@ export default {
     const isProcessing = ref(false)
     const stakedAmount = ref(0)
     const rewardsEarned = ref(0)
+    const unbondingList = ref([])
     const lastRewardTime = ref(null)
-    const availableBalance = ref(0) 
+    const availableBalance = ref(0)
     const activeTab = ref('stake')
     const totalKavaBalance = ref(0)
+    const formattedRewards = ref('0')
+    const unbondingSummary = ref([])
     onMounted(() => {
       if (props.network?.validator?.[0]) {
         validatorAddress.value = props.network.validator[0]
@@ -375,7 +409,12 @@ export default {
 
     const isValidStake = computed(() => {
       const amount = parseFloat(stakeAmount.value)
-      return !isNaN(amount) && amount >= minimumStake && validatorAddress.value && amount <= Number(totalKavaBalance.value)
+      return (
+        !isNaN(amount) &&
+        amount >= minimumStake &&
+        validatorAddress.value &&
+        amount <= Number(totalKavaBalance.value)
+      )
     })
 
     const isValidUnstake = computed(() => {
@@ -407,15 +446,37 @@ export default {
         availableBalance.value = Number(kavaBalance).toFixed(4)
 
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
-        console.log('stakingInfo', stakingInfo)
         if (stakingInfo.amount) {
           stakedAmount.value = Number(stakingInfo.amount) / 10 ** 6
         } else {
           stakedAmount.value = 0.0
         }
-        console.log('stakedAmount', stakedAmount.value)
 
-        rewardsEarned.value = 0
+        // Fetch rewards
+        const rewardsData = await getKavaRewards(walletAddress.value, validatorAddress.value)
+        let totalReward = 0
+        if (rewardsData && rewardsData.total && rewardsData.total.length > 0) {
+          totalReward = ukavaToKava(rewardsData.total[0].amount)
+        }
+        formattedRewards.value = totalReward
+        rewardsEarned.value = totalReward
+
+        // Fetch unbonding delegations
+        const unbondingData = await getKavaUnbonding(walletAddress.value, validatorAddress.value)
+        let summary = []
+        if (unbondingData && unbondingData.unbonding_responses) {
+          for (const resp of unbondingData.unbonding_responses) {
+            for (const entry of resp.entries) {
+              summary.push({
+                amount: ukavaToKava(entry.balance),
+                completionTime: entry.completion_time,
+                daysLeft: daysLeft(entry.completion_time)
+              })
+            }
+          }
+        }
+        unbondingSummary.value = summary
+        unbondingList.value = summary
         lastRewardTime.value = null
       } catch (error) {
         console.error('Failed to refresh staking info:', error)
@@ -431,7 +492,7 @@ export default {
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
-        
+
         const hash = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
@@ -459,13 +520,17 @@ export default {
         console.log('-------vue console. handleUndelegateStake start-------')
         console.log('vue console. walletAddress', walletAddress.value)
         console.log('vue console. validatorAddress', validatorAddress.value)
-        
+
         stakingSuccess.value = false
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
-        
-        const hash = await undelegateStake(walletAddress.value, validatorAddress.value, unstakeAmount.value)
+
+        const hash = await undelegateStake(
+          walletAddress.value,
+          validatorAddress.value,
+          unstakeAmount.value
+        )
         console.log('vue console. hash', hash)
         transactionHash.value = hash
         unstakingSuccess.value = true
@@ -510,10 +575,13 @@ export default {
       isProcessing,
       stakedAmount,
       rewardsEarned,
+      unbondingList,
       lastRewardTime,
       availableBalance,
       activeTab,
-      totalKavaBalance
+      totalKavaBalance,
+      formattedRewards,
+      unbondingSummary
     }
   }
 }
@@ -994,5 +1062,35 @@ input[type='number'] {
 .tooltip-container:hover .tooltip {
   visibility: visible;
   opacity: 1;
+}
+
+.unbonding-list {
+  margin-top: 1rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
+}
+.unbonding-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #92400e;
+}
+.unbonding-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.unbonding-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+.unbonding-days {
+  color: #b45309;
+  font-size: 0.85rem;
 }
 </style>
