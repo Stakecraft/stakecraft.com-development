@@ -16,6 +16,7 @@
     </div>
     <Mainnet />
     <Testnet />
+    <Partnerships />
     <Whychooseus />
     <About />
     <LetsConnect />

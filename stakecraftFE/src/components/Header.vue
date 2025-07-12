@@ -5,12 +5,12 @@
         <img src="../assets/headerLogo.svg" class="headerLogo" />
       </div>
       <ul class="centerItems" :class="!dropdownVisible ? '' : 'hideMenu'">
-        <li><a href="#mainnet">Mainnet</a></li>
-        <li><a href="#testnet">Testnet</a></li>
-        <li><a href="#partnership">Partnership</a></li>
+        <li><a href="/#mainnet">Mainnet</a></li>
+        <li><a href="/#testnet">Testnet</a></li>
+        <li><a href="/#partnership">Partnership</a></li>
         <li><a href="/swap">Swap</a></li>
-        <li><a href="#aboutUs">About Us</a></li>
-        <li><a href="#contacts">Contacts</a></li>
+        <li><a href="/#aboutUs">About Us</a></li>
+        <li><a href="/#contacts">Contacts</a></li>
       </ul>
       <ul class="rightItems" :class="!dropdownVisible ? '' : 'hideMenu'">
         <li class="externalLink">
@@ -46,12 +46,12 @@
           </div>
         </div>
         <ul class="dropdown-menu">
-          <li><a href="#mainnet">Mainnet</a></li>
-          <li><a href="#testnet">Testnet</a></li>
-          <li><a href="#partnership">Partnership</a></li>
+          <li><a href="/#mainnet">Mainnet</a></li>
+          <li><a href="/#testnet">Testnet</a></li>
+          <li><a href="/#partnership">Partnership</a></li>
           <li><a href="/swap">Swap</a></li>
-          <li><a href="#aboutUs">About Us</a></li>
-          <li><a href="#contacts">Contacts</a></li>
+          <li><a href="/#aboutUs">About Us</a></li>
+          <li><a href="/#contacts">Contacts</a></li>
           <li class="externalLink">
             <a href="https://services.stakecraft.com/" target="_blank"
               >Services <img src="../assets/externalLink.png"
