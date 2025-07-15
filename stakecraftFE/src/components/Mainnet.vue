@@ -16,10 +16,106 @@
         </div>
       </button>
     </div>
-    <modal v-show="isModalVisible" @close="closeModal" :network="{ selectedNetwork }" />
+    <!-- <modal v-show="isModalVisible" @close="closeModal" :network="{ selectedNetwork }" /> -->
+    <solana-staking
+      v-if="selectedNetwork?.title === 'Solana'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <kava-staking
+      v-if="selectedNetwork?.title === 'Kava'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <!-- <koii-staking
+      v-if="selectedNetwork?.title === 'Koii'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    /> -->
+    <!-- <agoric-staking
+      v-if="selectedNetwork?.title === 'Agoric'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <band-staking
+      v-if="selectedNetwork?.title === 'Band Protocol'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <stargaze-staking
+      v-if="selectedNetwork?.title === 'Stargaze'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <bitsong-staking
+      v-if="selectedNetwork?.title === 'Bitsong'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    /> -->
+    <!-- <aura-staking
+      v-if="selectedNetwork?.title === 'Aura Network'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    /> -->
+    <!-- <juno-staking
+      v-if="selectedNetwork?.title === 'Juno'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <zeta-staking
+      v-if="selectedNetwork?.title === 'Zetachain'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <ki-staking
+      v-if="selectedNetwork?.title === 'Ki Foundation'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    /> -->
+    <supra-staking
+      v-if="selectedNetwork?.title === 'Supra Oracles'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <near-staking
+      v-if="selectedNetwork?.title === 'Near Protocol'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <!-- <zeta-staking
+      v-if="selectedNetwork?.title === 'Zachain'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    /> -->
+    <!-- <polygon-staking
+      v-if="selectedNetwork?.title === 'Polygon'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    /> -->
+
+    <modal
+      v-if="
+        ![
+          'Solana',
+          'Kava',
+          'Koii',
+          'Agoric',
+          'Band Protocol',
+          'Stargaze',
+          'Bitsong',
+          'Juno',
+          'Zetachain',
+          'Ki Foundation',
+          'Supra Oracles',
+          'Near Protocol'
+        ].includes(selectedNetwork?.title)
+      "
+      v-show="isModalVisible"
+      @close="closeModal"
+      :network="selectedNetwork"
+    />
   </div>
 </template>
-
 
 <script>
 import solanaImg from '../assets/solana.png'
@@ -46,11 +142,41 @@ import covalentImg from '../assets/covalent.png'
 import subqueryImg from '../assets/subquery.png'
 import koiiImg from '../assets/koii.png'
 import supraoraclesImg from '../assets/supraoracles.png'
+import walrusImg from '../assets/walrus.png'
+
 import modal from './Modal.vue'
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
+import SolanaStaking from './stakingViews/SolanaStaking.vue'
+import KavaStaking from './stakingViews/KavaStaking.vue'
+import NearStaking from './stakingViews/NearStaking.vue'
+import SupraStaking from './stakingViews/SupraStaking.vue'
+// import AgoricStaking from './stakingViews/AgoricStaking.vue'
+// import BandStaking from './stakingViews/BandStaking.vue'
+// import StargazeStaking from './stakingViews/StargazeStaking.vue'
+// import BitsongStaking from './stakingViews/BitsongStaking.vue'
+// import JunoStaking from './stakingViews/JunoStaking.vue'
+// import KiStaking from './stakingViews/KiStaking.vue'
+// import PolygonStaking from './stakingViews/PolygonStaking.vue'
+// import KoiiStaking from './stakingViews/KoiiStaking.vue' // not complted
+// import ZetaStaking from './stakingViews/ZetaStaking.vue' // not complted
 
 export default {
-  components: { modal },
+  components: {
+    SolanaStaking,
+    KavaStaking,
+    SupraStaking,
+    NearStaking,
+    // KoiiStaking,
+    // AgoricStaking,
+    // BandStaking,
+    // StargazeStaking,
+    // BitsongStaking,
+    // JunoStaking,
+    // ZetaStaking,
+    // KiStaking,
+    modal
+    // PolygonStaking
+  },
   setup() {
     const networks = [
       {
@@ -60,7 +186,17 @@ export default {
           'Public base-layer blockchain protocol that optimizes for scalability. Its goal is to provide a platform that enables developers to create decentralized applications (dApps) without needing to design around performance bottlenecks.',
         validator: ['BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g'],
         explorer: ['https://stakewiz.com/validator/BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g'],
-        howToStake: ['https://medium.com/coinmonks/how-to-stake-sol-with-solflare-wallet-f2b844e8c379']
+        howToStake: [
+          'https://medium.com/coinmonks/how-to-stake-sol-with-solflare-wallet-f2b844e8c379'
+        ]
+      },
+      {
+        image: nearImg,
+        title: 'Near Protocol',
+        description:
+          'NEAR is the chain abstraction stack, empowering builders to create apps that scale to billions of users and across all blockchains.',
+        validator: ['stakecraft.poolv1.near'],
+        explorer: ['https://nearscope.net/validator/stakecraft.poolv1.near/tab/dashboard']
       },
       {
         image: kavaImg,
@@ -68,16 +204,11 @@ export default {
         description:
           'The most trusted DeFi platform by financial institutions providing securely access a robust suite of DeFi products and services in one safe and seamless integration.',
         validator: ['kavavaloper1k760ypy9tzhp6l2rmg06sq4n74z0d3rejwwaa0'],
-        howToStake: 'https://medium.com/coinmonks/staking-your-kava-tokens-with-keplr-wallet-19f74e384e5a',
-        explorer: ['https://www.mintscan.io/kava/validators/kavavaloper1k760ypy9tzhp6l2rmg06sq4n74z0d3rejwwaa0']
-      },
-      {
-        image: koiiImg,
-        title: 'Koii',
-        description:
-          "Koii is a compute-sharing marketplace. Anyone can run a validator node on a personal device, making compute cheaper for everyone.",
-        validator: ['DJT1msZdLdN7zzMZo7DaBDjMZW7nPMvjbKNbHKWj9pUA'],
-        explorer: ['https://explorer.koii.live/address/DJT1msZdLdN7zzMZo7DaBDjMZW7nPMvjbKNbHKWj9pUA']
+        howToStake:
+          'https://medium.com/coinmonks/staking-your-kava-tokens-with-keplr-wallet-19f74e384e5a',
+        explorer: [
+          'https://www.mintscan.io/kava/validators/kavavaloper1k760ypy9tzhp6l2rmg06sq4n74z0d3rejwwaa0'
+        ]
       },
       {
         image: supraoraclesImg,
@@ -85,16 +216,32 @@ export default {
         description:
           'A next-generation cross-chain oracle solution designed to boost up the performance of smart contracts and blockchain apps. Providing a high level of decentralization, scalability, ultrafast and secure transactions.',
         validator: ['0x93b153fe97b6b677b7af943cbb80cc8bbf7a7878e69ffe9a04fc7eebfc1d750f'],
-        explorer: ['https://suprascan.io/address/0x93b153fe97b6b677b7af943cbb80cc8bbf7a7878e69ffe9a04fc7eebfc1d750f']
+        explorer: [
+          'https://suprascan.io/address/0x93b153fe97b6b677b7af943cbb80cc8bbf7a7878e69ffe9a04fc7eebfc1d750f'
+        ]
       },
+      {
+        image: koiiImg,
+        title: 'Koii',
+        description:
+          'Koii is a compute-sharing marketplace. Anyone can run a validator node on a personal device, making compute cheaper for everyone.',
+        validator: ['DJT1msZdLdN7zzMZo7DaBDjMZW7nPMvjbKNbHKWj9pUA'],
+        explorer: [
+          'https://explorer.koii.live/address/DJT1msZdLdN7zzMZo7DaBDjMZW7nPMvjbKNbHKWj9pUA'
+        ]
+      },
+
       {
         image: bandprotocolImg,
         title: 'Band Protocol',
         description:
           'Сross-chain data oracle platform that aggregates and connects real-world data and APIs to smart contracts.',
         validator: ['bandvaloper1unfg2zhnssl07tql8d85zc6rx7zsfs5qh206av'],
-        explorer: ['https://www.cosmoscan.io/validator/bandvaloper1unfg2zhnssl07tql8d85zc6rx7zsfs5qh206av#reports'],
-        howToStake: 'https://medium.com/coinmonks/how-to-stake-band-protocol-band-in-cosmostation-wallet-bfd5a2f664bf'
+        explorer: [
+          'https://www.cosmoscan.io/validator/bandvaloper1unfg2zhnssl07tql8d85zc6rx7zsfs5qh206av#reports'
+        ],
+        howToStake:
+          'https://medium.com/coinmonks/how-to-stake-band-protocol-band-in-cosmostation-wallet-bfd5a2f664bf'
       },
       {
         image: moonriverImg,
@@ -162,7 +309,7 @@ export default {
         image: kifoundationImg,
         title: 'Ki Foundation',
         description:
-          'Ki Foundation’s mission is about bridging the gap between CeFi and DeFi. Based on Cosmos-SDK, with a Tendermint core. The bridge is built through an ecosystem of real life businesses, creating value and pouring it back to the Ki ecosystem through one single asset: The $XKI.',
+          'Ki Foundations mission is about bridging the gap between CeFi and DeFi. Based on Cosmos-SDK, with a Tendermint core. The bridge is built through an ecosystem of real life businesses, creating value and pouring it back to the Ki ecosystem through one single asset: The $XKI.',
         validator: ['kivaloper1emn7g3wkzdm59ndplscrzsk7hllms6wtwdq47q'],
         explorer: [
           'https://www.mintscan.io/ki-chain/validators/kivaloper1emn7g3wkzdm59ndplscrzsk7hllms6wtwdq47q'
@@ -259,7 +406,7 @@ export default {
         title: 'Bitsong',
         description:
           'Distributed (open source) blockchain music ecosystem born in December 2017, to create a decentralized and trustless hub that interconnects the various market players.',
-        validator: ['bitsong1rgtyd3uj3m0rr684hy3590y3vjcm9enhulvj27'],
+        validator: ['bitsongvaloper1rgtyd3uj3m0rr684hy3590y3vjcm9enhamsm6r'],
         explorer: [
           'https://www.mintscan.io/bitsong/validators/bitsongvaloper1rgtyd3uj3m0rr684hy3590y3vjcm9enhamsm6r'
         ],
@@ -284,13 +431,15 @@ export default {
         validator: ['0xA'],
         explorer: ['']
       },
+
       {
-        image: nearImg,
-        title: 'Near Protocol',
+        image: walrusImg, // Add the Walrus logo to your assets folder
+        title: 'Walrus',
         description:
-          'NEAR is the chain abstraction stack, empowering builders to create apps that scale to billions of users and across all blockchains.',
-        validator: ['stakecraft.poolv1.near'],
-        explorer: ['https://nearscope.net/validator/stakecraft.poolv1.near/tab/dashboard']
+          'Walrus is a decentralized storage and data availability protocol built on Sui, designed for large binary files. It features delegated proof of stake (dPoS) with the WAL token for governance and staking.',
+        validator: ['stakecraft walrus validator address'], // Replace with actual validator address if available
+        explorer: ['https://walrus.xyz/explorer'], // Replace with actual explorer link if available
+        howToStake: 'https://docs.wal.app/7-staking-and-unstaking.html'
       }
     ]
 
@@ -298,19 +447,21 @@ export default {
     const selectedNetwork = ref(null)
 
     const showModal = (network) => {
-      isModalVisible.value = true
       selectedNetwork.value = network
+      isModalVisible.value = true
     }
+
     const closeModal = () => {
       isModalVisible.value = false
+      selectedNetwork.value = null
     }
 
     return {
       networks,
+      selectedNetwork,
       showModal,
-      closeModal,
       isModalVisible,
-      selectedNetwork
+      closeModal
     }
   }
 }

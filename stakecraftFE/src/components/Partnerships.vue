@@ -1,20 +1,22 @@
 <template>
   <div id="partnership">
-    <div class="partnershipDetails">
-      <div class="titleHeader">Partnerships</div>
+    <div class="mainAreas">
+      <div class="partnershipDetails">
+        <div class="titleHeader">Partnerships</div>
 
-      <div class="partnershipDescription">
-        A next-generation cross-chain oracle solution designed to boost the performance of smart
-        contracts and blockchain apps.
-      </div>
-    </div>
-    <div class="networksWrapper">
-      <div class="networks" v-for="network in networks" :key="network.title">
-        <div class="networkImg">
-          <img :src="network.image" :alt="network.title" />
+        <div class="partnershipDescription">
+          A next-generation cross-chain oracle solution designed to boost the performance of smart
+          contracts and blockchain apps.
         </div>
-        <div class="networkName">
-          {{ network.title }}
+      </div>
+      <div class="networksWrapper">
+        <div class="networks" v-for="network in networks" :key="network.title">
+          <div class="networkImg">
+            <img :src="network.image" :alt="network.title" />
+          </div>
+          <div class="networkName">
+            {{ network.title }}
+          </div>
         </div>
       </div>
     </div>
@@ -52,10 +54,16 @@ export default {
 .partnershipDetails {
   margin-right: 10%;
 }
+
 #partnership {
-  padding: 0 !important;
-  margin-top: 116px;
+  padding-top: 116px;
+}
+
+#partnership .mainAreas {
   display: flex;
+  justify-content: space-between;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .networksWrapper {
@@ -92,9 +100,8 @@ export default {
     margin: 0 0 27px 0;
   }
 
-  #partnership {
+  #partnership .mainAreas {
     flex-direction: column;
-    margin-top: 47px;
   }
 
   .networkImg,

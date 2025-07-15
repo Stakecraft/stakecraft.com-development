@@ -5,11 +5,12 @@
         <img src="../assets/headerLogo.svg" class="headerLogo" />
       </div>
       <ul class="centerItems" :class="!dropdownVisible ? '' : 'hideMenu'">
-        <li><a href="#mainnet">Mainnet</a></li>
-        <li><a href="#testnet">Testnet</a></li>
-        <li><a href="#partnership">Partnership</a></li>
-        <li><a href="#aboutUs">About Us</a></li>
-        <li><a href="#contacts">Contacts</a></li>
+        <li><a href="/#mainnet">Mainnet</a></li>
+        <li><a href="/#testnet">Testnet</a></li>
+        <li><a href="/#partnership">Partnership</a></li>
+        <li><a href="/swap">Swap</a></li>
+        <li><a href="/#aboutUs">About Us</a></li>
+        <li><a href="/#contacts">Contacts</a></li>
       </ul>
       <ul class="rightItems" :class="!dropdownVisible ? '' : 'hideMenu'">
         <li class="externalLink">
@@ -45,11 +46,12 @@
           </div>
         </div>
         <ul class="dropdown-menu">
-          <li><a href="#mainnet">Mainnet</a></li>
-          <li><a href="#testnet">Testnet</a></li>
-          <li><a href="#partnership">Partnership</a></li>
-          <li><a href="#aboutUs">About Us</a></li>
-          <li><a href="#contacts">Contacts</a></li>
+          <li><a href="/#mainnet">Mainnet</a></li>
+          <li><a href="/#testnet">Testnet</a></li>
+          <li><a href="/#partnership">Partnership</a></li>
+          <li><a href="/swap">Swap</a></li>
+          <li><a href="/#aboutUs">About Us</a></li>
+          <li><a href="/#contacts">Contacts</a></li>
           <li class="externalLink">
             <a href="https://services.stakecraft.com/" target="_blank"
               >Services <img src="../assets/externalLink.png"
@@ -71,9 +73,11 @@ import { inject, onMounted, onBeforeUnmount, ref } from 'vue'
 import ToggleTheme from './ToggleTheme.vue'
 
 export default {
+  name: 'AppHeader',
   components: { ToggleTheme },
   setup() {
     const theme = inject('theme')
+    const isModalOpen = inject('isModalOpen')
     const isScrolled = ref(false)
     const dropdownVisible = ref(false)
     const isOpen = ref(false)
@@ -85,7 +89,7 @@ export default {
 
     const handleResize = () => {
       dropdownVisible.value = window.innerWidth <= 945
-      console.log('handleResize', dropdownVisible.value, window.innerWidth)
+      // console.log('handleResize', dropdownVisible.value, window.innerWidth)
     }
 
     onMounted(() => {
@@ -115,7 +119,8 @@ export default {
       isScrolled,
       dropdownVisible,
       isOpen,
-      selectedItem
+      selectedItem,
+      isModalOpen
     }
   }
 }
@@ -147,9 +152,10 @@ export default {
 .blurred {
   backdrop-filter: blur(10px);
   background: var(--van-header-background);
-  padding: 0 28px;
   border-radius: 20px;
-  top: 8px !important;
+  /* Keep the header in the same position to avoid visual jumping */
+  /* padding: 0 28px; */
+  box-sizing: border-box; /* Ensure padding is included in width calculation */
 }
 
 .header,
@@ -166,8 +172,16 @@ export default {
   position: fixed;
   left: 70px;
   width: calc(100% - 140px);
-  transition: backdrop-filter 0.3s ease, background-color 0.3s ease;
+  transition:
+    backdrop-filter 0.3s ease,
+    background-color 0.3s ease,
+    padding 0.3s ease,
+    border-radius 0.3s ease;
   top: 0;
+}
+
+.header.modal-open {
+  pointer-events: none; /* Disable all pointer events when modal is open */
 }
 
 @media only screen and (max-width: 900px) {
@@ -258,7 +272,9 @@ export default {
 
 .slide-enter-active,
 .slide-leave-active {
-  transition: transform 0.5s ease, opacity 0.3s ease;
+  transition:
+    transform 0.5s ease,
+    opacity 0.3s ease;
 }
 
 .slide-enter-from {

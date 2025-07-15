@@ -1,4 +1,5 @@
 <template>
+  <!-- <div>connect</div> -->
   <div class="testNet mainAreas" id="contacts">
     <div class="titleHeader">Let's Connect</div>
     <div class="contactsContent">
@@ -15,7 +16,7 @@
     </div>
     <div class="lastInfo">
       <div class="stakecraftLogo">
-        <img class="footerLogo" src="../assets/footerlogo.svg" />
+        <img class="footerLogo" src="../assets/footerLogo.svg" />
         <div class="rewards">
           <img class="branded" src="../assets/branded-V.svg" />
           <img class="verified" src="../assets/verified.svg" />

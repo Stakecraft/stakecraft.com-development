@@ -86,6 +86,7 @@
   --van-modal-background: #7c7d84;
   --modal-header-title: #fff;
   --modal-right-arrow: #f5f5f5;
+  --van-partnership-background: linear-gradient(180deg, #252732 0%, #1d1e27 100%);
   --van-testnet-background: linear-gradient(180deg, #252732 0%, #1d1e27 100%);
   --van-about-us-background: linear-gradient(180deg, #252732 0%, #1d1e27 100%);
   --van-ourCapabilities-title: #35f6df;
@@ -95,6 +96,9 @@
   --van-dropdown-menu: #27282d;
   --van-dropdown-text-color: #f0f0f0;
   --van-dropdownMenu-x-btn: url('./assets/x-menu-btn.svg');
+  --van-caution-background-dark: #2d3748;
+  --van-caution-border-dark: #4a5568;
+  --van-caution-text-dark: #e2e8f0;
 }
 
 .van-theme-light {
@@ -111,6 +115,7 @@
   --modal-header-title: #252732;
   --modal-right-arrow: #252732;
   --van-testnet-background: linear-gradient(180deg, #252732 0%, #1d1e27 100%);
+  --van-partnership-background: linear-gradient(180deg, #252732 0%, #1d1e27 100%);
   --van-about-us-background: #f0f0f0;
   --van-ourCapabilities-title: #00beb5;
   --van-ourCapabilities-wrapper: #fff;
@@ -119,6 +124,9 @@
   --van-dropdown-menu: #dadada;
   --van-dropdown-text-color: #111217;
   --van-dropdownMenu-x-btn: url('./assets/x-menu-btn-light.svg');
+  --van-caution-background: #fff3cd;
+  --van-caution-border: #ffeaa7;
+  --van-caution-text: #856404;
 }
 
 @font-face {
@@ -129,6 +137,10 @@
 @font-face {
   font-family: generalSans;
   src: url(./assets/GeneralSans.ttf);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {

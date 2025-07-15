@@ -22,13 +22,13 @@
             </svg>
           </button>
         </header>
-
-        <div class="modal-body">
+        asas
+        <!-- <div class="modal-body">
           {{ network.description }}
         </div>
 
         <footer class="modal-footer">
-          <div v-if="network.validator.length > 0">
+          <div v-if="network.validator.length > 0" >
             <ul>
               <li v-for="(validator, index) in network.validator" v-bind:key="validator">
                 <div class="validatorArea">
@@ -86,7 +86,7 @@
               </li>
             </ul>
           </div>
-        </footer>
+        </footer> -->
       </div>
     </div>
   </transition>
@@ -118,7 +118,6 @@ export default {
 }
 </script>
 
-
 <style>
 .modal-backdrop {
   position: fixed;
@@ -126,10 +125,11 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent backdrop to indicate modal is active */
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 10001; /* Higher than header (9999) and mobile header (10000) */
 }
 
 .modal {
