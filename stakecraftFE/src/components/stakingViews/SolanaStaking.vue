@@ -227,24 +227,24 @@
                 <!-- My Staking Accounts Section -->
                 <div class="staking-accounts-section">
                   <h3 class="section-title">My Staking Accounts</h3>
-                  
+
                   <!-- Loading State -->
                   <div v-if="isLoadingAccounts" class="loading-state">
                     <div class="loading-spinner"></div>
                     <p>Loading staking accounts...</p>
                   </div>
-                  
+
                   <!-- No Accounts State -->
                   <div v-else-if="stakingAccounts.length === 0" class="no-accounts">
                     <div class="no-accounts-icon">📭</div>
                     <p>No active staking accounts found</p>
                     <p class="no-accounts-hint">Stake some SOL to see your accounts here</p>
                   </div>
-                  
+
                   <!-- Accounts List -->
                   <div v-else class="accounts-list">
-                    <div 
-                      v-for="account in stakingAccounts" 
+                    <div
+                      v-for="account in stakingAccounts"
                       :key="account.address"
                       class="account-card"
                     >
@@ -266,29 +266,33 @@
                           </div>
                         </div>
                         <div class="account-status">
-                          <span 
-                            :class="['status-badge', account.isActive ? 'active' : 'inactive']"
-                          >
+                          <span :class="['status-badge', account.isActive ? 'active' : 'inactive']">
                             {{ account.isActive ? 'Active' : 'Inactive' }}
                           </span>
                         </div>
                       </div>
-                      
+
                       <div class="account-details">
                         <div class="detail-row">
                           <span class="detail-label">Delegated Amount:</span>
-                          <span class="detail-value">{{ account.delegatedAmount.toFixed(4) }} SOL</span>
+                          <span class="detail-value"
+                            >{{ account.delegatedAmount.toFixed(4) }} SOL</span
+                          >
                         </div>
                         <div class="detail-row">
                           <span class="detail-label">Active Amount:</span>
-                          <span class="detail-value">{{ account.activeAmount.toFixed(4) }} SOL</span>
+                          <span class="detail-value"
+                            >{{ account.activeAmount.toFixed(4) }} SOL</span
+                          >
                         </div>
                         <div class="detail-row">
                           <span class="detail-label">Inactive Amount:</span>
-                          <span class="detail-value">{{ account.inactiveAmount.toFixed(4) }} SOL</span>
+                          <span class="detail-value"
+                            >{{ account.inactiveAmount.toFixed(4) }} SOL</span
+                          >
                         </div>
                       </div>
-                      
+
                       <div class="account-actions">
                         <button
                           @click="deactivateAccount(account.address)"
@@ -299,9 +303,7 @@
                           <span v-if="isDeactivating && deactivatingAccount === account.address">
                             Deactivating...
                           </span>
-                          <span v-else>
-                            Deactivate
-                          </span>
+                          <span v-else> Deactivate </span>
                         </button>
                       </div>
                     </div>
@@ -428,7 +430,12 @@ export default {
 
     const isValidStake = computed(() => {
       const amount = parseFloat(stakeAmount.value)
-      return !isNaN(amount) && amount >= minimumStake && validatorAddress.value && amount <= Number(totalSolBalance.value)
+      return (
+        !isNaN(amount) &&
+        amount >= minimumStake &&
+        validatorAddress.value &&
+        amount <= Number(totalSolBalance.value)
+      )
     })
 
     const isValidUnstake = computed(() => {
@@ -444,39 +451,33 @@ export default {
       try {
         isConnecting.value = true
         walletError.value = null
-        console.log('-----------');
-        console.log('solana', window?.solana);
-        console.log('solflare', window?.solflare);
-        console.log('-----------');
-        
-        // Check if any supported wallet is available
+
         const hasPhantom = window.solana?.isPhantom
         const hasSolflare = window.solflare
-        
+
         if (!hasPhantom && !hasSolflare) {
-          walletError.value = 'No supported wallet found. Please install Phantom or Solflare wallet.'
+          walletError.value =
+            'No supported wallet found. Please install Phantom or Solflare wallet.'
           return
         }
-        
+
         const publicKey = await connectWallet()
         walletAddress.value = publicKey.toString()
         walletConnected.value = true
-        
-        // Determine wallet type
+
         if (window.solana?.isPhantom) {
           connectedWalletType.value = 'Phantom'
         } else if (window.solflare) {
           connectedWalletType.value = 'Solflare'
         }
-        
+
         await refreshStakingInfo()
         await loadStakingAccounts()
-        console.log('delegatedStakeAccounts', delegatedStakeAccounts.value)
-        console.log('completedStakeAccounts', completedStakeAccounts.value)
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         if (error.message.includes('not installed') || error.message.includes('not found')) {
-          walletError.value = 'No supported wallet found. Please install Phantom or Solflare wallet.'
+          walletError.value =
+            'No supported wallet found. Please install Phantom or Solflare wallet.'
         } else {
           walletError.value = error.message
         }
@@ -489,18 +490,15 @@ export default {
       if (!walletAddress.value) return
 
       try {
-        // Get SOL balance
         const solBalance = await getSolBalance(walletAddress.value)
         totalSolBalance.value = solBalance
         availableBalance.value = Number(solBalance).toFixed(4)
 
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
         stakedAmount.value = stakingInfo.totalStaked
-        console.log('typeof stakedAmount', typeof stakedAmount.value)
         delegatedStakeAccounts.value = stakingInfo.delegatedAccounts || []
-        
+
         if (stakingInfo.stakeAccounts > 0 && delegatedStakeAccounts.value.length > 0) {
-          // Try to get rewards from the first delegated account
           try {
             const rewards = await getStakeRewards(delegatedStakeAccounts.value[0])
             rewardsEarned.value = rewards ? rewards.amount : 0
@@ -524,9 +522,8 @@ export default {
 
       try {
         isLoadingAccounts.value = true
-        const accounts = await getAllStakingAccounts(walletAddress.value)
+        const accounts = await getAllStakingAccounts(walletAddress.value, validatorAddress.value)
         stakingAccounts.value = accounts
-        console.log('Loaded staking accounts:', accounts)
       } catch (error) {
         console.error('Failed to load staking accounts:', error)
         stakingAccounts.value = []
@@ -539,16 +536,13 @@ export default {
       try {
         isDeactivating.value = true
         deactivatingAccount.value = accountAddress
-        
+
         const signature = await undelegateStake(accountAddress)
         transactionSignature.value = signature
-        
-        console.log('Account deactivated:', accountAddress, 'Signature:', signature)
-        
-        // Refresh the accounts list
+
         await loadStakingAccounts()
         await refreshStakingInfo()
-        
+
         unstakingSuccess.value = true
       } catch (error) {
         console.error('Failed to deactivate account:', error)
@@ -561,63 +555,43 @@ export default {
 
     const handleDelegateStake = async () => {
       if (!isValidStake.value) return
-      
+
       try {
         isProcessing.value = true
         stakingSuccess.value = false
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
-        
-        console.log('Starting stake delegation process...')
-        
-        // Create and initialize stake account
-        console.log('Creating stake account...')
+
         const { stakeAccount } = await createAndInitializeStakeAccount(
           stakeAmount.value * LAMPORTS_PER_SOL
         )
-        
+
         if (!stakeAccount) {
           throw new Error('Failed to create stake account')
         }
-        
-        console.log('Stake account created:', stakeAccount)
-        
-        // Wait a moment for the account to be fully created
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        // Get initial stake info
+
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+
         const initialStakeInfo = await getStakeAccountInfo(stakeAccount)
         stakeAccountInfo.value = initialStakeInfo
-        
-        // Get validator address
+
         const validator = props.network?.validator?.[0] || validatorAddress.value
         if (!validator) {
           throw new Error('Validator address is required')
         }
-        
-        console.log('Delegating to validator:', validator)
-        
-        // Delegate the stake
+
         const signature = await delegateStake(stakeAccount, validator)
         transactionSignature.value = signature
-        
-        console.log('Delegation successful, signature:', signature)
-        
-        // Update stake account info
+
         stakeAccountInfo.value = await getStakeAccountInfo(stakeAccount)
         rewards.value = await getStakeRewards(stakeAccount)
         await refreshStakingInfo()
-        
+
         stakingSuccess.value = true
-        stakeAmount.value = 0 // Reset form
-        
-        console.log('Stake delegation completed successfully')
-        
+        stakeAmount.value = 0
       } catch (error) {
         console.error('Failed to delegate stake:', error)
-        
-        // Provide user-friendly error messages
         let errorMessage = 'Failed to delegate stake'
         if (error.message.includes('Insufficient balance')) {
           errorMessage = 'Insufficient SOL balance in your wallet'
@@ -630,7 +604,7 @@ export default {
         } else if (error.message.includes('0x1902')) {
           errorMessage = 'Stake account is not properly initialized. Please try again.'
         }
-        
+
         stakingError.value = errorMessage
       } finally {
         isProcessing.value = false
@@ -644,7 +618,7 @@ export default {
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
-        
+
         if (!delegatedStakeAccounts.value.length) {
           throw new Error('No delegated stake accounts found')
         }
@@ -654,26 +628,21 @@ export default {
         if (!activeStakeAccounts.length) {
           throw new Error('No active stake accounts found')
         }
-        // Always use the first active stake account
         const stakeAccountAddress = activeStakeAccounts[0]
         if (!stakeAccountAddress) {
           throw new Error('Stake account address is undefined')
         }
-        console.log('stakeAccountAddress', stakeAccountAddress)
         const signature = await undelegateStake(stakeAccountAddress)
         transactionSignature.value = signature
-        console.log('signature', signature)
 
         if (signature) {
           completedStakeAccounts.value.push(stakeAccountAddress)
         }
 
-        console.log('delegatedStakeAccounts', delegatedStakeAccounts.value)
-        console.log('completedStakeAccounts', completedStakeAccounts.value)
         await refreshStakingInfo()
-        
+
         unstakingSuccess.value = true
-        unstakeAmount.value = 0 // Reset form
+        unstakeAmount.value = 0
       } catch (error) {
         console.error('Failed to undelegate stake:', error)
         unstakingError.value = error.message || 'Failed to undelegate stake'
@@ -755,7 +724,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 50;
+  z-index: 10001; /* Higher than header (9999) and mobile header (10000) */
 }
 
 .modal-container {
@@ -1258,8 +1227,12 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .no-accounts {

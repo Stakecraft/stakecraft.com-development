@@ -145,7 +145,7 @@ import supraoraclesImg from '../assets/supraoracles.png'
 import walrusImg from '../assets/walrus.png'
 
 import modal from './Modal.vue'
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 import SolanaStaking from './stakingViews/SolanaStaking.vue'
 import KavaStaking from './stakingViews/KavaStaking.vue'
 import NearStaking from './stakingViews/NearStaking.vue'

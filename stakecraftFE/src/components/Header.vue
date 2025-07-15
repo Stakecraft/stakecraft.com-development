@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="header" :class="[theme, { blurred: isScrolled }]">
+    <div class="header" :class="[theme, { 'modal-open': isModalOpen }]">
       <div class="leftItems">
         <img src="../assets/headerLogo.svg" class="headerLogo" />
       </div>
@@ -73,9 +73,11 @@ import { inject, onMounted, onBeforeUnmount, ref } from 'vue'
 import ToggleTheme from './ToggleTheme.vue'
 
 export default {
+  name: 'AppHeader',
   components: { ToggleTheme },
   setup() {
     const theme = inject('theme')
+    const isModalOpen = inject('isModalOpen')
     const isScrolled = ref(false)
     const dropdownVisible = ref(false)
     const isOpen = ref(false)
@@ -117,7 +119,8 @@ export default {
       isScrolled,
       dropdownVisible,
       isOpen,
-      selectedItem
+      selectedItem,
+      isModalOpen
     }
   }
 }
@@ -149,9 +152,10 @@ export default {
 .blurred {
   backdrop-filter: blur(10px);
   background: var(--van-header-background);
-  padding: 0 28px;
   border-radius: 20px;
-  top: 8px !important;
+  /* Keep the header in the same position to avoid visual jumping */
+  padding: 0 28px;
+  box-sizing: border-box; /* Ensure padding is included in width calculation */
 }
 
 .header,
@@ -170,8 +174,14 @@ export default {
   width: calc(100% - 140px);
   transition:
     backdrop-filter 0.3s ease,
-    background-color 0.3s ease;
+    background-color 0.3s ease,
+    padding 0.3s ease,
+    border-radius 0.3s ease;
   top: 0;
+}
+
+.header.modal-open {
+  pointer-events: none; /* Disable all pointer events when modal is open */
 }
 
 @media only screen and (max-width: 900px) {

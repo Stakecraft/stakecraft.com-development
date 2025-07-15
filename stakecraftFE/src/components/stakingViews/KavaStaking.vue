@@ -273,7 +273,7 @@
                       <span class="info-label">End Date:</span>
                       <span class="info-value">{{
                         unbondingSummary[0].completionTime.slice(0, 10) +
-                        " : " +
+                        ' : ' +
                         unbondingSummary[0].completionTime.slice(11, 19)
                       }}</span>
                     </div>
@@ -610,7 +610,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 50;
+  z-index: 10001; /* Higher than header (9999) and mobile header (10000) */
 }
 
 .modal-container {
