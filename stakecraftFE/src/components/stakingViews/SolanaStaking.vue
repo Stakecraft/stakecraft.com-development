@@ -1,7 +1,7 @@
 <template>
   <transition name="modal-fade">
-    <div class="modal-overlay" @click.self="close">
-      <div v-if="network" class="modal-container" @click.stop>
+    <div v-if="network" class="modal-overlay" @click.self="close">
+      <div class="modal-container" @click.stop>
         <div class="modal-content">
           <!-- Header -->
           <div class="modal-header">
@@ -247,16 +247,44 @@
                       v-for="account in stakingAccounts"
                       :key="account.address"
                       class="account-card"
+                      :class="{ expanded: account.expanded }"
                     >
-                      <div class="account-header">
-                        <div class="account-info">
-                          <div class="account-address">
-                            <span class="label">Account:</span>
-                            <span class="value">{{ truncateAddress(account.address) }}</span>
-                            <span class="tooltip-container">
-                              <span class="tooltip">{{ account.address }}</span>
+                      <!-- Compact Header (always visible) -->
+                      <div class="account-header" @click="toggleAccount(account)">
+                        <div class="account-basic-info">
+                          <div class="account-id">
+                            <span class="account-label">Account:</span>
+                            <span class="account-value">{{
+                              truncateAddress(account.address)
+                            }}</span>
+                          </div>
+                          <div class="account-status">
+                            <span :class="['status-badge', getStatusClass(account)]">
+                              {{ getStatusText(account) }}
                             </span>
                           </div>
+                        </div>
+                        <div class="expand-indicator">
+                          <svg
+                            :class="['expand-icon', { rotated: account.expanded }]"
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path d="M6 9l6 6 6-6" />
+                          </svg>
+                        </div>
+                      </div>
+
+                      <!-- Expanded Details (conditionally visible) -->
+                      <div v-if="account.expanded" class="account-expanded-content">
+                        <div class="account-full-info">
                           <div class="account-validator">
                             <span class="label">Validator:</span>
                             <span class="value">{{ truncateAddress(account.voterAddress) }}</span>
@@ -265,46 +293,67 @@
                             </span>
                           </div>
                         </div>
-                        <div class="account-status">
-                          <span :class="['status-badge', account.isActive ? 'active' : 'inactive']">
-                            {{ account.isActive ? 'Active' : 'Inactive' }}
-                          </span>
-                        </div>
-                      </div>
 
-                      <div class="account-details">
-                        <div class="detail-row">
-                          <span class="detail-label">Delegated Amount:</span>
-                          <span class="detail-value"
-                            >{{ account.delegatedAmount.toFixed(4) }} SOL</span
-                          >
+                        <div class="account-details">
+                          <div class="detail-row">
+                            <span class="detail-label">Delegated Amount:</span>
+                            <span class="detail-value"
+                              >{{ account.delegatedAmount.toFixed(4) }} SOL</span
+                            >
+                          </div>
+                          <div class="detail-row">
+                            <span class="detail-label">Active Amount:</span>
+                            <span class="detail-value"
+                              >{{ account.activeAmount.toFixed(4) }} SOL</span
+                            >
+                          </div>
+                          <div class="detail-row">
+                            <span class="detail-label">Inactive Amount:</span>
+                            <span class="detail-value"
+                              >{{ account.inactiveAmount.toFixed(4) }} SOL</span
+                            >
+                          </div>
                         </div>
-                        <div class="detail-row">
-                          <span class="detail-label">Active Amount:</span>
-                          <span class="detail-value"
-                            >{{ account.activeAmount.toFixed(4) }} SOL</span
-                          >
-                        </div>
-                        <div class="detail-row">
-                          <span class="detail-label">Inactive Amount:</span>
-                          <span class="detail-value"
-                            >{{ account.inactiveAmount.toFixed(4) }} SOL</span
-                          >
-                        </div>
-                      </div>
 
-                      <div class="account-actions">
-                        <button
-                          @click="deactivateAccount(account.address)"
-                          :disabled="isDeactivating || !account.isActive"
-                          class="deactivate-button"
-                          :class="{ 'button-disabled': isDeactivating || !account.isActive }"
-                        >
-                          <span v-if="isDeactivating && deactivatingAccount === account.address">
-                            Deactivating...
-                          </span>
-                          <span v-else> Deactivate </span>
-                        </button>
+                        <div class="account-actions">
+                          <button
+                            v-if="account.isActive"
+                            @click="deactivateAccount(account.address)"
+                            :disabled="isDeactivating"
+                            class="action-button deactivate-button"
+                            :class="{ 'button-disabled': isDeactivating }"
+                          >
+                            <span v-if="isDeactivating && deactivatingAccount === account.address">
+                              Deactivating...
+                            </span>
+                            <span v-else>Deactivate</span>
+                          </button>
+
+                          <button
+                            v-else-if="account.isInactive"
+                            @click="withdrawFromAccount(account.address)"
+                            :disabled="isWithdrawing"
+                            class="action-button withdraw-button"
+                            :class="{ 'button-disabled': isWithdrawing }"
+                          >
+                            <span v-if="isWithdrawing && withdrawingAccount === account.address">
+                              Withdrawing...
+                            </span>
+                            <span v-else>Withdraw</span>
+                          </button>
+
+                          <div v-else-if="account.isDeactivating" class="status-info">
+                            <span class="status-text">⏳ Deactivation in progress...</span>
+                            <small class="status-hint"
+                              >Will be available for withdrawal next epoch</small
+                            >
+                          </div>
+
+                          <div v-else-if="account.isActivating" class="status-info">
+                            <span class="status-text">⏳ Activation in progress...</span>
+                            <small class="status-hint">Will become active next epoch</small>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -359,13 +408,13 @@ import { ref, computed, onMounted, watch } from 'vue'
 import {
   connectWallet,
   delegateStake,
-  getStakeAccountInfo,
-  getStakeRewards,
   createAndInitializeStakeAccount,
   getTotalStakedAmount,
   undelegateStake,
+  withdrawStake,
   getSolBalance,
-  getAllStakingAccounts
+  getAllStakingAccounts,
+  getStakeRewards
 } from '../../utils/SolanaStaking'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 
@@ -412,6 +461,8 @@ export default {
     const isDeactivating = ref(false)
     const deactivatingAccount = ref('')
     const isLoadingAccounts = ref(false)
+    const isWithdrawing = ref(false)
+    const withdrawingAccount = ref('')
 
     onMounted(() => {
       if (props.network?.validator?.[0]) {
@@ -523,7 +574,14 @@ export default {
       try {
         isLoadingAccounts.value = true
         const accounts = await getAllStakingAccounts(walletAddress.value, validatorAddress.value)
-        stakingAccounts.value = accounts
+        stakingAccounts.value = accounts.map((account) => ({
+          ...account,
+          expanded: false,
+          isActive: account.state === 'active',
+          isInactive: account.state === 'inactive',
+          isDeactivating: account.state === 'deactivating',
+          isActivating: account.state === 'activating'
+        }))
       } catch (error) {
         console.error('Failed to load staking accounts:', error)
         stakingAccounts.value = []
@@ -532,24 +590,79 @@ export default {
       }
     }
 
+    const toggleAccount = (account) => {
+      account.expanded = !account.expanded
+    }
+
     const deactivateAccount = async (accountAddress) => {
       try {
         isDeactivating.value = true
         deactivatingAccount.value = accountAddress
 
+        // Clear previous messages
+        unstakingSuccess.value = false
+        unstakingError.value = null
+
+        console.log('Starting deactivation for account:', accountAddress)
         const signature = await undelegateStake(accountAddress)
+        console.log('Deactivation successful:', signature)
+
         transactionSignature.value = signature
 
+        // Reload accounts and refresh info
         await loadStakingAccounts()
         await refreshStakingInfo()
 
         unstakingSuccess.value = true
+        unstakingError.value = null
       } catch (error) {
         console.error('Failed to deactivate account:', error)
         unstakingError.value = error.message || 'Failed to deactivate account'
+        unstakingSuccess.value = false
+        transactionSignature.value = null
       } finally {
         isDeactivating.value = false
         deactivatingAccount.value = ''
+      }
+    }
+
+    const withdrawFromAccount = async (accountAddress) => {
+      try {
+        isWithdrawing.value = true
+        withdrawingAccount.value = accountAddress
+
+        // Clear previous messages
+        unstakingSuccess.value = false
+        unstakingError.value = null
+
+        console.log('Starting withdrawal for account:', accountAddress)
+
+        try {
+          // Use the consolidated withdrawal function
+          const result = await withdrawStake(accountAddress)
+          console.log('Withdrawal successful:', result)
+
+          transactionSignature.value = result.signature
+          unstakingSuccess.value = true
+          unstakingError.value = null
+        } catch (error) {
+          console.error('Withdrawal failed:', error)
+          unstakingError.value = error.message || 'Failed to withdraw from account'
+          unstakingSuccess.value = false
+          transactionSignature.value = null
+        }
+
+        // Reload accounts and refresh info
+        await loadStakingAccounts()
+        await refreshStakingInfo()
+      } catch (error) {
+        console.error('Failed to withdraw from account:', error)
+        unstakingError.value = error.message || 'Failed to withdraw from account'
+        unstakingSuccess.value = false
+        transactionSignature.value = null
+      } finally {
+        isWithdrawing.value = false
+        withdrawingAccount.value = ''
       }
     }
 
@@ -573,9 +686,6 @@ export default {
 
         await new Promise((resolve) => setTimeout(resolve, 1000))
 
-        const initialStakeInfo = await getStakeAccountInfo(stakeAccount)
-        stakeAccountInfo.value = initialStakeInfo
-
         const validator = props.network?.validator?.[0] || validatorAddress.value
         if (!validator) {
           throw new Error('Validator address is required')
@@ -584,7 +694,6 @@ export default {
         const signature = await delegateStake(stakeAccount, validator)
         transactionSignature.value = signature
 
-        stakeAccountInfo.value = await getStakeAccountInfo(stakeAccount)
         rewards.value = await getStakeRewards(stakeAccount)
         await refreshStakingInfo()
 
@@ -657,6 +766,32 @@ export default {
       return address.substring(0, 6) + '...' + address.substring(address.length - 4)
     }
 
+    const getStatusClass = (account) => {
+      if (account.isActive) {
+        return 'active'
+      } else if (account.isInactive) {
+        return 'inactive'
+      } else if (account.isDeactivating) {
+        return 'deactivating'
+      } else if (account.isActivating) {
+        return 'activating'
+      }
+      return ''
+    }
+
+    const getStatusText = (account) => {
+      if (account.isActive) {
+        return 'Active'
+      } else if (account.isInactive) {
+        return 'Inactive'
+      } else if (account.isDeactivating) {
+        return 'Deactivating...'
+      } else if (account.isActivating) {
+        return 'Activating...'
+      }
+      return 'Unknown'
+    }
+
     return {
       close,
       walletConnected,
@@ -695,7 +830,13 @@ export default {
       isDeactivating,
       deactivatingAccount,
       deactivateAccount,
-      loadStakingAccounts
+      loadStakingAccounts,
+      toggleAccount,
+      isWithdrawing,
+      withdrawingAccount,
+      withdrawFromAccount,
+      getStatusClass,
+      getStatusText
     }
   }
 }
@@ -1255,54 +1396,63 @@ export default {
 .accounts-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .account-card {
   background-color: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 0.5rem;
-  padding: 1rem;
-  transition: all 0.2s;
+  padding: 0.75rem;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  cursor: pointer;
 }
 
 .account-card:hover {
-  border-color: #d1d5db;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-color: #6366f1;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+}
+
+.account-card.expanded {
+  background-color: #ffffff;
+  border-color: #6366f1;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
 }
 
 .account-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.75rem;
+  align-items: center;
+  margin-bottom: 0;
+  padding: 0.25rem 0;
 }
 
-.account-info {
+.account-basic-info {
   flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.account-address,
-.account-validator {
+.account-id {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.25rem;
   font-size: 0.875rem;
 }
 
-.account-address .label,
-.account-validator .label {
+.account-id .account-label {
   color: #6b7280;
   font-weight: 500;
   min-width: 60px;
 }
 
-.account-address .value,
-.account-validator .value {
+.account-id .account-value {
   color: #1f2937;
   font-family: monospace;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .account-status {
@@ -1311,10 +1461,11 @@ export default {
 
 .status-badge {
   padding: 0.25rem 0.5rem;
-  border-radius: 0.375rem;
+  border-radius: 9999px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.025em;
 }
 
 .status-badge.active {
@@ -1327,19 +1478,81 @@ export default {
   color: #92400e;
 }
 
+.status-badge.deactivating {
+  background-color: #fffbeb;
+  color: #92400e;
+}
+
+.status-badge.activating {
+  background-color: #e0f2fe;
+  color: #155e75;
+}
+
+.expand-indicator {
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+  color: #6b7280;
+}
+
+.expand-icon {
+  transition: transform 0.3s ease;
+}
+
+.expand-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.account-expanded-content {
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 1rem;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.account-full-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.account-full-info .label {
+  color: #6b7280;
+  font-weight: 500;
+  min-width: 60px;
+}
+
+.account-full-info .value {
+  color: #1f2937;
+  font-family: monospace;
+  font-size: 0.75rem;
+}
+
 .account-details {
   margin-bottom: 1rem;
   padding: 0.75rem;
-  background-color: white;
+  background-color: #f8fafc;
   border-radius: 0.375rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e2e8f0;
 }
 
 .detail-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
   font-size: 0.875rem;
 }
 
@@ -1349,41 +1562,81 @@ export default {
 
 .detail-label {
   color: #6b7280;
+  font-weight: 500;
 }
 
 .detail-value {
-  font-weight: 500;
+  font-weight: 600;
   color: #1f2937;
+  font-family: monospace;
 }
 
 .account-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 0.5rem;
 }
 
-.deactivate-button {
-  background-color: #dc2626;
-  color: white;
+.action-button {
   border: none;
   border-radius: 0.375rem;
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.action-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+.action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.deactivate-button {
+  background-color: #dc2626;
+  color: white;
 }
 
 .deactivate-button:hover:not(:disabled) {
   background-color: #b91c1c;
 }
 
-.deactivate-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.withdraw-button {
+  background-color: #059669;
+  color: white;
+}
+
+.withdraw-button:hover:not(:disabled) {
+  background-color: #047857;
 }
 
 .button-disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.status-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #92400e;
+}
+
+.status-text {
+  font-weight: 600;
+}
+
+.status-hint {
+  opacity: 0.7;
 }
 </style>

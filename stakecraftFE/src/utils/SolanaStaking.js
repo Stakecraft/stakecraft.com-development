@@ -37,18 +37,41 @@ const getStakeActivationFromParsedData = async (parsedAccountData) => {
       const delegation = info.stake.delegation
       const delegatedAmount = parseInt(delegation.stake || 0) / LAMPORTS_PER_SOL
 
-      // Check if the delegation is actually active by looking at the delegation state
-      // In Solana, if a stake account has been deactivated, it will have a deactivationEpoch set
-      const deactivationEpochStr = delegation.deactivationEpoch?.toString()
-      const isDeactivated = deactivationEpochStr && deactivationEpochStr !== '18446744073709551615'
+      // Get current epoch to compare with activation/deactivation epochs
+      const epochInfo = await connection.getEpochInfo()
+      const currentEpoch = epochInfo.epoch
 
-      if (isDeactivated) {
-        // Account has been deactivated
-        state = 'inactive'
+      // Parse activation and deactivation epochs
+      const activationEpoch = parseInt(delegation.activationEpoch || 0)
+      const deactivationEpochStr = delegation.deactivationEpoch?.toString()
+
+      // Handle the max value case (18446744073709551615 means not deactivated)
+      let deactivationEpoch = Number.MAX_SAFE_INTEGER
+      if (deactivationEpochStr && deactivationEpochStr !== '18446744073709551615') {
+        deactivationEpoch = parseInt(deactivationEpochStr)
+      }
+
+      // Determine the actual state based on epochs
+      if (currentEpoch < activationEpoch) {
+        // Still activating
+        state = 'activating'
         activeStake = 0
         inactiveStake = delegatedAmount
+      } else if (deactivationEpoch !== Number.MAX_SAFE_INTEGER) {
+        // Deactivation has been initiated
+        if (currentEpoch >= deactivationEpoch) {
+          // Deactivation is complete - account is inactive
+          state = 'inactive'
+          activeStake = 0
+          inactiveStake = delegatedAmount
+        } else {
+          // Deactivation in progress - still active until deactivation completes
+          state = 'deactivating'
+          activeStake = delegatedAmount
+          inactiveStake = 0
+        }
       } else {
-        // Account appears to be active
+        // No deactivation epoch set - account is fully active
         state = 'active'
         activeStake = delegatedAmount
         inactiveStake = 0
@@ -71,69 +94,7 @@ const getStakeActivationFromParsedData = async (parsedAccountData) => {
   }
 }
 
-// Updated helper function for backward compatibility
-const getStakeActivationFromAccountData = async (stakeAccountPubkey) => {
-  try {
-    // Get parsed account data
-    const accounts = await connection.getParsedProgramAccounts(StakeProgram.programId, {
-      filters: [
-        {
-          memcmp: {
-            offset: 0,
-            bytes: stakeAccountPubkey.toBase58()
-          }
-        }
-      ]
-    })
-
-    if (accounts.length === 0) {
-      return { state: 'inactive', active: 0, inactive: 0 }
-    }
-
-    const account = accounts.find((acc) => acc.pubkey.equals(stakeAccountPubkey))
-    if (!account) {
-      return { state: 'inactive', active: 0, inactive: 0 }
-    }
-
-    return await getStakeActivationFromParsedData(account.account.data)
-  } catch (error) {
-    console.error('Error getting stake activation from account data:', error)
-    return { state: 'error', active: 0, inactive: 0 }
-  }
-}
-
-export const connectPhantomWallet = async () => {
-  try {
-    const { solana } = window
-
-    if (solana?.isPhantom) {
-      const response = await solana.connect({ onlyIfTrusted: false })
-      return response.publicKey
-    } else {
-      throw new Error('Phantom wallet not found')
-    }
-  } catch (error) {
-    console.error('Error connecting to Phantom wallet:', error)
-    throw error
-  }
-}
-
-export const connectSolflareWallet = async () => {
-  try {
-    const { solflare } = window
-
-    if (solflare) {
-      await solflare.connect()
-      return solflare.publicKey
-    } else {
-      throw new Error('Solflare wallet not found')
-    }
-  } catch (error) {
-    console.error('Error connecting to Solflare wallet:', error)
-    throw error
-  }
-}
-
+// Wallet connection functions
 export const getProvider = () => {
   if (window.solana?.isPhantom) {
     return window.solana
@@ -162,6 +123,7 @@ export const getCurrentWallet = () => {
   return currentWallet
 }
 
+// Core staking functions
 export const createAndInitializeStakeAccount = async (stakeLamports) => {
   try {
     const wallet = getCurrentWallet()
@@ -264,24 +226,13 @@ export const delegateStake = async (stakeAccountAddress, validatorAddress) => {
       throw new Error('Validator account not found')
     }
 
-    // Check if stake account is already delegated
-    try {
-      const stakeAccountInfo = await connection.getStakeActivation(stakeAccountPubkey)
-      if (stakeAccountInfo.active > 0) {
-        throw new Error('Stake account is already delegated')
-      }
-    } catch (error) {
-      console.log('Stake account not yet delegated, proceeding...')
-    }
-
     const delegateInstruction = StakeProgram.delegate({
       stakePubkey: stakeAccountPubkey,
       authorizedPubkey: wallet.publicKey,
       votePubkey: validatorPubkey
     })
 
-    const transaction = new Transaction()
-    transaction.add(delegateInstruction)
+    const transaction = new Transaction().add(delegateInstruction)
     transaction.feePayer = wallet.publicKey
 
     const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed')
@@ -324,25 +275,40 @@ export const undelegateStake = async (stakeAccountAddress) => {
     if (!stakeAccountAddress) {
       throw new Error('Stake account address is required')
     }
+
     const stakeAccountPubkey = new PublicKey(stakeAccountAddress)
+
     const deactivateInstruction = StakeProgram.deactivate({
       stakePubkey: stakeAccountPubkey,
       authorizedPubkey: wallet.publicKey
     })
+
     const transaction = new Transaction().add(deactivateInstruction)
     transaction.feePayer = wallet.publicKey
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash()
+
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed')
     transaction.recentBlockhash = blockhash
+    transaction.lastValidBlockHeight = lastValidBlockHeight
+
     const signedTransaction = await wallet.signTransaction(transaction)
     const signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
       skipPreflight: false,
       preflightCommitment: 'confirmed'
     })
-    await connection.confirmTransaction({
-      signature,
-      blockhash,
-      lastValidBlockHeight
-    })
+
+    const confirmation = await connection.confirmTransaction(
+      {
+        signature,
+        blockhash,
+        lastValidBlockHeight
+      },
+      'confirmed'
+    )
+
+    if (confirmation.value.err) {
+      throw new Error(`Transaction failed: ${confirmation.value.err}`)
+    }
+
     return signature
   } catch (error) {
     console.error('Error undelegating stake:', error)
@@ -350,154 +316,227 @@ export const undelegateStake = async (stakeAccountAddress) => {
   }
 }
 
-export const getStakeAccountInfo = async (stakeAccountAddress) => {
+// Consolidated withdrawal function (replaces withdrawStake, withdrawStakeMinimal, withdrawStakeDirect)
+export const withdrawStake = async (stakeAccountAddress, withdrawAmount = null) => {
   try {
+    const wallet = getCurrentWallet()
+    if (!wallet.connected) {
+      await connectWallet()
+    }
+
     if (!stakeAccountAddress) {
       throw new Error('Stake account address is required')
     }
+
     const stakeAccountPubkey = new PublicKey(stakeAccountAddress)
+
+    // Check withdrawal readiness
+    const readinessCheck = await checkWithdrawalReadiness(stakeAccountAddress)
+    if (!readinessCheck.isReady) {
+      let errorMessage = readinessCheck.reason
+      if (readinessCheck.epochsRemaining && readinessCheck.epochsRemaining > 0) {
+        errorMessage += ` (${readinessCheck.epochsRemaining} epochs remaining)`
+      }
+      throw new Error(errorMessage)
+    }
+
+    // Get fresh account info
     const accountInfo = await connection.getAccountInfo(stakeAccountPubkey)
     if (!accountInfo) {
       throw new Error('Stake account not found')
     }
-    const stakeInfo = {
-      address: stakeAccountAddress,
-      balance: accountInfo.lamports / LAMPORTS_PER_SOL,
-      delegatedVoteAccountAddress: null,
-      stake: 0,
-      state: '',
-      active: 0,
-      inactive: 0
-    }
-    if (accountInfo.data.length > 0) {
-      try {
-        const stakeAccount = StakeProgram.decode(accountInfo.data)
-        if (stakeAccount?.stake?.delegation) {
-          stakeInfo.delegatedVoteAccountAddress =
-            stakeAccount.stake.delegation.voterPubkey?.toBase58()
-          stakeInfo.stake = stakeAccount.stake.delegation.stake / LAMPORTS_PER_SOL
-          stakeInfo.state = stakeAccount.stake.delegation.voterPubkey ? 'active' : 'inactive'
-          stakeInfo.active = stakeAccount.stake.delegation.stake / LAMPORTS_PER_SOL
-        }
-      } catch (error) {
-        console.warn('Could not decode stake account data:', error.message)
-      }
+
+    // Get rent exemption amount
+    const rentExemptAmount = await connection.getMinimumBalanceForRentExemption(StakeProgram.space)
+
+    // Calculate safe withdrawal amount
+    const safetyBuffer = 5000 // Small safety buffer
+    const maxWithdrawable = Math.max(0, accountInfo.lamports - rentExemptAmount - safetyBuffer)
+
+    if (maxWithdrawable <= 0) {
+      throw new Error('No withdrawable balance available after rent exemption')
     }
 
-    return stakeInfo
+    // Determine withdrawal amount
+    let withdrawLamports = withdrawAmount
+      ? Math.min(withdrawAmount * LAMPORTS_PER_SOL, maxWithdrawable)
+      : maxWithdrawable
+
+    // Create withdrawal instruction
+    const withdrawInstruction = StakeProgram.withdraw({
+      stakePubkey: stakeAccountPubkey,
+      authorizedPubkey: wallet.publicKey,
+      toPubkey: wallet.publicKey,
+      lamports: withdrawLamports
+    })
+
+    const transaction = new Transaction().add(withdrawInstruction)
+    transaction.feePayer = wallet.publicKey
+
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed')
+    transaction.recentBlockhash = blockhash
+    transaction.lastValidBlockHeight = lastValidBlockHeight
+
+    // Simulate transaction
+    const simulation = await connection.simulateTransaction(transaction)
+    if (simulation.value.err) {
+      throw new Error(`Transaction simulation failed: ${JSON.stringify(simulation.value.err)}`)
+    }
+
+    // Execute transaction
+    const signedTransaction = await wallet.signTransaction(transaction)
+    const signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
+      skipPreflight: false,
+      preflightCommitment: 'confirmed'
+    })
+
+    const confirmation = await connection.confirmTransaction(
+      {
+        signature,
+        blockhash,
+        lastValidBlockHeight
+      },
+      'confirmed'
+    )
+
+    if (confirmation.value.err) {
+      throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`)
+    }
+
+    return {
+      signature,
+      withdrawnAmount: withdrawLamports / LAMPORTS_PER_SOL,
+      remainingBalance: (accountInfo.lamports - withdrawLamports) / LAMPORTS_PER_SOL
+    }
   } catch (error) {
-    console.error('Error getting stake account info:', error)
+    console.error('Error withdrawing stake:', error)
     throw error
   }
 }
 
-export const getStakingInfo = async (stakeAccountAddress) => {
-  const stakeAccountInfo = await getStakeAccountInfo(stakeAccountAddress)
-  const stakeRewards = await getStakeRewards(stakeAccountAddress)
-  return {
-    ...stakeAccountInfo,
-    rewardsEarned: stakeRewards
-  }
-}
-
-export const getStakeRewards = async (stakeAccountAddress) => {
+// Comprehensive function to check if account is ready for withdrawal with detailed epoch info
+export const checkWithdrawalReadiness = async (stakeAccountAddress) => {
   try {
-    if (!stakeAccountAddress) {
-      throw new Error('Stake account address is required')
-    }
-
     const stakeAccountPubkey = new PublicKey(stakeAccountAddress)
     const epochInfo = await connection.getEpochInfo()
     const currentEpoch = epochInfo.epoch
-    const epochs = [currentEpoch, currentEpoch - 1, currentEpoch - 2]
-    const rewards = await connection.getInflationReward([stakeAccountPubkey], epochs)
 
-    let totalRewards = 0
-    let lastRewardEpoch = null
+    // Get parsed account data directly
+    const accountInfo = await connection.getParsedAccountInfo(stakeAccountPubkey)
 
-    if (rewards && rewards.length > 0) {
-      for (let i = 0; i < rewards.length; i++) {
-        const rewardArray = rewards[i] // This is an array for each epoch
-        if (rewardArray && rewardArray[0] && rewardArray[0].amount) {
-          totalRewards += rewardArray[0].amount / LAMPORTS_PER_SOL
-          lastRewardEpoch = epochs[i]
+    if (!accountInfo.value) {
+      return {
+        isReady: false,
+        reason: 'Account not found',
+        currentEpoch,
+        estimatedReadyEpoch: null
+      }
+    }
+
+    const parsedData = accountInfo.value.data
+    if (!parsedData.parsed) {
+      return {
+        isReady: false,
+        reason: 'Account data is not parsed',
+        currentEpoch,
+        estimatedReadyEpoch: null
+      }
+    }
+
+    const info = parsedData.parsed.info
+    const type = parsedData.parsed.type
+
+    // Handle different account types
+    if (type === 'uninitialized') {
+      return {
+        isReady: false,
+        reason: 'Account is uninitialized',
+        currentEpoch,
+        estimatedReadyEpoch: null
+      }
+    }
+
+    if (type === 'initialized') {
+      // Initialized but not delegated - should be withdrawable
+      return {
+        isReady: true,
+        reason: 'Account is initialized and ready for withdrawal',
+        currentEpoch,
+        estimatedReadyEpoch: null
+      }
+    }
+
+    if (type === 'delegated' && info.stake?.delegation) {
+      const delegation = info.stake.delegation
+      const activationEpoch = parseInt(delegation.activationEpoch || 0)
+      const deactivationEpochStr = delegation.deactivationEpoch?.toString()
+
+      let deactivationEpoch = Number.MAX_SAFE_INTEGER
+      if (deactivationEpochStr && deactivationEpochStr !== '18446744073709551615') {
+        deactivationEpoch = parseInt(deactivationEpochStr)
+      }
+
+      if (currentEpoch < activationEpoch) {
+        return {
+          isReady: false,
+          reason: 'Account is still activating',
+          currentEpoch,
+          activationEpoch,
+          estimatedReadyEpoch: activationEpoch,
+          epochsRemaining: activationEpoch - currentEpoch
         }
+      }
+
+      if (deactivationEpoch === Number.MAX_SAFE_INTEGER) {
+        return {
+          isReady: false,
+          reason: 'Account is active - needs deactivation first',
+          currentEpoch,
+          activationEpoch,
+          estimatedReadyEpoch: null
+        }
+      }
+
+      if (currentEpoch >= deactivationEpoch) {
+        return {
+          isReady: true,
+          reason: 'Ready for withdrawal (deactivated)',
+          currentEpoch,
+          activationEpoch,
+          deactivationEpoch,
+          epochsSinceDeactivation: currentEpoch - deactivationEpoch
+        }
+      }
+
+      return {
+        isReady: false,
+        reason: 'Deactivation in progress',
+        currentEpoch,
+        activationEpoch,
+        deactivationEpoch,
+        estimatedReadyEpoch: deactivationEpoch,
+        epochsRemaining: deactivationEpoch - currentEpoch
       }
     }
 
     return {
-      amount: totalRewards,
-      epoch: lastRewardEpoch,
-      currentEpoch: currentEpoch
+      isReady: false,
+      reason: `Unsupported account type: ${type}`,
+      currentEpoch,
+      estimatedReadyEpoch: null
     }
   } catch (error) {
-    console.error('Error getting stake rewards:', error)
+    console.error('Error checking withdrawal readiness:', error)
     return {
-      amount: 0,
-      epoch: null,
-      currentEpoch: null
+      isReady: false,
+      reason: `Error: ${error.message}`,
+      currentEpoch: null,
+      estimatedReadyEpoch: null
     }
   }
 }
 
-// Helper function to get rewards for multiple stake accounts
-export const getMultipleStakeRewards = async (stakeAccountAddresses) => {
-  try {
-    if (!Array.isArray(stakeAccountAddresses) || stakeAccountAddresses.length === 0) {
-      return []
-    }
-
-    const results = await Promise.all(
-      stakeAccountAddresses.map((address) => getStakeRewards(address))
-    )
-
-    return results
-  } catch (error) {
-    console.error('Error getting multiple stake rewards:', error)
-    return stakeAccountAddresses.map(() => ({
-      amount: 0,
-      epoch: null,
-      currentEpoch: null
-    }))
-  }
-}
-
-export const calculateStakingRewards = async (stakeAccountAddress) => {
-  try {
-    if (!stakeAccountAddress) {
-      throw new Error('Stake account address is required')
-    }
-
-    const stakeAccountInfo = await getStakeAccountInfo(stakeAccountAddress)
-    const currentBalance = stakeAccountInfo.balance
-    const delegatedAmount = stakeAccountInfo.stake
-    const estimatedRewards = Math.max(0, currentBalance - delegatedAmount)
-
-    return {
-      amount: estimatedRewards,
-      delegatedAmount: delegatedAmount,
-      currentBalance: currentBalance
-    }
-  } catch (error) {
-    console.error('Error calculating staking rewards:', error)
-    return {
-      amount: 0,
-      delegatedAmount: 0,
-      currentBalance: 0
-    }
-  }
-}
-
-export const getStakeActivationStatus = async (stakeAccountAddress) => {
-  try {
-    const stakeAccountPubkey = new PublicKey(stakeAccountAddress)
-    return await getStakeActivationFromAccountData(stakeAccountPubkey)
-  } catch (error) {
-    console.error('Error getting stake activation status:', error)
-    throw error
-  }
-}
-
+// Information and utility functions
 export const getSolBalance = async (walletAddress) => {
   try {
     if (!walletAddress) {
@@ -505,8 +544,7 @@ export const getSolBalance = async (walletAddress) => {
     }
     const walletPubkey = new PublicKey(walletAddress)
     const balance = await connection.getBalance(walletPubkey)
-    const solBalance = balance / LAMPORTS_PER_SOL
-    return solBalance
+    return balance / LAMPORTS_PER_SOL
   } catch (error) {
     console.error('Error getting SOL balance:', error)
     throw new Error(`Failed to get SOL balance: ${error.message}`)
@@ -515,11 +553,8 @@ export const getSolBalance = async (walletAddress) => {
 
 export const getAllStakingAccounts = async (walletAddress, validatorAddress) => {
   try {
-    if (!walletAddress) {
-      throw new Error('Wallet address is required')
-    }
-    if (!validatorAddress) {
-      throw new Error('Validator address is required')
+    if (!walletAddress || !validatorAddress) {
+      throw new Error('Wallet address and validator address are required')
     }
 
     const walletPubkey = new PublicKey(walletAddress)
@@ -567,9 +602,6 @@ export const getAllStakingAccounts = async (walletAddress, validatorAddress) => 
         console.warn('Error processing stake account:', account.pubkey.toBase58(), error)
       }
     }
-    console.log('--------------')
-    console.log('stakingaccounts', stakingAccounts)
-    console.log('--------------')
 
     return stakingAccounts
   } catch (error) {
@@ -583,36 +615,14 @@ export const getTotalStakedAmount = async (walletAddress, validatorAddress) => {
     if (!walletAddress || !validatorAddress) {
       throw new Error('Wallet address and validator address are required')
     }
-    const walletPubkey = new PublicKey(walletAddress)
-    const validatorPubkey = new PublicKey(validatorAddress)
-    const stakeAccounts = await connection.getParsedProgramAccounts(StakeProgram.programId, {
-      filters: [
-        {
-          memcmp: {
-            offset: 44,
-            bytes: walletPubkey.toBase58()
-          }
-        }
-      ]
-    })
-    let totalStaked = 0
-    let delegatedAccounts = []
-    for (const account of stakeAccounts) {
-      const parsed = account.account.data.parsed
-      const info = parsed?.info
-      if (
-        parsed?.type === 'delegated' &&
-        info?.stake?.delegation?.voter === validatorPubkey.toBase58()
-      ) {
-        const delegatedLamports = parseInt(info?.stake?.delegation?.stake || 0)
-        totalStaked += delegatedLamports / LAMPORTS_PER_SOL
-        delegatedAccounts.push(account.pubkey.toBase58())
-      }
-    }
+
+    const stakingAccounts = await getAllStakingAccounts(walletAddress, validatorAddress)
+    const totalStaked = stakingAccounts.reduce((sum, account) => sum + account.delegatedAmount, 0)
+    const delegatedAccounts = stakingAccounts.map((account) => account.address)
 
     return {
       totalStaked,
-      stakeAccounts: stakeAccounts.length,
+      stakeAccounts: stakingAccounts.length,
       delegatedAccounts
     }
   } catch (error) {
@@ -621,48 +631,48 @@ export const getTotalStakedAmount = async (walletAddress, validatorAddress) => {
   }
 }
 
-// Comprehensive function to get all staking information including rewards
-export const getCompleteStakingInfo = async (walletAddress, validatorAddress) => {
+export const getStakeRewards = async (stakeAccountAddress) => {
   try {
-    if (!walletAddress || !validatorAddress) {
-      throw new Error('Wallet address and validator address are required')
+    if (!stakeAccountAddress) {
+      throw new Error('Stake account address is required')
     }
 
-    // Get all staking accounts
-    const stakingAccounts = await getAllStakingAccounts(walletAddress, validatorAddress)
+    const stakeAccountPubkey = new PublicKey(stakeAccountAddress)
+    const epochInfo = await connection.getEpochInfo()
+    const currentEpoch = epochInfo.epoch
+    const epochs = [currentEpoch - 1, currentEpoch - 2, currentEpoch - 3] // Look at past epochs for rewards
 
-    // Get rewards for all accounts
-    const accountAddresses = stakingAccounts.map((account) => account.address)
-    const rewards = await getMultipleStakeRewards(accountAddresses)
+    let totalRewards = 0
+    let lastRewardEpoch = null
 
-    // Combine account info with rewards
-    const completeInfo = stakingAccounts.map((account, index) => ({
-      ...account,
-      rewards: rewards[index] || { amount: 0, epoch: null, currentEpoch: null }
-    }))
+    // Call getInflationReward for each epoch separately
+    for (const epoch of epochs) {
+      try {
+        const rewards = await connection.getInflationReward([stakeAccountPubkey], epoch)
 
-    // Calculate totals
-    const totalActiveStake = completeInfo.reduce((sum, account) => sum + account.activeAmount, 0)
-    const totalInactiveStake = completeInfo.reduce(
-      (sum, account) => sum + account.inactiveAmount,
-      0
-    )
-    const totalRewards = completeInfo.reduce((sum, account) => sum + account.rewards.amount, 0)
-
-    return {
-      accounts: completeInfo,
-      summary: {
-        totalAccounts: completeInfo.length,
-        activeAccounts: completeInfo.filter((account) => account.isActive).length,
-        inactiveAccounts: completeInfo.filter((account) => !account.isActive).length,
-        totalActiveStake,
-        totalInactiveStake,
-        totalStake: totalActiveStake + totalInactiveStake,
-        totalRewards
+        if (rewards && rewards.length > 0 && rewards[0] && rewards[0].amount) {
+          totalRewards += rewards[0].amount / LAMPORTS_PER_SOL
+          if (!lastRewardEpoch) {
+            lastRewardEpoch = epoch
+          }
+        }
+      } catch (epochError) {
+        // Skip epochs that might not have rewards or cause errors
+        console.warn(`Failed to get rewards for epoch ${epoch}:`, epochError.message)
       }
     }
+
+    return {
+      amount: totalRewards,
+      epoch: lastRewardEpoch,
+      currentEpoch: currentEpoch
+    }
   } catch (error) {
-    console.error('Error getting complete staking info:', error)
-    throw error
+    console.error('Error getting stake rewards:', error)
+    return {
+      amount: 0,
+      epoch: null,
+      currentEpoch: null
+    }
   }
 }
