@@ -32,7 +32,12 @@
 </template>
 
 <script setup>
-// No script logic needed for static widget
+// Component name for Vue DevTools
+defineOptions({
+  name: 'SwapPage'
+})
+
+// No additional script logic needed for static widget
 </script>
 
 <style scoped>
@@ -73,13 +78,13 @@
 }
 
 /* Dark theme adjustments */
-.dark .caution-disclaimer {
+.van-theme-dark .caution-disclaimer {
   background: var(--van-caution-background-dark, #2d3748);
   border-color: var(--van-caution-border-dark, #4a5568);
 }
 
-.dark .caution-content h3,
-.dark .caution-content p {
+.van-theme-dark .caution-content h3,
+.van-theme-dark .caution-content p {
   color: var(--van-caution-text-dark, #e2e8f0);
 }
 </style>

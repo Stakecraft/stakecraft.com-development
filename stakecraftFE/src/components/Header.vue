@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="header" :class="[theme, { 'modal-open': isModalOpen }]">
+    <div class="header" :class="[theme, { blurred: isScrolled }]">
       <div class="leftItems">
         <img src="../assets/headerLogo.svg" class="headerLogo" />
       </div>
@@ -154,7 +154,7 @@ export default {
   background: var(--van-header-background);
   border-radius: 20px;
   /* Keep the header in the same position to avoid visual jumping */
-  padding: 0 28px;
+  /* padding: 0 28px; */
   box-sizing: border-box; /* Ensure padding is included in width calculation */
 }
 

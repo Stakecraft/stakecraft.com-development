@@ -96,6 +96,9 @@
   --van-dropdown-menu: #27282d;
   --van-dropdown-text-color: #f0f0f0;
   --van-dropdownMenu-x-btn: url('./assets/x-menu-btn.svg');
+  --van-caution-background-dark: #2d3748;
+  --van-caution-border-dark: #4a5568;
+  --van-caution-text-dark: #e2e8f0;
 }
 
 .van-theme-light {
@@ -121,6 +124,9 @@
   --van-dropdown-menu: #dadada;
   --van-dropdown-text-color: #111217;
   --van-dropdownMenu-x-btn: url('./assets/x-menu-btn-light.svg');
+  --van-caution-background: #fff3cd;
+  --van-caution-border: #ffeaa7;
+  --van-caution-text: #856404;
 }
 
 @font-face {
