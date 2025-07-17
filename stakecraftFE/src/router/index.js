@@ -18,8 +18,46 @@ const router = createRouter({
       path: '/policy',
       name: 'policy',
       component: async () => await import('../components/privacyPolicy/PrivacyPolicy.vue')
+<<<<<<< HEAD
     }
   ]
+=======
+    },
+    {
+      path: '/swap',
+      name: 'swap',
+      component: async () => await import('../views/Swap.vue')
+    }
+  ],
+  scrollBehavior(to, from, savedPosition) {
+    // If there's a saved position (browser back/forward), use it
+    if (savedPosition) {
+      return savedPosition
+    }
+    
+    // If there's a hash in the URL, scroll to that element
+    if (to.hash) {
+      return new Promise((resolve) => {
+        // Wait for the DOM to be ready
+        setTimeout(() => {
+          const element = document.querySelector(to.hash)
+          if (element) {
+            resolve({
+              el: to.hash,
+              behavior: 'smooth',
+              top: 80 // Offset for fixed header
+            })
+          } else {
+            resolve({ top: 0 })
+          }
+        }, 100)
+      })
+    }
+    
+    // Default: scroll to top
+    return { top: 0, behavior: 'smooth' }
+  }
+>>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
 })
 
 export default router
