@@ -1,12 +1,7 @@
 <template>
   <transition name="modal-fade">
-<<<<<<< HEAD
-    <div class="modal-overlay" @click.self="close">
-      <div v-if="network" class="modal-container" @click.stop>
-=======
     <div v-if="network" class="modal-overlay" @click.self="close">
       <div class="modal-container" @click.stop>
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
         <div class="modal-content">
           <!-- Header -->
           <div class="modal-header">
@@ -59,29 +54,14 @@
             <div class="warning-content">
               <h3 class="warning-title">Wallet Not Found</h3>
               <p class="warning-message">
-<<<<<<< HEAD
-                To use Solana staking, you need to install either the Phantom or Solflare wallet extension.
-              </p>
-              <div class="warning-steps">
-                <ol>
-                  <li>Install <a href="https://phantom.app/" target="_blank">Phantom Wallet</a> or <a href="https://solflare.com/" target="_blank">Solflare Wallet</a></li>
-                  <li>Refresh this page after installation</li>
-                  <li>Click "Connect Wallet" to start staking</li>
-                </ol>
-              </div>
-=======
                 To use Solana staking, you need to install either the Phantom or Solflare wallet
                 extension.
               </p>
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
             </div>
           </div>
 
           <!-- Wallet Connection -->
           <div v-if="!walletConnected" class="wallet-connection">
-<<<<<<< HEAD
-            <button @click="connectWallet" class="primary-button full-width">Connect Wallet</button>
-=======
             <button
               @click="connectWallet"
               class="primary-button full-width"
@@ -89,7 +69,6 @@
             >
               {{ isConnecting ? 'Connecting...' : 'Connect Wallet' }}
             </button>
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
 
             <!-- Network Links -->
             <div class="network-links">
@@ -140,84 +119,6 @@
               </div>
             </div>
 
-<<<<<<< HEAD
-            <!-- Staking Form -->
-            <div class="staking-form">
-              <!-- Staking Amount Input -->
-              <div class="form-group">
-                <label class="form-label"> Amount to Stake (SOL) </label>
-                <div class="input-container">
-                  <input
-                    v-model.number="stakeAmount"
-                    type="number"
-                    :min="minimumStake"
-                    step="0.01"
-                    class="form-input"
-                    placeholder="Enter amount"
-                  />
-                  <div class="input-suffix">
-                    <span>SOL</span>
-                  </div>
-                </div>
-                <div class="input-hint">
-                  <span> Minimum: {{ minimumStake }} SOL </span>
-                </div>
-              </div>
-
-              <!-- Validator Address -->
-              <div class="form-group">
-                <label class="form-label"> Validator Address </label>
-                <input
-                  disabled
-                  :value="network.validator"
-                  type="text"
-                  class="form-input"
-                  placeholder="Enter validator address"
-                  readonly
-                />
-              </div>
-              <!-- Staking Info -->
-              <div class="info-card">
-                <h3 class="info-card-title">Staking Status</h3>
-                <div class="info-card-content">
-                  <div class="info-row">
-                    <span class="info-label">Staked Amount:</span>
-                    <span class="info-value">{{ stakedAmount.toFixed(3) }} SOL</span>
-                  </div>
-                  <div class="info-row">
-                    <span class="info-label">Rewards Earned:</span>
-                    <span class="info-value">{{ rewardsEarned }} SOL</span>
-                  </div>
-                  <div class="info-row">
-                    <span class="info-label">Last Reward:</span>
-                    <span class="info-value">{{
-                      lastRewardTime ? new Date(lastRewardTime).toLocaleString() : 'Never'
-                    }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Action Button -->
-            <div class="action-buttons">
-              <button
-                @click="delegateStake"
-                :disabled="!isValidStake || isStaking"
-                class="primary-button full-width delegate-button"
-                :class="{ 'button-disabled': !isValidStake || isStaking }"
-              >
-                {{ isStaking ? 'Delegating...' : 'Delegate Solana' }}
-              </button>
-
-              <button
-                @click="undelegateStake"
-                :disabled="stakedAmount <= 0 || isUnstaking"
-                class="primary-button full-width delegate-button"
-                :class="{ 'button-disabled': stakedAmount <= 0 || isUnstaking }"
-              >
-                {{ isUnstaking ? 'Undelegating...' : 'Undelegate Solana' }}
-              </button>
-=======
             <!-- Tab Navigation -->
             <div class="tab-container">
               <button
@@ -474,7 +375,6 @@
                   {{ unstakingError }}
                 </div>
               </div>
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
             </div>
 
             <!-- Network Links -->
@@ -508,15 +408,6 @@ import { ref, computed, onMounted, watch } from 'vue'
 import {
   connectWallet,
   delegateStake,
-<<<<<<< HEAD
-  getStakeAccountInfo,
-  getStakeRewards,
-  createAndInitializeStakeAccount,
-  getStakingInfo,
-  getTotalStakedAmount,
-  undelegateStake,
-  getStakeActivationStatus
-=======
   createAndInitializeStakeAccount,
   getTotalStakedAmount,
   undelegateStake,
@@ -524,19 +415,11 @@ import {
   getSolBalance,
   getAllStakingAccounts,
   getStakeRewards
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
 } from '../../utils/SolanaStaking'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 
 export default {
   name: 'SolanaStaking',
-<<<<<<< HEAD
-  props: ['network'],
-  setup(props, context) {
-    const walletConnected = ref(false)
-    const walletAddress = ref('')
-    const stakeAmount = ref(0)
-=======
   props: {
     network: {
       type: Object,
@@ -549,15 +432,10 @@ export default {
     const walletAddress = ref('')
     const stakeAmount = ref(0)
     const unstakeAmount = ref(0)
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
     const validatorAddress = ref('')
     const stakeAccountInfo = ref(null)
     const rewards = ref(null)
     const minimumStake = 0.01
-<<<<<<< HEAD
-    const stakeAccountPublickey = ref(null)
-=======
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
     const transactionSignature = ref(null)
     const walletError = ref(null)
     const stakedAmount = ref(0)
@@ -570,10 +448,6 @@ export default {
       '7fvq1pzmtwALR7ShXbBKEbyCKicZSCqGMWkQYmpeiZa5'
     ])
     const connectedWalletType = ref('')
-<<<<<<< HEAD
-    const isStaking = ref(false)
-    const isUnstaking = ref(false)
-=======
     const isConnecting = ref(false)
     const isProcessing = ref(false)
     const stakingSuccess = ref(false)
@@ -590,48 +464,12 @@ export default {
     const isWithdrawing = ref(false)
     const withdrawingAccount = ref('')
 
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
     onMounted(() => {
       if (props.network?.validator?.[0]) {
         validatorAddress.value = props.network.validator[0]
       }
     })
 
-<<<<<<< HEAD
-    const close = () => {
-      context.emit('close')
-    }
-
-    const isValidStake = computed(() => {
-      const amount = parseFloat(stakeAmount.value)
-      const hasValidAmount = !isNaN(amount) && amount >= minimumStake
-      const hasValidAddress = validatorAddress.value && validatorAddress.value.length > 0
-      return hasValidAmount && hasValidAddress
-    })
-
-    const handleConnectWallet = async () => {
-      try {
-        walletError.value = null
-        console.log('-----------');
-        console.log('solana', window?.solana);
-        console.log('solflare', window?.solflare);
-        console.log('-----------');
-        
-        // Check if any supported wallet is available
-        const hasPhantom = window.solana?.isPhantom
-        const hasSolflare = window.solflare
-        
-        if (!hasPhantom && !hasSolflare) {
-          walletError.value = 'No supported wallet found. Please install Phantom or Solflare wallet.'
-          return
-        }
-        
-        const publicKey = await connectWallet()
-        walletAddress.value = publicKey.toString()
-        walletConnected.value = true
-        
-        // Determine wallet type
-=======
     // Add watch on activeTab to clear messages
     watch(activeTab, () => {
       stakingSuccess.value = false
@@ -678,25 +516,11 @@ export default {
         walletAddress.value = publicKey.toString()
         walletConnected.value = true
 
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
         if (window.solana?.isPhantom) {
           connectedWalletType.value = 'Phantom'
         } else if (window.solflare) {
           connectedWalletType.value = 'Solflare'
         }
-<<<<<<< HEAD
-        
-        await refreshStakingInfo()
-        console.log('delegatedStakeAccounts', delegatedStakeAccounts.value)
-        console.log('completedStakeAccounts', completedStakeAccounts.value)
-      } catch (error) {
-        console.error('Failed to connect wallet:', error)
-        if (error.message.includes('not installed') || error.message.includes('not found')) {
-          walletError.value = 'No supported wallet found. Please install Phantom or Solflare wallet.'
-        } else {
-          walletError.value = error.message
-        }
-=======
 
         await refreshStakingInfo()
         await loadStakingAccounts()
@@ -710,7 +534,6 @@ export default {
         }
       } finally {
         isConnecting.value = false
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
       }
     }
 
@@ -718,16 +541,6 @@ export default {
       if (!walletAddress.value) return
 
       try {
-<<<<<<< HEAD
-        const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
-        stakedAmount.value = stakingInfo.totalStaked
-        console.log('typeof stakedAmount', typeof stakedAmount.value)
-        delegatedStakeAccounts.value = stakingInfo.delegatedAccounts || []
-        if (stakingInfo.stakeAccounts > 0) {
-          const rewards = await getStakeRewards(walletAddress.value)
-          rewardsEarned.value = rewards ? rewards.amount / LAMPORTS_PER_SOL : 0
-          lastRewardTime.value = rewards ? rewards.epoch : null
-=======
         const solBalance = await getSolBalance(walletAddress.value)
         totalSolBalance.value = solBalance
         availableBalance.value = Number(solBalance).toFixed(4)
@@ -746,7 +559,6 @@ export default {
             rewardsEarned.value = 0
             lastRewardTime.value = null
           }
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
         } else {
           rewardsEarned.value = 0
           lastRewardTime.value = null
@@ -756,35 +568,6 @@ export default {
       }
     }
 
-<<<<<<< HEAD
-    const handleDelegateStake = async () => {
-      if (!isValidStake.value) return
-      
-      isStaking.value = true
-      try {
-        console.log('Starting stake delegation process...')
-        
-        // Create and initialize stake account
-        console.log('Creating stake account...')
-        const { stakeAccount } = await createAndInitializeStakeAccount(
-          stakeAmount.value * LAMPORTS_PER_SOL
-        )
-        
-        if (!stakeAccount) {
-          throw new Error('Failed to create stake account')
-        }
-        
-        console.log('Stake account created:', stakeAccount)
-        
-        // Wait a moment for the account to be fully created
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        // Get initial stake info
-        const initialStakeInfo = await getStakeAccountInfo(stakeAccount)
-        stakeAccountInfo.value = initialStakeInfo
-        
-        // Get validator address
-=======
     const loadStakingAccounts = async () => {
       if (!walletAddress.value) return
 
@@ -903,33 +686,10 @@ export default {
 
         await new Promise((resolve) => setTimeout(resolve, 1000))
 
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
         const validator = props.network?.validator?.[0] || validatorAddress.value
         if (!validator) {
           throw new Error('Validator address is required')
         }
-<<<<<<< HEAD
-        
-        console.log('Delegating to validator:', validator)
-        
-        // Delegate the stake
-        const signature = await delegateStake(stakeAccount, validator)
-        transactionSignature.value = signature
-        
-        console.log('Delegation successful, signature:', signature)
-        
-        // Update stake account info
-        stakeAccountInfo.value = await getStakeAccountInfo(stakeAccount)
-        rewards.value = await getStakeRewards(stakeAccount)
-        await refreshStakingInfo()
-        
-        console.log('Stake delegation completed successfully')
-        
-      } catch (error) {
-        console.error('Failed to delegate stake:', error)
-        
-        // Provide user-friendly error messages
-=======
 
         const signature = await delegateStake(stakeAccount, validator)
         transactionSignature.value = signature
@@ -941,7 +701,6 @@ export default {
         stakeAmount.value = 0
       } catch (error) {
         console.error('Failed to delegate stake:', error)
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
         let errorMessage = 'Failed to delegate stake'
         if (error.message.includes('Insufficient balance')) {
           errorMessage = 'Insufficient SOL balance in your wallet'
@@ -954,26 +713,14 @@ export default {
         } else if (error.message.includes('0x1902')) {
           errorMessage = 'Stake account is not properly initialized. Please try again.'
         }
-<<<<<<< HEAD
-        
-        // You can add a toast notification here if you have one
-        console.error(errorMessage)
-      } finally {
-        isStaking.value = false
-=======
 
         stakingError.value = errorMessage
       } finally {
         isProcessing.value = false
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
       }
     }
 
     const handleUndelegateStake = async () => {
-<<<<<<< HEAD
-      isUnstaking.value = true
-      try {
-=======
       try {
         isProcessing.value = true
         stakingSuccess.value = false
@@ -981,7 +728,6 @@ export default {
         unstakingSuccess.value = false
         unstakingError.value = null
 
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
         if (!delegatedStakeAccounts.value.length) {
           throw new Error('No delegated stake accounts found')
         }
@@ -991,38 +737,17 @@ export default {
         if (!activeStakeAccounts.length) {
           throw new Error('No active stake accounts found')
         }
-<<<<<<< HEAD
-        // Always use the first active stake account
-=======
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
         const stakeAccountAddress = activeStakeAccounts[0]
         if (!stakeAccountAddress) {
           throw new Error('Stake account address is undefined')
         }
-<<<<<<< HEAD
-        console.log('stakeAccountAddress', stakeAccountAddress)
         const signature = await undelegateStake(stakeAccountAddress)
         transactionSignature.value = signature
-        console.log('signature', signature)
-=======
-        const signature = await undelegateStake(stakeAccountAddress)
-        transactionSignature.value = signature
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
 
         if (signature) {
           completedStakeAccounts.value.push(stakeAccountAddress)
         }
 
-<<<<<<< HEAD
-        console.log('delegatedStakeAccounts', delegatedStakeAccounts.value)
-        console.log('completedStakeAccounts', completedStakeAccounts.value)
-        await refreshStakingInfo()
-      } catch (error) {
-        console.error('Failed to undelegate stake:', error)
-        throw new Error(`Failed to undelegate stake: ${error.message}`)
-      } finally {
-        isUnstaking.value = false
-=======
         await refreshStakingInfo()
 
         unstakingSuccess.value = true
@@ -1032,7 +757,6 @@ export default {
         unstakingError.value = error.message || 'Failed to undelegate stake'
       } finally {
         isProcessing.value = false
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
       }
     }
 
@@ -1042,8 +766,6 @@ export default {
       return address.substring(0, 6) + '...' + address.substring(address.length - 4)
     }
 
-<<<<<<< HEAD
-=======
     const getStatusClass = (account) => {
       if (account.isActive) {
         return 'active'
@@ -1070,25 +792,18 @@ export default {
       return 'Unknown'
     }
 
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
     return {
       close,
       walletConnected,
       walletAddress,
       stakeAmount,
-<<<<<<< HEAD
-=======
       unstakeAmount,
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
       validatorAddress,
       stakeAccountInfo,
       rewards,
       minimumStake,
       isValidStake,
-<<<<<<< HEAD
-=======
       isValidUnstake,
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
       connectWallet: handleConnectWallet,
       delegateStake: handleDelegateStake,
       undelegateStake: handleUndelegateStake,
@@ -1101,10 +816,6 @@ export default {
       lastRewardTime,
       delegatedStakeAccounts,
       connectedWalletType,
-<<<<<<< HEAD
-      isStaking,
-      isUnstaking
-=======
       isConnecting,
       isProcessing,
       stakingSuccess,
@@ -1126,7 +837,6 @@ export default {
       withdrawFromAccount,
       getStatusClass,
       getStatusText
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
     }
   }
 }
@@ -1155,11 +865,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-<<<<<<< HEAD
-  z-index: 50;
-=======
   z-index: 10001; /* Higher than header (9999) and mobile header (10000) */
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
 }
 
 .modal-container {
@@ -1171,11 +877,8 @@ export default {
   max-width: 28rem;
   width: 100%;
   overflow: hidden;
-<<<<<<< HEAD
-=======
   max-height: 90vh;
   overflow-y: auto;
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
 }
 
 .modal-content {
@@ -1210,8 +913,6 @@ export default {
   color: #374151;
 }
 
-<<<<<<< HEAD
-=======
 /* Tab Navigation */
 .tab-container {
   display: flex;
@@ -1260,7 +961,6 @@ export default {
   }
 }
 
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
 /* Network Description */
 .network-description {
   text-align: center;
@@ -1306,14 +1006,6 @@ export default {
 }
 
 /* Buttons */
-<<<<<<< HEAD
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-}
-
-=======
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
 .primary-button {
   background-color: #6366f1;
   color: white;
@@ -1344,10 +1036,6 @@ export default {
   cursor: not-allowed;
 }
 
-<<<<<<< HEAD
-.delegate-button {
-  margin-top: 1.5rem;
-=======
 .unstake-button {
   background-color: #dc2626;
 }
@@ -1372,7 +1060,6 @@ export default {
 .max-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
 }
 
 /* Wallet Info Card */
@@ -1461,10 +1148,7 @@ export default {
 .input-hint {
   display: flex;
   justify-content: space-between;
-<<<<<<< HEAD
-=======
   align-items: center;
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
   margin-top: 0.25rem;
   font-size: 0.75rem;
   color: #6b7280;
@@ -1508,51 +1192,6 @@ export default {
   color: #1f2937;
 }
 
-<<<<<<< HEAD
-
-
-/* Progress Bar */
-.progress-section {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #e5e7eb;
-}
-
-.progress-label {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin-bottom: 0.25rem;
-}
-
-.progress-bar-container {
-  height: 0.5rem;
-  background-color: #e5e7eb;
-  border-radius: 9999px;
-  overflow: hidden;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background-color: #6366f1;
-}
-
-.progress-percentage {
-  font-size: 0.75rem;
-  color: #6b7280;
-  text-align: right;
-  margin-top: 0.25rem;
-}
-
-/* Remove number input arrows */
-input[type='number']::-webkit-inner-spin-button,
-input[type='number']::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-input[type='number'] {
-  -moz-appearance: textfield;
-=======
 /* Warning Card */
 .warning-card {
   background-color: #fef3c7;
@@ -1592,7 +1231,6 @@ input[type='number'] {
   border-radius: 0.375rem;
   margin-top: 1rem;
   font-size: 0.875rem;
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
 }
 
 /* Wallet Warning */
@@ -1700,8 +1338,6 @@ input[type='number'] {
   visibility: visible;
   opacity: 1;
 }
-<<<<<<< HEAD
-=======
 
 /* Staking Accounts Section */
 .staking-accounts-section {
@@ -2003,5 +1639,4 @@ input[type='number'] {
 .status-hint {
   opacity: 0.7;
 }
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
 </style>
