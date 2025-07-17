@@ -54,7 +54,7 @@
             <div class="warning-content">
               <h3 class="warning-title">Wallet Not Found</h3>
               <p class="warning-message">
-                To use Kava staking, you need to install the Keplr wallet extension.
+                To use Stafi staking, you need to install the Polkadot.js extension.
               </p>
             </div>
           </div>
@@ -66,7 +66,7 @@
               class="primary-button full-width"
               :disabled="isConnecting"
             >
-              {{ isConnecting ? 'Connecting...' : 'Connect Keplr Wallet' }}
+              {{ isConnecting ? 'Connecting...' : 'Connect Polkadot.js Wallet' }}
             </button>
 
             <!-- Network Links -->
@@ -104,7 +104,7 @@
                 <div class="wallet-info-row">
                   <span class="info-label">Last Transaction:</span>
                   <a
-                    :href="`https://www.mintscan.io/kava/txs/${transactionHash}`"
+                    :href="`https://stafi.subscan.io/extrinsic/${transactionHash}`"
                     target="_blank"
                     class="transaction-link"
                   >
@@ -137,26 +137,26 @@
               <div class="staking-form">
                 <!-- Staking Amount Input -->
                 <div class="form-group">
-                  <label class="form-label">Amount to Stake (KAVA)</label>
+                  <label class="form-label">Amount to Stake (FIS)</label>
                   <div class="input-container">
                     <input
                       v-model.number="stakeAmount"
                       type="number"
                       :min="minimumStake"
-                      step="1"
+                      step="0.01"
                       class="form-input"
                       placeholder="Enter amount"
                     />
                     <div class="input-suffix">
-                      <span>KAVA</span>
+                      <span>FIS</span>
                     </div>
                   </div>
                   <div class="input-hint">
-                    <span>Minimum: {{ minimumStake }} KAVA</span>
+                    <span>Minimum: {{ minimumStake }} FIS</span>
                     <button
-                      @click="stakeAmount = Number(totalKavaBalance)"
+                      @click="stakeAmount = Number(availableBalance)"
                       class="max-button"
-                      :disabled="Number(totalKavaBalance) <= 0"
+                      :disabled="Number(availableBalance) <= 0"
                     >
                       Max
                     </button>
@@ -167,7 +167,7 @@
                 <div class="form-group">
                   <label class="form-label">Validator Address</label>
                   <input
-                    :value="network.validator"
+                    :value="network.validator[0]"
                     type="text"
                     class="form-input"
                     placeholder="Enter validator address"
@@ -181,33 +181,35 @@
                   <div class="info-card-content">
                     <div class="info-row">
                       <span class="info-label">Available Balance:</span>
-                      <span class="info-value">{{ availableBalance }} KAVA</span>
+                      <span class="info-value">{{ availableBalance }} FIS</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} KAVA</span>
+                      <span class="info-value">{{ stakedAmount }} FIS</span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">Rewards Earned:</span>
-                      <span class="info-value">{{ formattedRewards }} KAVA</span>
+                      <span class="info-label">Staking Rewards:</span>
+                      <span class="info-value">{{ stakingRewards }} FIS</span>
                     </div>
                   </div>
                 </div>
 
                 <!-- Success/Error Messages for Staking -->
-                <div v-if="stakingSuccess" class="success-message">Successfully delegated !</div>
+                <div v-if="stakingSuccess" class="success-message">
+                  Successfully staked {{ stakeAmount }} FIS!
+                </div>
                 <div v-if="stakingError" class="error-message">
                   {{ stakingError }}
                 </div>
 
                 <!-- Stake Action Button -->
                 <button
-                  @click="delegateTokens"
+                  @click="handleStake"
                   :disabled="!isValidStake || isProcessing"
-                  class="primary-button full-width delegate-button"
+                  class="primary-button full-width stake-button"
                   :class="{ 'button-disabled': !isValidStake || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Delegate KAVA' }}
+                  {{ isProcessing ? 'Processing...' : 'Stake FIS' }}
                 </button>
               </div>
             </div>
@@ -217,23 +219,23 @@
               <div class="staking-form">
                 <!-- Unstaking Amount Input -->
                 <div class="form-group">
-                  <label class="form-label">Amount to Unstake (KAVA)</label>
+                  <label class="form-label">Amount to Unstake (FIS)</label>
                   <div class="input-container">
                     <input
                       v-model.number="unstakeAmount"
                       type="number"
                       :min="0"
                       :max="stakedAmount"
-                      step="1"
+                      step="0.01"
                       class="form-input"
                       placeholder="Enter amount to unstake"
                     />
                     <div class="input-suffix">
-                      <span>KAVA</span>
+                      <span>FIS</span>
                     </div>
                   </div>
                   <div class="input-hint">
-                    <span>Available to unstake: {{ stakedAmount }} KAVA</span>
+                    <span>Available to unstake: {{ stakedAmount }} FIS</span>
                     <button
                       @click="unstakeAmount = stakedAmount"
                       class="max-button"
@@ -250,32 +252,15 @@
                   <div class="info-card-content">
                     <div class="info-row">
                       <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} KAVA</span>
+                      <span class="info-value">{{ stakedAmount }} FIS</span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">Rewards Earned:</span>
-                      <span class="info-value">{{ formattedRewards }} KAVA</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Unbonding Amount:</span>
-                      <span class="info-value"
-                        >{{
-                          unbondingSummary.reduce((sum, e) => sum + Number(e.amount), 0).toFixed(6)
-                        }}
-                        KAVA
-                      </span>
+                      <span class="info-label">Staking Rewards:</span>
+                      <span class="info-value">{{ stakingRewards }} FIS</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Unbonding Period:</span>
-                      <span class="info-value">21 days</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">End Date:</span>
-                      <span class="info-value">{{
-                        unbondingSummary[0].completionTime.slice(0, 10) +
-                        ' : ' +
-                        unbondingSummary[0].completionTime.slice(11, 19)
-                      }}</span>
+                      <span class="info-value">14 days</span>
                     </div>
                   </div>
                 </div>
@@ -284,14 +269,14 @@
                 <div class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
-                    <strong>Important:</strong> Unstaked tokens will be locked for 21 days before
-                    becoming available for withdrawal.
+                    <strong>Important:</strong> Unstaked FIS tokens will be locked for 14 days
+                    before becoming available for withdrawal.
                   </div>
                 </div>
 
                 <!-- Success/Error Messages for Unstaking -->
                 <div v-if="unstakingSuccess" class="success-message">
-                  Successfully Undelegated !
+                  Successfully unstaked {{ unstakeAmount }} FIS!
                 </div>
                 <div v-if="unstakingError" class="error-message">
                   {{ unstakingError }}
@@ -299,12 +284,12 @@
 
                 <!-- Unstake Action Button -->
                 <button
-                  @click="undelegateStake"
+                  @click="handleUnstake"
                   :disabled="!isValidUnstake || isProcessing"
-                  class="primary-button full-width delegate-button unstake-button"
+                  class="primary-button full-width unstake-button"
                   :class="{ 'button-disabled': !isValidUnstake || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Undelegate KAVA' }}
+                  {{ isProcessing ? 'Processing...' : 'Unstake FIS' }}
                 </button>
               </div>
             </div>
@@ -339,27 +324,14 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import {
   connectWallet,
-  delegateTokens,
-  undelegateStake,
-  getTotalStakedAmount,
-  getKavaBalance,
-  getKavaRewards,
-  getKavaUnbonding
-} from '../../utils/KavaStaking'
-
-function ukavaToKava(amount) {
-  return (Number(amount) / 1_000_000).toFixed(10)
-}
-
-function daysLeft(completionTime) {
-  const now = new Date()
-  const end = new Date(completionTime)
-  const diff = (end - now) / (1000 * 60 * 60 * 24)
-  return diff > 0 ? Math.ceil(diff) : 0
-}
+  stakeTokens,
+  unstakeTokens,
+  getBalance,
+  getStakingInfo
+} from '../../utils/StafiStaking'
 
 export default {
-  name: 'KavaStaking',
+  name: 'StafiStaking',
   props: {
     network: {
       type: Object,
@@ -372,9 +344,7 @@ export default {
     const walletAddress = ref('')
     const stakeAmount = ref(0)
     const unstakeAmount = ref(0)
-    const validatorAddress = ref('')
-    const delegationInfo = ref(null)
-    const minimumStake = 0.01
+    const minimumStake = 1
     const stakingSuccess = ref(false)
     const unstakingSuccess = ref(false)
     const stakingError = ref(null)
@@ -383,19 +353,13 @@ export default {
     const walletError = ref(false)
     const isConnecting = ref(false)
     const isProcessing = ref(false)
+    const availableBalance = ref('0.0000')
     const stakedAmount = ref(0)
-    const rewardsEarned = ref(0)
-    const unbondingList = ref([])
-    const lastRewardTime = ref(null)
-    const availableBalance = ref(0)
+    const stakingRewards = ref(0)
     const activeTab = ref('stake')
-    const totalKavaBalance = ref(0)
-    const formattedRewards = ref('0')
-    const unbondingSummary = ref([])
+
     onMounted(() => {
-      if (props.network?.validator?.[0]) {
-        validatorAddress.value = props.network.validator[0]
-      }
+      // Component initialization
     })
 
     // Add watch on activeTab to clear messages
@@ -409,12 +373,7 @@ export default {
 
     const isValidStake = computed(() => {
       const amount = parseFloat(stakeAmount.value)
-      return (
-        !isNaN(amount) &&
-        amount >= minimumStake &&
-        validatorAddress.value &&
-        amount <= Number(totalKavaBalance.value)
-      )
+      return !isNaN(amount) && amount >= minimumStake && amount <= Number(availableBalance.value)
     })
 
     const isValidUnstake = computed(() => {
@@ -425,14 +384,15 @@ export default {
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
+        walletError.value = false
         const address = await connectWallet()
         walletAddress.value = address
         walletConnected.value = true
-        isConnecting.value = false
-        refreshStakingInfo()
+        await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         walletError.value = true
+      } finally {
         isConnecting.value = false
       }
     }
@@ -441,70 +401,64 @@ export default {
       if (!walletAddress.value) return
 
       try {
-        const kavaBalance = await getKavaBalance(walletAddress.value)
-        totalKavaBalance.value = kavaBalance
-        availableBalance.value = Number(kavaBalance).toFixed(4)
+        const balance = await getBalance(walletAddress.value)
+        availableBalance.value = balance.toFixed(4)
 
-        const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
-        if (stakingInfo.amount) {
-          stakedAmount.value = Number(stakingInfo.amount) / 10 ** 6
-        } else {
-          stakedAmount.value = 0.0
-        }
-
-        // Fetch rewards
-        const rewardsData = await getKavaRewards(walletAddress.value, validatorAddress.value)
-        let totalReward = 0
-        if (rewardsData && rewardsData.total && rewardsData.total.length > 0) {
-          totalReward = ukavaToKava(rewardsData.total[0].amount)
-        }
-        formattedRewards.value = totalReward
-        rewardsEarned.value = totalReward
-
-        // Fetch unbonding delegations
-        const unbondingData = await getKavaUnbonding(walletAddress.value, validatorAddress.value)
-        let summary = []
-        if (unbondingData && unbondingData.unbonding_responses) {
-          for (const resp of unbondingData.unbonding_responses) {
-            for (const entry of resp.entries) {
-              summary.push({
-                amount: ukavaToKava(entry.balance),
-                completionTime: entry.completion_time,
-                daysLeft: daysLeft(entry.completion_time)
-              })
-            }
-          }
-        }
-        unbondingSummary.value = summary
-        unbondingList.value = summary
-        lastRewardTime.value = null
+        const stakingInfo = await getStakingInfo(walletAddress.value, props.network.validator[0])
+        stakedAmount.value = stakingInfo.stakedAmount
+        stakingRewards.value = stakingInfo.stakingRewards
       } catch (error) {
         console.error('Failed to refresh staking info:', error)
       }
     }
 
-    const handleDelegateTokens = async () => {
+    const handleStake = async () => {
       if (!isValidStake.value) return
 
       try {
         isProcessing.value = true
         stakingSuccess.value = false
         stakingError.value = null
+
+        const hash = await stakeTokens(
+          walletAddress.value,
+          props.network.validator[0],
+          stakeAmount.value
+        )
+
+        transactionHash.value = hash
+        stakingSuccess.value = true
+        stakeAmount.value = 0
+        await refreshStakingInfo()
+      } catch (error) {
+        console.error('Failed to stake tokens:', error)
+        stakingError.value = error.message || 'Failed to stake tokens'
+      } finally {
+        isProcessing.value = false
+      }
+    }
+
+    const handleUnstake = async () => {
+      if (!isValidUnstake.value) return
+
+      try {
+        isProcessing.value = true
         unstakingSuccess.value = false
         unstakingError.value = null
 
-        const hash = await delegateTokens(
+        const hash = await unstakeTokens(
           walletAddress.value,
-          validatorAddress.value,
-          stakeAmount.value
+          props.network.validator[0],
+          unstakeAmount.value
         )
+
         transactionHash.value = hash
-        stakingSuccess.value = true
-        stakeAmount.value = 0 // Reset form
-        refreshStakingInfo()
+        unstakingSuccess.value = true
+        unstakeAmount.value = 0
+        await refreshStakingInfo()
       } catch (error) {
-        console.error('Failed to delegate tokens:', error)
-        stakingError.value = error.message || 'Failed to delegate tokens'
+        console.error('Failed to unstake tokens:', error)
+        unstakingError.value = error.message || 'Failed to unstake tokens'
       } finally {
         isProcessing.value = false
       }
@@ -514,36 +468,6 @@ export default {
       emit('close')
     }
 
-    const handleUndelegateStake = async () => {
-      try {
-        isProcessing.value = true
-        console.log('-------vue console. handleUndelegateStake start-------')
-        console.log('vue console. walletAddress', walletAddress.value)
-        console.log('vue console. validatorAddress', validatorAddress.value)
-
-        stakingSuccess.value = false
-        stakingError.value = null
-        unstakingSuccess.value = false
-        unstakingError.value = null
-
-        const hash = await undelegateStake(
-          walletAddress.value,
-          validatorAddress.value,
-          unstakeAmount.value
-        )
-        console.log('vue console. hash', hash)
-        transactionHash.value = hash
-        unstakingSuccess.value = true
-        unstakeAmount.value = 0 // Reset form
-        await refreshStakingInfo()
-      } catch (error) {
-        console.error('Failed to undelegate stake:', error)
-        unstakingError.value = error.message || 'Failed to undelegate stake'
-      } finally {
-        isProcessing.value = false
-      }
-    }
-
     const truncateAddress = (address) => {
       if (!address) return ''
       if (address.length <= 12) return address
@@ -551,13 +475,10 @@ export default {
     }
 
     return {
-      validatorAddress,
-      closeModal,
       walletConnected,
       walletAddress,
       stakeAmount,
       unstakeAmount,
-      delegationInfo,
       minimumStake,
       isValidStake,
       isValidUnstake,
@@ -567,21 +488,17 @@ export default {
       unstakingError,
       transactionHash,
       connectWallet: handleConnectWallet,
-      delegateTokens: handleDelegateTokens,
-      undelegateStake: handleUndelegateStake,
+      handleStake,
+      handleUnstake,
       truncateAddress,
       walletError,
       isConnecting,
       isProcessing,
-      stakedAmount,
-      rewardsEarned,
-      unbondingList,
-      lastRewardTime,
       availableBalance,
+      stakedAmount,
+      stakingRewards,
       activeTab,
-      totalKavaBalance,
-      formattedRewards,
-      unbondingSummary
+      closeModal
     }
   }
 }
@@ -610,7 +527,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10001; /* Higher than header (9999) and mobile header (10000) */
+  z-index: 10001;
 }
 
 .modal-container {
@@ -1062,35 +979,5 @@ input[type='number'] {
 .tooltip-container:hover .tooltip {
   visibility: visible;
   opacity: 1;
-}
-
-.unbonding-list {
-  margin-top: 1rem;
-  background: #f9fafb;
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
-  border: 1px solid #e5e7eb;
-}
-.unbonding-title {
-  font-size: 0.95rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #92400e;
-}
-.unbonding-list ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.unbonding-list li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.9rem;
-  margin-bottom: 0.25rem;
-}
-.unbonding-days {
-  color: #b45309;
-  font-size: 0.85rem;
 }
 </style>

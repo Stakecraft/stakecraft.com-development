@@ -54,7 +54,7 @@
             <div class="warning-content">
               <h3 class="warning-title">Wallet Not Found</h3>
               <p class="warning-message">
-                To use Kava staking, you need to install the Keplr wallet extension.
+                To use The Graph delegation, you need to install the MetaMask wallet extension.
               </p>
             </div>
           </div>
@@ -66,7 +66,7 @@
               class="primary-button full-width"
               :disabled="isConnecting"
             >
-              {{ isConnecting ? 'Connecting...' : 'Connect Keplr Wallet' }}
+              {{ isConnecting ? 'Connecting...' : 'Connect MetaMask Wallet' }}
             </button>
 
             <!-- Network Links -->
@@ -85,7 +85,7 @@
                 target="_blank"
                 class="link-primary"
               >
-                How to Stake
+                How to Delegate
               </a>
             </div>
           </div>
@@ -104,11 +104,11 @@
                 <div class="wallet-info-row">
                   <span class="info-label">Last Transaction:</span>
                   <a
-                    :href="`https://www.mintscan.io/kava/txs/${transactionHash}`"
+                    :href="`https://etherscan.io/tx/${transactionHash}`"
                     target="_blank"
                     class="transaction-link"
                   >
-                    View on Explorer
+                    View on Etherscan
                   </a>
                 </div>
               </div>
@@ -118,193 +118,183 @@
             <div class="tab-container">
               <button
                 class="tab-button"
-                :class="{ 'tab-active': activeTab === 'stake' }"
-                @click="activeTab = 'stake'"
+                :class="{ 'tab-active': activeTab === 'delegate' }"
+                @click="activeTab = 'delegate'"
               >
-                Stake
+                Delegate
               </button>
               <button
                 class="tab-button"
-                :class="{ 'tab-active': activeTab === 'unstake' }"
-                @click="activeTab = 'unstake'"
+                :class="{ 'tab-active': activeTab === 'undelegate' }"
+                @click="activeTab = 'undelegate'"
               >
-                Unstake
+                Undelegate
               </button>
             </div>
 
-            <!-- Staking Tab Content -->
-            <div v-if="activeTab === 'stake'" class="tab-content">
+            <!-- Delegation Tab Content -->
+            <div v-if="activeTab === 'delegate'" class="tab-content">
               <div class="staking-form">
-                <!-- Staking Amount Input -->
+                <!-- Delegation Amount Input -->
                 <div class="form-group">
-                  <label class="form-label">Amount to Stake (KAVA)</label>
+                  <label class="form-label">Amount to Delegate (GRT)</label>
                   <div class="input-container">
                     <input
-                      v-model.number="stakeAmount"
+                      v-model.number="delegateAmount"
                       type="number"
-                      :min="minimumStake"
+                      :min="minimumDelegate"
                       step="1"
                       class="form-input"
                       placeholder="Enter amount"
                     />
                     <div class="input-suffix">
-                      <span>KAVA</span>
+                      <span>GRT</span>
                     </div>
                   </div>
                   <div class="input-hint">
-                    <span>Minimum: {{ minimumStake }} KAVA</span>
+                    <span>Minimum: {{ minimumDelegate }} GRT</span>
                     <button
-                      @click="stakeAmount = Number(totalKavaBalance)"
+                      @click="delegateAmount = Number(totalGrtBalance)"
                       class="max-button"
-                      :disabled="Number(totalKavaBalance) <= 0"
+                      :disabled="Number(totalGrtBalance) <= 0"
                     >
                       Max
                     </button>
                   </div>
                 </div>
 
-                <!-- Validator Address -->
+                <!-- Indexer Address -->
                 <div class="form-group">
-                  <label class="form-label">Validator Address</label>
+                  <label class="form-label">Indexer Address</label>
                   <input
                     :value="network.validator"
                     type="text"
                     class="form-input"
-                    placeholder="Enter validator address"
+                    placeholder="Enter indexer address"
                     readonly
                   />
                 </div>
 
-                <!-- Staking Info -->
+                <!-- Delegation Info -->
                 <div class="info-card">
-                  <h3 class="info-card-title">Current Staking Status</h3>
+                  <h3 class="info-card-title">Current Delegation Status</h3>
                   <div class="info-card-content">
                     <div class="info-row">
                       <span class="info-label">Available Balance:</span>
-                      <span class="info-value">{{ availableBalance }} KAVA</span>
+                      <span class="info-value">{{ availableBalance }} GRT</span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} KAVA</span>
+                      <span class="info-label">Currently Delegated:</span>
+                      <span class="info-value">{{ delegatedAmount }} GRT</span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">Rewards Earned:</span>
-                      <span class="info-value">{{ formattedRewards }} KAVA</span>
+                      <span class="info-label">Query Fees Earned:</span>
+                      <span class="info-value">{{ rewardsEarned }} GRT</span>
                     </div>
                   </div>
                 </div>
 
-                <!-- Success/Error Messages for Staking -->
-                <div v-if="stakingSuccess" class="success-message">Successfully delegated !</div>
-                <div v-if="stakingError" class="error-message">
-                  {{ stakingError }}
+                <!-- Success/Error Messages for Delegation -->
+                <div v-if="delegationSuccess" class="success-message">
+                  Successfully delegated GRT tokens!
+                </div>
+                <div v-if="delegationError" class="error-message">
+                  {{ delegationError }}
                 </div>
 
-                <!-- Stake Action Button -->
+                <!-- Delegate Action Button -->
                 <button
-                  @click="delegateTokens"
-                  :disabled="!isValidStake || isProcessing"
+                  @click="delegateToIndexer"
+                  :disabled="!isValidDelegate || isProcessing"
                   class="primary-button full-width delegate-button"
-                  :class="{ 'button-disabled': !isValidStake || isProcessing }"
+                  :class="{ 'button-disabled': !isValidDelegate || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Delegate KAVA' }}
+                  {{ isProcessing ? 'Processing...' : 'Delegate GRT' }}
                 </button>
               </div>
             </div>
 
-            <!-- Unstaking Tab Content -->
-            <div v-if="activeTab === 'unstake'" class="tab-content">
+            <!-- Undelegation Tab Content -->
+            <div v-if="activeTab === 'undelegate'" class="tab-content">
               <div class="staking-form">
-                <!-- Unstaking Amount Input -->
+                <!-- Undelegation Amount Input -->
                 <div class="form-group">
-                  <label class="form-label">Amount to Unstake (KAVA)</label>
+                  <label class="form-label">Amount to Undelegate (GRT)</label>
                   <div class="input-container">
                     <input
-                      v-model.number="unstakeAmount"
+                      v-model.number="undelegateAmount"
                       type="number"
                       :min="0"
-                      :max="stakedAmount"
+                      :max="delegatedAmount"
                       step="1"
                       class="form-input"
-                      placeholder="Enter amount to unstake"
+                      placeholder="Enter amount to undelegate"
                     />
                     <div class="input-suffix">
-                      <span>KAVA</span>
+                      <span>GRT</span>
                     </div>
                   </div>
                   <div class="input-hint">
-                    <span>Available to unstake: {{ stakedAmount }} KAVA</span>
+                    <span>Available to undelegate: {{ delegatedAmount }} GRT</span>
                     <button
-                      @click="unstakeAmount = stakedAmount"
+                      @click="undelegateAmount = delegatedAmount"
                       class="max-button"
-                      :disabled="stakedAmount <= 0"
+                      :disabled="delegatedAmount <= 0"
                     >
                       Max
                     </button>
                   </div>
                 </div>
 
-                <!-- Unstaking Info -->
+                <!-- Undelegation Info -->
                 <div class="info-card">
-                  <h3 class="info-card-title">Unstaking Information</h3>
+                  <h3 class="info-card-title">Undelegation Information</h3>
                   <div class="info-card-content">
                     <div class="info-row">
-                      <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} KAVA</span>
+                      <span class="info-label">Currently Delegated:</span>
+                      <span class="info-value">{{ delegatedAmount }} GRT</span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">Rewards Earned:</span>
-                      <span class="info-value">{{ formattedRewards }} KAVA</span>
+                      <span class="info-label">Query Fees Earned:</span>
+                      <span class="info-value">{{ rewardsEarned }} GRT</span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">Unbonding Amount:</span>
-                      <span class="info-value"
-                        >{{
-                          unbondingSummary.reduce((sum, e) => sum + Number(e.amount), 0).toFixed(6)
-                        }}
-                        KAVA
-                      </span>
+                      <span class="info-label">Thawing Period:</span>
+                      <span class="info-value">28 days</span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">Unbonding Period:</span>
-                      <span class="info-value">21 days</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">End Date:</span>
-                      <span class="info-value">{{
-                        unbondingSummary[0].completionTime.slice(0, 10) +
-                        ' : ' +
-                        unbondingSummary[0].completionTime.slice(11, 19)
-                      }}</span>
+                      <span class="info-label">Delegation Tax:</span>
+                      <span class="info-value">0.5%</span>
                     </div>
                   </div>
                 </div>
 
-                <!-- Unstaking Warning -->
+                <!-- Undelegation Warning -->
                 <div class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
-                    <strong>Important:</strong> Unstaked tokens will be locked for 21 days before
-                    becoming available for withdrawal.
+                    <strong>Important:</strong> Undelegated tokens will enter a 28-day thawing
+                    period before becoming available for withdrawal. A 0.5% delegation tax will be
+                    applied.
                   </div>
                 </div>
 
-                <!-- Success/Error Messages for Unstaking -->
-                <div v-if="unstakingSuccess" class="success-message">
-                  Successfully Undelegated !
+                <!-- Success/Error Messages for Undelegation -->
+                <div v-if="undelegationSuccess" class="success-message">
+                  Successfully undelegated GRT tokens!
                 </div>
-                <div v-if="unstakingError" class="error-message">
-                  {{ unstakingError }}
+                <div v-if="undelegationError" class="error-message">
+                  {{ undelegationError }}
                 </div>
 
-                <!-- Unstake Action Button -->
+                <!-- Undelegate Action Button -->
                 <button
-                  @click="undelegateStake"
-                  :disabled="!isValidUnstake || isProcessing"
+                  @click="undelegateFromIndexer"
+                  :disabled="!isValidUndelegate || isProcessing"
                   class="primary-button full-width delegate-button unstake-button"
-                  :class="{ 'button-disabled': !isValidUnstake || isProcessing }"
+                  :class="{ 'button-disabled': !isValidUndelegate || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Undelegate KAVA' }}
+                  {{ isProcessing ? 'Processing...' : 'Undelegate GRT' }}
                 </button>
               </div>
             </div>
@@ -325,7 +315,7 @@
                 target="_blank"
                 class="link-primary"
               >
-                How to Stake
+                How to Delegate
               </a>
             </div>
           </div>
@@ -339,27 +329,15 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import {
   connectWallet,
-  delegateTokens,
-  undelegateStake,
-  getTotalStakedAmount,
-  getKavaBalance,
-  getKavaRewards,
-  getKavaUnbonding
-} from '../../utils/KavaStaking'
-
-function ukavaToKava(amount) {
-  return (Number(amount) / 1_000_000).toFixed(10)
-}
-
-function daysLeft(completionTime) {
-  const now = new Date()
-  const end = new Date(completionTime)
-  const diff = (end - now) / (1000 * 60 * 60 * 24)
-  return diff > 0 ? Math.ceil(diff) : 0
-}
+  delegateToIndexer,
+  undelegateFromIndexer,
+  getDelegatedAmount,
+  getGrtBalance,
+  getQueryFeesEarned
+} from '../../utils/GraphStaking'
 
 export default {
-  name: 'KavaStaking',
+  name: 'GraphStaking',
   props: {
     network: {
       type: Object,
@@ -370,56 +348,54 @@ export default {
   setup(props, { emit }) {
     const walletConnected = ref(false)
     const walletAddress = ref('')
-    const stakeAmount = ref(0)
-    const unstakeAmount = ref(0)
-    const validatorAddress = ref('')
+    const delegateAmount = ref(0)
+    const undelegateAmount = ref(0)
+    const indexerAddress = ref('')
     const delegationInfo = ref(null)
-    const minimumStake = 0.01
-    const stakingSuccess = ref(false)
-    const unstakingSuccess = ref(false)
-    const stakingError = ref(null)
-    const unstakingError = ref(null)
+    const minimumDelegate = 100 // 100 GRT minimum
+    const delegationSuccess = ref(false)
+    const undelegationSuccess = ref(false)
+    const delegationError = ref(null)
+    const undelegationError = ref(null)
     const transactionHash = ref('')
     const walletError = ref(false)
     const isConnecting = ref(false)
     const isProcessing = ref(false)
-    const stakedAmount = ref(0)
+    const delegatedAmount = ref(0)
     const rewardsEarned = ref(0)
-    const unbondingList = ref([])
     const lastRewardTime = ref(null)
     const availableBalance = ref(0)
-    const activeTab = ref('stake')
-    const totalKavaBalance = ref(0)
-    const formattedRewards = ref('0')
-    const unbondingSummary = ref([])
+    const activeTab = ref('delegate')
+    const totalGrtBalance = ref(0)
+
     onMounted(() => {
       if (props.network?.validator?.[0]) {
-        validatorAddress.value = props.network.validator[0]
+        indexerAddress.value = props.network.validator[0]
       }
     })
 
     // Add watch on activeTab to clear messages
     watch(activeTab, () => {
-      stakingSuccess.value = false
-      stakingError.value = null
-      unstakingSuccess.value = false
-      unstakingError.value = null
+      delegationSuccess.value = false
+      delegationError.value = null
+      undelegationSuccess.value = false
+      undelegationError.value = null
       transactionHash.value = ''
     })
 
-    const isValidStake = computed(() => {
-      const amount = parseFloat(stakeAmount.value)
+    const isValidDelegate = computed(() => {
+      const amount = parseFloat(delegateAmount.value)
       return (
         !isNaN(amount) &&
-        amount >= minimumStake &&
-        validatorAddress.value &&
-        amount <= Number(totalKavaBalance.value)
+        amount >= minimumDelegate &&
+        indexerAddress.value &&
+        amount <= Number(totalGrtBalance.value)
       )
     })
 
-    const isValidUnstake = computed(() => {
-      const amount = parseFloat(unstakeAmount.value)
-      return !isNaN(amount) && amount > 0 && amount <= stakedAmount.value
+    const isValidUndelegate = computed(() => {
+      const amount = parseFloat(undelegateAmount.value)
+      return !isNaN(amount) && amount > 0 && amount <= delegatedAmount.value
     })
 
     const handleConnectWallet = async () => {
@@ -429,7 +405,7 @@ export default {
         walletAddress.value = address
         walletConnected.value = true
         isConnecting.value = false
-        refreshStakingInfo()
+        refreshDelegationInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         walletError.value = true
@@ -437,74 +413,73 @@ export default {
       }
     }
 
-    const refreshStakingInfo = async () => {
+    const refreshDelegationInfo = async () => {
       if (!walletAddress.value) return
 
       try {
-        const kavaBalance = await getKavaBalance(walletAddress.value)
-        totalKavaBalance.value = kavaBalance
-        availableBalance.value = Number(kavaBalance).toFixed(4)
+        const grtBalance = await getGrtBalance(walletAddress.value)
+        totalGrtBalance.value = grtBalance
+        availableBalance.value = Number(grtBalance).toFixed(2)
 
-        const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
-        if (stakingInfo.amount) {
-          stakedAmount.value = Number(stakingInfo.amount) / 10 ** 6
-        } else {
-          stakedAmount.value = 0.0
-        }
+        const delegationInfo = await getDelegatedAmount(walletAddress.value, indexerAddress.value)
+        delegatedAmount.value = delegationInfo || 0
 
-        // Fetch rewards
-        const rewardsData = await getKavaRewards(walletAddress.value, validatorAddress.value)
-        let totalReward = 0
-        if (rewardsData && rewardsData.total && rewardsData.total.length > 0) {
-          totalReward = ukavaToKava(rewardsData.total[0].amount)
-        }
-        formattedRewards.value = totalReward
-        rewardsEarned.value = totalReward
+        const queryFees = await getQueryFeesEarned(walletAddress.value, indexerAddress.value)
+        rewardsEarned.value = queryFees || 0
 
-        // Fetch unbonding delegations
-        const unbondingData = await getKavaUnbonding(walletAddress.value, validatorAddress.value)
-        let summary = []
-        if (unbondingData && unbondingData.unbonding_responses) {
-          for (const resp of unbondingData.unbonding_responses) {
-            for (const entry of resp.entries) {
-              summary.push({
-                amount: ukavaToKava(entry.balance),
-                completionTime: entry.completion_time,
-                daysLeft: daysLeft(entry.completion_time)
-              })
-            }
-          }
-        }
-        unbondingSummary.value = summary
-        unbondingList.value = summary
         lastRewardTime.value = null
       } catch (error) {
-        console.error('Failed to refresh staking info:', error)
+        console.error('Failed to refresh delegation info:', error)
       }
     }
 
-    const handleDelegateTokens = async () => {
-      if (!isValidStake.value) return
+    const handleDelegateToIndexer = async () => {
+      if (!isValidDelegate.value) return
 
       try {
         isProcessing.value = true
-        stakingSuccess.value = false
-        stakingError.value = null
-        unstakingSuccess.value = false
-        unstakingError.value = null
+        delegationSuccess.value = false
+        delegationError.value = null
+        undelegationSuccess.value = false
+        undelegationError.value = null
 
-        const hash = await delegateTokens(
+        const hash = await delegateToIndexer(
           walletAddress.value,
-          validatorAddress.value,
-          stakeAmount.value
+          indexerAddress.value,
+          delegateAmount.value
         )
         transactionHash.value = hash
-        stakingSuccess.value = true
-        stakeAmount.value = 0 // Reset form
-        refreshStakingInfo()
+        delegationSuccess.value = true
+        delegateAmount.value = 0 // Reset form
+        refreshDelegationInfo()
       } catch (error) {
-        console.error('Failed to delegate tokens:', error)
-        stakingError.value = error.message || 'Failed to delegate tokens'
+        console.error('Failed to delegate to indexer:', error)
+        delegationError.value = error.message || 'Failed to delegate tokens'
+      } finally {
+        isProcessing.value = false
+      }
+    }
+
+    const handleUndelegateFromIndexer = async () => {
+      try {
+        isProcessing.value = true
+        delegationSuccess.value = false
+        delegationError.value = null
+        undelegationSuccess.value = false
+        undelegationError.value = null
+
+        const hash = await undelegateFromIndexer(
+          walletAddress.value,
+          indexerAddress.value,
+          undelegateAmount.value
+        )
+        transactionHash.value = hash
+        undelegationSuccess.value = true
+        undelegateAmount.value = 0 // Reset form
+        await refreshDelegationInfo()
+      } catch (error) {
+        console.error('Failed to undelegate from indexer:', error)
+        undelegationError.value = error.message || 'Failed to undelegate tokens'
       } finally {
         isProcessing.value = false
       }
@@ -514,36 +489,6 @@ export default {
       emit('close')
     }
 
-    const handleUndelegateStake = async () => {
-      try {
-        isProcessing.value = true
-        console.log('-------vue console. handleUndelegateStake start-------')
-        console.log('vue console. walletAddress', walletAddress.value)
-        console.log('vue console. validatorAddress', validatorAddress.value)
-
-        stakingSuccess.value = false
-        stakingError.value = null
-        unstakingSuccess.value = false
-        unstakingError.value = null
-
-        const hash = await undelegateStake(
-          walletAddress.value,
-          validatorAddress.value,
-          unstakeAmount.value
-        )
-        console.log('vue console. hash', hash)
-        transactionHash.value = hash
-        unstakingSuccess.value = true
-        unstakeAmount.value = 0 // Reset form
-        await refreshStakingInfo()
-      } catch (error) {
-        console.error('Failed to undelegate stake:', error)
-        unstakingError.value = error.message || 'Failed to undelegate stake'
-      } finally {
-        isProcessing.value = false
-      }
-    }
-
     const truncateAddress = (address) => {
       if (!address) return ''
       if (address.length <= 12) return address
@@ -551,37 +496,34 @@ export default {
     }
 
     return {
-      validatorAddress,
+      indexerAddress,
       closeModal,
       walletConnected,
       walletAddress,
-      stakeAmount,
-      unstakeAmount,
+      delegateAmount,
+      undelegateAmount,
       delegationInfo,
-      minimumStake,
-      isValidStake,
-      isValidUnstake,
-      stakingSuccess,
-      unstakingSuccess,
-      stakingError,
-      unstakingError,
+      minimumDelegate,
+      isValidDelegate,
+      isValidUndelegate,
+      delegationSuccess,
+      undelegationSuccess,
+      delegationError,
+      undelegationError,
       transactionHash,
       connectWallet: handleConnectWallet,
-      delegateTokens: handleDelegateTokens,
-      undelegateStake: handleUndelegateStake,
+      delegateToIndexer: handleDelegateToIndexer,
+      undelegateFromIndexer: handleUndelegateFromIndexer,
       truncateAddress,
       walletError,
       isConnecting,
       isProcessing,
-      stakedAmount,
+      delegatedAmount,
       rewardsEarned,
-      unbondingList,
       lastRewardTime,
       availableBalance,
       activeTab,
-      totalKavaBalance,
-      formattedRewards,
-      unbondingSummary
+      totalGrtBalance
     }
   }
 }
@@ -658,6 +600,83 @@ export default {
   color: #374151;
 }
 
+/* Network Description */
+.network-description {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.network-description p {
+  color: #4b5563;
+  margin: 0;
+}
+
+/* Wallet Warning */
+.wallet-warning {
+  background-color: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  display: flex;
+  gap: 1rem;
+}
+
+.warning-icon {
+  color: #ea580c;
+  flex-shrink: 0;
+}
+
+.warning-content {
+  flex: 1;
+}
+
+.warning-title {
+  color: #ea580c;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.warning-message {
+  color: #9a3412;
+  font-size: 0.875rem;
+  margin: 0 0 0.75rem 0;
+}
+
+/* Wallet Connection */
+.wallet-connection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Network Links */
+.network-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.network-links-bottom {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.link-primary {
+  color: #6366f1;
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+.link-primary:hover {
+  text-decoration: underline;
+}
+
 /* Tab Navigation */
 .tab-container {
   display: flex;
@@ -704,50 +723,6 @@ export default {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* Network Description */
-.network-description {
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
-.network-description p {
-  color: #4b5563;
-  margin: 0;
-}
-
-/* Wallet Connection */
-.wallet-connection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-/* Network Links */
-.network-links {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-}
-
-.network-links-bottom {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.link-primary {
-  color: #6366f1;
-  text-decoration: none;
-  font-size: 0.875rem;
-}
-
-.link-primary:hover {
-  text-decoration: underline;
 }
 
 /* Buttons */
@@ -978,39 +953,6 @@ export default {
   font-size: 0.875rem;
 }
 
-/* Wallet Warning */
-.wallet-warning {
-  background-color: #fff7ed;
-  border: 1px solid #fdba74;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin: 1rem 0;
-  display: flex;
-  gap: 1rem;
-}
-
-.warning-icon {
-  color: #ea580c;
-  flex-shrink: 0;
-}
-
-.warning-content {
-  flex: 1;
-}
-
-.warning-title {
-  color: #ea580c;
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
-}
-
-.warning-message {
-  color: #9a3412;
-  font-size: 0.875rem;
-  margin: 0 0 0.75rem 0;
-}
-
 /* Remove number input arrows */
 input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button {
@@ -1064,33 +1006,7 @@ input[type='number'] {
   opacity: 1;
 }
 
-.unbonding-list {
-  margin-top: 1rem;
-  background: #f9fafb;
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
-  border: 1px solid #e5e7eb;
-}
-.unbonding-title {
-  font-size: 0.95rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #92400e;
-}
-.unbonding-list ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.unbonding-list li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.9rem;
-  margin-bottom: 0.25rem;
-}
-.unbonding-days {
-  color: #b45309;
-  font-size: 0.85rem;
+.delegate-button {
+  margin-top: 1.5rem;
 }
 </style>

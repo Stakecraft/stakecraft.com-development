@@ -54,7 +54,7 @@
             <div class="warning-content">
               <h3 class="warning-title">Wallet Not Found</h3>
               <p class="warning-message">
-                To use Kava staking, you need to install the Keplr wallet extension.
+                To use Aura Network staking, you need to install the Keplr wallet extension.
               </p>
             </div>
           </div>
@@ -104,7 +104,7 @@
                 <div class="wallet-info-row">
                   <span class="info-label">Last Transaction:</span>
                   <a
-                    :href="`https://www.mintscan.io/kava/txs/${transactionHash}`"
+                    :href="`https://aurascan.io/transactions/${transactionHash}`"
                     target="_blank"
                     class="transaction-link"
                   >
@@ -137,7 +137,7 @@
               <div class="staking-form">
                 <!-- Staking Amount Input -->
                 <div class="form-group">
-                  <label class="form-label">Amount to Stake (KAVA)</label>
+                  <label class="form-label">Amount to Stake (AURA)</label>
                   <div class="input-container">
                     <input
                       v-model.number="stakeAmount"
@@ -148,15 +148,15 @@
                       placeholder="Enter amount"
                     />
                     <div class="input-suffix">
-                      <span>KAVA</span>
+                      <span>AURA</span>
                     </div>
                   </div>
                   <div class="input-hint">
-                    <span>Minimum: {{ minimumStake }} KAVA</span>
+                    <span>Minimum: {{ minimumStake }} AURA</span>
                     <button
-                      @click="stakeAmount = Number(totalKavaBalance)"
+                      @click="stakeAmount = Number(totalAuraBalance)"
                       class="max-button"
-                      :disabled="Number(totalKavaBalance) <= 0"
+                      :disabled="Number(totalAuraBalance) <= 0"
                     >
                       Max
                     </button>
@@ -181,15 +181,15 @@
                   <div class="info-card-content">
                     <div class="info-row">
                       <span class="info-label">Available Balance:</span>
-                      <span class="info-value">{{ availableBalance }} KAVA</span>
+                      <span class="info-value">{{ availableBalance }} AURA</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} KAVA</span>
+                      <span class="info-value">{{ stakedAmount }} AURA</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Rewards Earned:</span>
-                      <span class="info-value">{{ formattedRewards }} KAVA</span>
+                      <span class="info-value">{{ formattedRewards }} AURA</span>
                     </div>
                   </div>
                 </div>
@@ -207,7 +207,7 @@
                   class="primary-button full-width delegate-button"
                   :class="{ 'button-disabled': !isValidStake || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Delegate KAVA' }}
+                  {{ isProcessing ? 'Processing...' : 'Delegate AURA' }}
                 </button>
               </div>
             </div>
@@ -217,7 +217,7 @@
               <div class="staking-form">
                 <!-- Unstaking Amount Input -->
                 <div class="form-group">
-                  <label class="form-label">Amount to Unstake (KAVA)</label>
+                  <label class="form-label">Amount to Unstake (AURA)</label>
                   <div class="input-container">
                     <input
                       v-model.number="unstakeAmount"
@@ -229,11 +229,11 @@
                       placeholder="Enter amount to unstake"
                     />
                     <div class="input-suffix">
-                      <span>KAVA</span>
+                      <span>AURA</span>
                     </div>
                   </div>
                   <div class="input-hint">
-                    <span>Available to unstake: {{ stakedAmount }} KAVA</span>
+                    <span>Available to unstake: {{ stakedAmount }} AURA</span>
                     <button
                       @click="unstakeAmount = stakedAmount"
                       class="max-button"
@@ -250,32 +250,15 @@
                   <div class="info-card-content">
                     <div class="info-row">
                       <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} KAVA</span>
+                      <span class="info-value">{{ stakedAmount }} AURA</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Rewards Earned:</span>
-                      <span class="info-value">{{ formattedRewards }} KAVA</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Unbonding Amount:</span>
-                      <span class="info-value"
-                        >{{
-                          unbondingSummary.reduce((sum, e) => sum + Number(e.amount), 0).toFixed(6)
-                        }}
-                        KAVA
-                      </span>
+                      <span class="info-value">{{ formattedRewards }} AURA</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Unbonding Period:</span>
                       <span class="info-value">21 days</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">End Date:</span>
-                      <span class="info-value">{{
-                        unbondingSummary[0].completionTime.slice(0, 10) +
-                        ' : ' +
-                        unbondingSummary[0].completionTime.slice(11, 19)
-                      }}</span>
                     </div>
                   </div>
                 </div>
@@ -304,7 +287,7 @@
                   class="primary-button full-width delegate-button unstake-button"
                   :class="{ 'button-disabled': !isValidUnstake || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Undelegate KAVA' }}
+                  {{ isProcessing ? 'Processing...' : 'Undelegate AURA' }}
                 </button>
               </div>
             </div>
@@ -342,24 +325,16 @@ import {
   delegateTokens,
   undelegateStake,
   getTotalStakedAmount,
-  getKavaBalance,
-  getKavaRewards,
-  getKavaUnbonding
-} from '../../utils/KavaStaking'
+  getAuraBalance,
+  getAuraRewards
+} from '../../utils/AuraStaking'
 
-function ukavaToKava(amount) {
+function uauraToAura(amount) {
   return (Number(amount) / 1_000_000).toFixed(10)
 }
 
-function daysLeft(completionTime) {
-  const now = new Date()
-  const end = new Date(completionTime)
-  const diff = (end - now) / (1000 * 60 * 60 * 24)
-  return diff > 0 ? Math.ceil(diff) : 0
-}
-
 export default {
-  name: 'KavaStaking',
+  name: 'AuraStaking',
   props: {
     network: {
       type: Object,
@@ -385,13 +360,12 @@ export default {
     const isProcessing = ref(false)
     const stakedAmount = ref(0)
     const rewardsEarned = ref(0)
-    const unbondingList = ref([])
     const lastRewardTime = ref(null)
     const availableBalance = ref(0)
     const activeTab = ref('stake')
-    const totalKavaBalance = ref(0)
+    const totalAuraBalance = ref(0)
     const formattedRewards = ref('0')
-    const unbondingSummary = ref([])
+
     onMounted(() => {
       if (props.network?.validator?.[0]) {
         validatorAddress.value = props.network.validator[0]
@@ -413,7 +387,7 @@ export default {
         !isNaN(amount) &&
         amount >= minimumStake &&
         validatorAddress.value &&
-        amount <= Number(totalKavaBalance.value)
+        amount <= Number(totalAuraBalance.value)
       )
     })
 
@@ -441,9 +415,9 @@ export default {
       if (!walletAddress.value) return
 
       try {
-        const kavaBalance = await getKavaBalance(walletAddress.value)
-        totalKavaBalance.value = kavaBalance
-        availableBalance.value = Number(kavaBalance).toFixed(4)
+        const auraBalance = await getAuraBalance(walletAddress.value)
+        totalAuraBalance.value = auraBalance
+        availableBalance.value = Number(auraBalance).toFixed(4)
 
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
         if (stakingInfo.amount) {
@@ -453,30 +427,14 @@ export default {
         }
 
         // Fetch rewards
-        const rewardsData = await getKavaRewards(walletAddress.value, validatorAddress.value)
+        const rewardsData = await getAuraRewards(walletAddress.value, validatorAddress.value)
         let totalReward = 0
         if (rewardsData && rewardsData.total && rewardsData.total.length > 0) {
-          totalReward = ukavaToKava(rewardsData.total[0].amount)
+          totalReward = uauraToAura(rewardsData.total[0].amount)
         }
         formattedRewards.value = totalReward
         rewardsEarned.value = totalReward
 
-        // Fetch unbonding delegations
-        const unbondingData = await getKavaUnbonding(walletAddress.value, validatorAddress.value)
-        let summary = []
-        if (unbondingData && unbondingData.unbonding_responses) {
-          for (const resp of unbondingData.unbonding_responses) {
-            for (const entry of resp.entries) {
-              summary.push({
-                amount: ukavaToKava(entry.balance),
-                completionTime: entry.completion_time,
-                daysLeft: daysLeft(entry.completion_time)
-              })
-            }
-          }
-        }
-        unbondingSummary.value = summary
-        unbondingList.value = summary
         lastRewardTime.value = null
       } catch (error) {
         console.error('Failed to refresh staking info:', error)
@@ -517,10 +475,6 @@ export default {
     const handleUndelegateStake = async () => {
       try {
         isProcessing.value = true
-        console.log('-------vue console. handleUndelegateStake start-------')
-        console.log('vue console. walletAddress', walletAddress.value)
-        console.log('vue console. validatorAddress', validatorAddress.value)
-
         stakingSuccess.value = false
         stakingError.value = null
         unstakingSuccess.value = false
@@ -531,7 +485,6 @@ export default {
           validatorAddress.value,
           unstakeAmount.value
         )
-        console.log('vue console. hash', hash)
         transactionHash.value = hash
         unstakingSuccess.value = true
         unstakeAmount.value = 0 // Reset form
@@ -575,13 +528,11 @@ export default {
       isProcessing,
       stakedAmount,
       rewardsEarned,
-      unbondingList,
       lastRewardTime,
       availableBalance,
       activeTab,
-      totalKavaBalance,
-      formattedRewards,
-      unbondingSummary
+      totalAuraBalance,
+      formattedRewards
     }
   }
 }
@@ -610,7 +561,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10001; /* Higher than header (9999) and mobile header (10000) */
+  z-index: 10001;
 }
 
 .modal-container {
@@ -1062,35 +1013,5 @@ input[type='number'] {
 .tooltip-container:hover .tooltip {
   visibility: visible;
   opacity: 1;
-}
-
-.unbonding-list {
-  margin-top: 1rem;
-  background: #f9fafb;
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
-  border: 1px solid #e5e7eb;
-}
-.unbonding-title {
-  font-size: 0.95rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #92400e;
-}
-.unbonding-list ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.unbonding-list li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.9rem;
-  margin-bottom: 0.25rem;
-}
-.unbonding-days {
-  color: #b45309;
-  font-size: 0.85rem;
 }
 </style>

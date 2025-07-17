@@ -1,7 +1,7 @@
 <template>
   <transition name="modal-fade">
-    <div class="modal-overlay" @click.self="closeModal">
-      <div v-if="network" class="modal-container" @click.stop>
+    <div v-if="network" class="modal-overlay" @click.self="closeModal">
+      <div class="modal-container" @click.stop>
         <div class="modal-content">
           <!-- Header -->
           <div class="modal-header">
@@ -28,6 +28,35 @@
           <!-- Network Description -->
           <div v-if="!walletConnected" class="network-description">
             <p>{{ network.description }}</p>
+          </div>
+
+          <!-- Wallet Warning -->
+          <div v-if="walletError" class="wallet-warning">
+            <div class="warning-icon">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                ></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <div class="warning-content">
+              <h3 class="warning-title">Wallet Not Found</h3>
+              <p class="warning-message">
+                To use Band Protocol staking, you need to install the Keplr wallet extension.
+              </p>
+            </div>
           </div>
 
           <!-- Wallet Connection -->
@@ -87,14 +116,14 @@
 
             <!-- Tab Navigation -->
             <div class="tab-container">
-              <button 
+              <button
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'stake' }"
                 @click="activeTab = 'stake'"
               >
                 Stake
               </button>
-              <button 
+              <button
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'unstake' }"
                 @click="activeTab = 'unstake'"
@@ -124,7 +153,7 @@
                   </div>
                   <div class="input-hint">
                     <span>Minimum: {{ minimumStake }} BAND</span>
-                    <button 
+                    <button
                       @click="stakeAmount = Number(totalBandBalance)"
                       class="max-button"
                       :disabled="Number(totalBandBalance) <= 0"
@@ -162,9 +191,7 @@
                 </div>
 
                 <!-- Success/Error Messages for Staking -->
-                <div v-if="stakingSuccess" class="success-message">
-                  Successfully delegated !
-                </div>
+                <div v-if="stakingSuccess" class="success-message">Successfully delegated !</div>
                 <div v-if="stakingError" class="error-message">
                   {{ stakingError }}
                 </div>
@@ -203,7 +230,7 @@
                   </div>
                   <div class="input-hint">
                     <span>Available to unstake: {{ stakedAmount }} BAND</span>
-                    <button 
+                    <button
                       @click="unstakeAmount = stakedAmount"
                       class="max-button"
                       :disabled="stakedAmount <= 0"
@@ -236,7 +263,8 @@
                 <div class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
-                    <strong>Important:</strong> Unstaked tokens will be locked for 21 days before becoming available for withdrawal.
+                    <strong>Important:</strong> Unstaked tokens will be locked for 21 days before
+                    becoming available for withdrawal.
                   </div>
                 </div>
 
@@ -345,7 +373,12 @@ export default {
 
     const isValidStake = computed(() => {
       const amount = parseFloat(stakeAmount.value)
-      return !isNaN(amount) && amount >= minimumStake && validatorAddress.value && amount <= Number(totalBandBalance.value)
+      return (
+        !isNaN(amount) &&
+        amount >= minimumStake &&
+        validatorAddress.value &&
+        amount <= Number(totalBandBalance.value)
+      )
     })
 
     const isValidUnstake = computed(() => {
@@ -399,7 +432,7 @@ export default {
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
-        
+
         const hash = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
@@ -424,7 +457,7 @@ export default {
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
-        
+
         const hash = await undelegateStake(
           walletAddress.value,
           validatorAddress.value,
@@ -509,7 +542,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 50;
+  z-index: 10001; /* Higher than header (9999) and mobile header (10000) */
 }
 
 .modal-container {
@@ -521,6 +554,8 @@ export default {
   max-width: 28rem;
   width: 100%;
   overflow: hidden;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .modal-content {
@@ -564,6 +599,39 @@ export default {
 .network-description p {
   color: #4b5563;
   margin: 0;
+}
+
+/* Wallet Warning */
+.wallet-warning {
+  background-color: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  display: flex;
+  gap: 1rem;
+}
+
+.warning-icon {
+  color: #ea580c;
+  flex-shrink: 0;
+}
+
+.warning-content {
+  flex: 1;
+}
+
+.warning-title {
+  color: #ea580c;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.warning-message {
+  color: #9a3412;
+  font-size: 0.875rem;
+  margin: 0 0 0.75rem 0;
 }
 
 /* Wallet Connection */
@@ -934,7 +1002,9 @@ input[type='number'] {
   z-index: 10;
   margin-bottom: 0.5rem;
   opacity: 0;
-  transition: opacity 0.2s, visibility 0.2s;
+  transition:
+    opacity 0.2s,
+    visibility 0.2s;
 }
 
 .tooltip::after {

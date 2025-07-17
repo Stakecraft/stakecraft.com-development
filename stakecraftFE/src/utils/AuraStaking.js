@@ -1,13 +1,11 @@
 import { SigningStargateClient, GasPrice } from '@cosmjs/stargate'
 
-const JUNO_CHAIN_ID = 'juno-1'
+const AURA_CHAIN_ID = 'xstaxy-1'
 
 const RPC_ENDPOINTS = [
-  'https://rpc-juno.itastakers.com',
-  'https://juno-rpc.polkachu.com',
-  'https://rpc-juno.pupmos.network',
-  'https://juno-rpc.publicnode.com',
-  'https://rpc-juno.cosmos-spaces.cloud'
+  'https://rpc.aura.network',
+  'https://aura-rpc.polkachu.com',
+  'https://m-aura.rpc.utsa.tech'
 ]
 
 // Connect wallet
@@ -15,53 +13,50 @@ export const connectWallet = async () => {
   if (!window.keplr) {
     throw new Error('Please install Keplr extension')
   }
-  await window.keplr.enable(JUNO_CHAIN_ID)
-  const offlineSigner = window.getOfflineSigner(JUNO_CHAIN_ID)
+  await window.keplr.enable(AURA_CHAIN_ID)
+  const offlineSigner = window.getOfflineSigner(AURA_CHAIN_ID)
   const accounts = await offlineSigner.getAccounts()
   return accounts[0].address
 }
 
 // Helper function to try different RPC endpoints
-const tryRpcEndpoints = async (offlineSigner) => {
+export const tryRpcEndpoints = async (offlineSigner) => {
   let lastError = null
   for (const endpoint of RPC_ENDPOINTS) {
     try {
       const client = await SigningStargateClient.connectWithSigner(endpoint, offlineSigner, {
-        gasPrice: GasPrice.fromString('0.0025ujuno'),
-        timeout: 10000
+        gasPrice: GasPrice.fromString('0.001uaura')
       })
       return client
     } catch (error) {
       console.warn(`Failed to connect to ${endpoint}:`, error)
       lastError = error
-      await new Promise((resolve) => setTimeout(resolve, 1000))
     }
   }
   throw new Error(`Failed to connect to any RPC endpoint. Last error: ${lastError?.message}`)
 }
 
-// Get JUNO balance for a wallet address
-export const getJunoBalance = async (walletAddress) => {
+// Get AURA balance for a wallet address
+export const getAuraBalance = async (walletAddress) => {
   try {
-    await window.keplr.enable(JUNO_CHAIN_ID)
-    const offlineSigner = window.getOfflineSigner(JUNO_CHAIN_ID)
+    await window.keplr.enable(AURA_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(AURA_CHAIN_ID)
     const client = await tryRpcEndpoints(offlineSigner)
     const balances = await client.getAllBalances(walletAddress)
-    // Find the JUNO balance (denom: 'ujuno')
-    const junoBalance = balances.find((b) => b.denom === 'ujuno')
-    // Convert from micro-JUNO to JUNO
-    return junoBalance ? Number(junoBalance.amount) / 1_000_000 : 0
+    // Find the AURA balance (denom: 'uaura')
+    const auraBalance = balances.find((b) => b.denom === 'uaura')
+    // Convert from micro-AURA to AURA
+    return auraBalance ? Number(auraBalance.amount) / 1_000_000 : 0
   } catch (error) {
-    console.error('Error getting JUNO balance:', error)
-    throw new Error(`Failed to get JUNO balance: ${error.message}`)
+    console.error('Error getting AURA balance:', error)
+    throw new Error(`Failed to get AURA balance: ${error.message}`)
   }
 }
 
-// Get total staked amount
 export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) => {
   try {
-    await window.keplr.enable(JUNO_CHAIN_ID)
-    const offlineSigner = window.getOfflineSigner(JUNO_CHAIN_ID)
+    await window.keplr.enable(AURA_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(AURA_CHAIN_ID)
     const client = await tryRpcEndpoints(offlineSigner)
     const stakingInfo = await client.getDelegation(delegatorAddress, validatorAddress)
     return stakingInfo
@@ -74,27 +69,19 @@ export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) =
 // Delegate tokens
 export const delegateTokens = async (delegatorAddress, validatorAddress, amount) => {
   try {
-    await window.keplr.enable(JUNO_CHAIN_ID)
-    const offlineSigner = window.getOfflineSigner(JUNO_CHAIN_ID)
+    await window.keplr.enable(AURA_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(AURA_CHAIN_ID)
     const client = await tryRpcEndpoints(offlineSigner)
-
-    const msg = {
-      typeUrl: '/cosmos.staking.v1beta1.MsgDelegate',
-      value: {
-        delegatorAddress: delegatorAddress,
-        validatorAddress: validatorAddress,
-        amount: {
-          denom: 'ujuno',
-          amount: String(amount * 1_000_000)
-        }
-      }
-    }
-
-    const result = await client.signAndBroadcast(delegatorAddress, [msg], {
-      amount: [{ denom: 'ujuno', amount: String(amount * 1_000_000) }],
-      gas: '300000'
-    })
-
+    const result = await client.delegateTokens(
+      delegatorAddress,
+      validatorAddress,
+      {
+        denom: 'uaura',
+        amount: (amount * 1_000_000).toString()
+      },
+      'auto',
+      'Delegate AURA tokens'
+    )
     return result.transactionHash
   } catch (error) {
     console.error('Error delegating tokens:', error)
@@ -104,8 +91,8 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
 
 export const undelegateStake = async (delegatorAddress, validatorAddress, unstakeAmount) => {
   try {
-    await window.keplr.enable(JUNO_CHAIN_ID)
-    const offlineSigner = window.getOfflineSigner(JUNO_CHAIN_ID)
+    await window.keplr.enable(AURA_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(AURA_CHAIN_ID)
     const client = await tryRpcEndpoints(offlineSigner)
 
     const delegation = await client.getDelegation(delegatorAddress, validatorAddress)
@@ -115,13 +102,15 @@ export const undelegateStake = async (delegatorAddress, validatorAddress, unstak
       throw new Error('No delegation found')
     }
 
+    console.log('unstakeAmount', unstakeAmount)
+
     if (!unstakeAmount) {
       throw new Error('Could not find delegation amount')
     }
 
     // Format the amount properly for undelegation
     const amount = {
-      denom: 'ujuno',
+      denom: 'uaura',
       amount: (unstakeAmount * 1_000_000).toString()
     }
     console.log('formatted amount', amount)
@@ -131,7 +120,7 @@ export const undelegateStake = async (delegatorAddress, validatorAddress, unstak
       validatorAddress,
       amount,
       'auto',
-      'Undelegate JUNO tokens'
+      'Undelegate AURA tokens'
     )
     console.log('result', result)
     return result.transactionHash
@@ -141,20 +130,33 @@ export const undelegateStake = async (delegatorAddress, validatorAddress, unstak
   }
 }
 
-// Get staking information
-export const getStakingInfo = async (address) => {
+// Get staking rewards for a delegator/validator pair
+export const getAuraRewards = async (delegatorAddress, validatorAddress) => {
   try {
-    if (!address) {
-      throw new Error('Wallet address is required')
-    }
+    console.log('validatorAddress', validatorAddress)
 
-    return {
-      stakedAmount: 0,
-      rewardsEarned: 0,
-      lastRewardTime: null
-    }
+    const earnedRewards = await fetch(
+      `https://lcd.aura.network/cosmos/distribution/v1beta1/delegators/${delegatorAddress}/rewards`
+    ).then((r) => r.json())
+    console.log('earnedRewards', earnedRewards)
+    return earnedRewards
   } catch (error) {
-    console.error('Error getting staking info:', error)
-    throw new Error(`Failed to get staking information: ${error.message}`)
+    console.error('Error getting AURA rewards:', error)
+    return 0
+  }
+}
+
+// Get unbonding delegations for a delegator/validator pair
+export const getAuraUnbonding = async (delegatorAddress, validatorAddress) => {
+  try {
+    console.log('validatorAddress', validatorAddress)
+    const unbonding_responses = await fetch(
+      `https://lcd.aura.network/cosmos/staking/v1beta1/delegators/${delegatorAddress}/unbonding_delegations`
+    ).then((r) => r.json())
+    console.log('unbonding_responses', unbonding_responses)
+    return unbonding_responses
+  } catch (error) {
+    console.error('Error getting AURA unbonding:', error)
+    return []
   }
 }

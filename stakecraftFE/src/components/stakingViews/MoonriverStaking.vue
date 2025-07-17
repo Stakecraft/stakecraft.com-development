@@ -54,7 +54,7 @@
             <div class="warning-content">
               <h3 class="warning-title">Wallet Not Found</h3>
               <p class="warning-message">
-                To use Kava staking, you need to install the Keplr wallet extension.
+                To use Moonriver staking, you need to install the MetaMask wallet extension.
               </p>
             </div>
           </div>
@@ -66,7 +66,7 @@
               class="primary-button full-width"
               :disabled="isConnecting"
             >
-              {{ isConnecting ? 'Connecting...' : 'Connect Keplr Wallet' }}
+              {{ isConnecting ? 'Connecting...' : 'Connect MetaMask Wallet' }}
             </button>
 
             <!-- Network Links -->
@@ -104,7 +104,7 @@
                 <div class="wallet-info-row">
                   <span class="info-label">Last Transaction:</span>
                   <a
-                    :href="`https://www.mintscan.io/kava/txs/${transactionHash}`"
+                    :href="`https://moonriver.subscan.io/tx/${transactionHash}`"
                     target="_blank"
                     class="transaction-link"
                   >
@@ -121,14 +121,14 @@
                 :class="{ 'tab-active': activeTab === 'stake' }"
                 @click="activeTab = 'stake'"
               >
-                Stake
+                Nominate
               </button>
               <button
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'unstake' }"
                 @click="activeTab = 'unstake'"
               >
-                Unstake
+                Unnominate
               </button>
             </div>
 
@@ -137,26 +137,26 @@
               <div class="staking-form">
                 <!-- Staking Amount Input -->
                 <div class="form-group">
-                  <label class="form-label">Amount to Stake (KAVA)</label>
+                  <label class="form-label">Amount to Nominate (MOVR)</label>
                   <div class="input-container">
                     <input
                       v-model.number="stakeAmount"
                       type="number"
                       :min="minimumStake"
-                      step="1"
+                      step="0.1"
                       class="form-input"
                       placeholder="Enter amount"
                     />
                     <div class="input-suffix">
-                      <span>KAVA</span>
+                      <span>MOVR</span>
                     </div>
                   </div>
                   <div class="input-hint">
-                    <span>Minimum: {{ minimumStake }} KAVA</span>
+                    <span>Minimum: {{ minimumStake }} MOVR</span>
                     <button
-                      @click="stakeAmount = Number(totalKavaBalance)"
+                      @click="stakeAmount = Number(totalMovrBalance)"
                       class="max-button"
-                      :disabled="Number(totalKavaBalance) <= 0"
+                      :disabled="Number(totalMovrBalance) <= 0"
                     >
                       Max
                     </button>
@@ -177,37 +177,33 @@
 
                 <!-- Staking Info -->
                 <div class="info-card">
-                  <h3 class="info-card-title">Current Staking Status</h3>
+                  <h3 class="info-card-title">Current Nomination Status</h3>
                   <div class="info-card-content">
                     <div class="info-row">
                       <span class="info-label">Available Balance:</span>
-                      <span class="info-value">{{ availableBalance }} KAVA</span>
+                      <span class="info-value">{{ availableBalance }} MOVR</span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} KAVA</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Rewards Earned:</span>
-                      <span class="info-value">{{ formattedRewards }} KAVA</span>
+                      <span class="info-label">Currently Nominated:</span>
+                      <span class="info-value">{{ stakedAmount }} MOVR</span>
                     </div>
                   </div>
                 </div>
 
                 <!-- Success/Error Messages for Staking -->
-                <div v-if="stakingSuccess" class="success-message">Successfully delegated !</div>
+                <div v-if="stakingSuccess" class="success-message">Successfully nominated !</div>
                 <div v-if="stakingError" class="error-message">
                   {{ stakingError }}
                 </div>
 
                 <!-- Stake Action Button -->
                 <button
-                  @click="delegateTokens"
+                  @click="nominateValidator"
                   :disabled="!isValidStake || isProcessing"
                   class="primary-button full-width delegate-button"
                   :class="{ 'button-disabled': !isValidStake || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Delegate KAVA' }}
+                  {{ isProcessing ? 'Processing...' : 'Nominate Validator' }}
                 </button>
               </div>
             </div>
@@ -217,23 +213,23 @@
               <div class="staking-form">
                 <!-- Unstaking Amount Input -->
                 <div class="form-group">
-                  <label class="form-label">Amount to Unstake (KAVA)</label>
+                  <label class="form-label">Amount to Unnominate (MOVR)</label>
                   <div class="input-container">
                     <input
                       v-model.number="unstakeAmount"
                       type="number"
                       :min="0"
                       :max="stakedAmount"
-                      step="1"
+                      step="0.1"
                       class="form-input"
-                      placeholder="Enter amount to unstake"
+                      placeholder="Enter amount to unnominate"
                     />
                     <div class="input-suffix">
-                      <span>KAVA</span>
+                      <span>MOVR</span>
                     </div>
                   </div>
                   <div class="input-hint">
-                    <span>Available to unstake: {{ stakedAmount }} KAVA</span>
+                    <span>Available to unnominate: {{ stakedAmount }} MOVR</span>
                     <button
                       @click="unstakeAmount = stakedAmount"
                       class="max-button"
@@ -246,36 +242,19 @@
 
                 <!-- Unstaking Info -->
                 <div class="info-card">
-                  <h3 class="info-card-title">Unstaking Information</h3>
+                  <h3 class="info-card-title">Unnomination Information</h3>
                   <div class="info-card-content">
                     <div class="info-row">
-                      <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} KAVA</span>
+                      <span class="info-label">Currently Nominated:</span>
+                      <span class="info-value">{{ stakedAmount }} MOVR</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Rewards Earned:</span>
-                      <span class="info-value">{{ formattedRewards }} KAVA</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Unbonding Amount:</span>
-                      <span class="info-value"
-                        >{{
-                          unbondingSummary.reduce((sum, e) => sum + Number(e.amount), 0).toFixed(6)
-                        }}
-                        KAVA
-                      </span>
+                      <span class="info-value">{{ rewardsEarned }} MOVR</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Unbonding Period:</span>
-                      <span class="info-value">21 days</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">End Date:</span>
-                      <span class="info-value">{{
-                        unbondingSummary[0].completionTime.slice(0, 10) +
-                        ' : ' +
-                        unbondingSummary[0].completionTime.slice(11, 19)
-                      }}</span>
+                      <span class="info-value">7 days</span>
                     </div>
                   </div>
                 </div>
@@ -284,14 +263,14 @@
                 <div class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
-                    <strong>Important:</strong> Unstaked tokens will be locked for 21 days before
+                    <strong>Important:</strong> Unnominated tokens will be locked for 7 days before
                     becoming available for withdrawal.
                   </div>
                 </div>
 
                 <!-- Success/Error Messages for Unstaking -->
                 <div v-if="unstakingSuccess" class="success-message">
-                  Successfully Undelegated !
+                  Successfully Unnominated !
                 </div>
                 <div v-if="unstakingError" class="error-message">
                   {{ unstakingError }}
@@ -299,12 +278,12 @@
 
                 <!-- Unstake Action Button -->
                 <button
-                  @click="undelegateStake"
+                  @click="unnominateValidator"
                   :disabled="!isValidUnstake || isProcessing"
                   class="primary-button full-width delegate-button unstake-button"
                   :class="{ 'button-disabled': !isValidUnstake || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Undelegate KAVA' }}
+                  {{ isProcessing ? 'Processing...' : 'Unnominate Validator' }}
                 </button>
               </div>
             </div>
@@ -339,27 +318,14 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import {
   connectWallet,
-  delegateTokens,
-  undelegateStake,
-  getTotalStakedAmount,
-  getKavaBalance,
-  getKavaRewards,
-  getKavaUnbonding
-} from '../../utils/KavaStaking'
-
-function ukavaToKava(amount) {
-  return (Number(amount) / 1_000_000).toFixed(10)
-}
-
-function daysLeft(completionTime) {
-  const now = new Date()
-  const end = new Date(completionTime)
-  const diff = (end - now) / (1000 * 60 * 60 * 24)
-  return diff > 0 ? Math.ceil(diff) : 0
-}
+  nominateValidator,
+  unnominateValidator,
+  getTotalNominatedAmount,
+  getMovrBalance
+} from '../../utils/MoonriverStaking'
 
 export default {
-  name: 'KavaStaking',
+  name: 'MoonriverStaking',
   props: {
     network: {
       type: Object,
@@ -385,13 +351,11 @@ export default {
     const isProcessing = ref(false)
     const stakedAmount = ref(0)
     const rewardsEarned = ref(0)
-    const unbondingList = ref([])
     const lastRewardTime = ref(null)
     const availableBalance = ref(0)
     const activeTab = ref('stake')
-    const totalKavaBalance = ref(0)
-    const formattedRewards = ref('0')
-    const unbondingSummary = ref([])
+    const totalMovrBalance = ref(0)
+
     onMounted(() => {
       if (props.network?.validator?.[0]) {
         validatorAddress.value = props.network.validator[0]
@@ -413,7 +377,7 @@ export default {
         !isNaN(amount) &&
         amount >= minimumStake &&
         validatorAddress.value &&
-        amount <= Number(totalKavaBalance.value)
+        amount <= Number(totalMovrBalance.value)
       )
     })
 
@@ -441,49 +405,24 @@ export default {
       if (!walletAddress.value) return
 
       try {
-        const kavaBalance = await getKavaBalance(walletAddress.value)
-        totalKavaBalance.value = kavaBalance
-        availableBalance.value = Number(kavaBalance).toFixed(4)
+        const movrBalance = await getMovrBalance(walletAddress.value)
+        totalMovrBalance.value = movrBalance
+        availableBalance.value = Number(movrBalance).toFixed(4)
 
-        const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
-        if (stakingInfo.amount) {
-          stakedAmount.value = Number(stakingInfo.amount) / 10 ** 6
-        } else {
-          stakedAmount.value = 0.0
-        }
+        const stakingInfo = await getTotalNominatedAmount(
+          walletAddress.value,
+          validatorAddress.value
+        )
+        stakedAmount.value = stakingInfo || 0
 
-        // Fetch rewards
-        const rewardsData = await getKavaRewards(walletAddress.value, validatorAddress.value)
-        let totalReward = 0
-        if (rewardsData && rewardsData.total && rewardsData.total.length > 0) {
-          totalReward = ukavaToKava(rewardsData.total[0].amount)
-        }
-        formattedRewards.value = totalReward
-        rewardsEarned.value = totalReward
-
-        // Fetch unbonding delegations
-        const unbondingData = await getKavaUnbonding(walletAddress.value, validatorAddress.value)
-        let summary = []
-        if (unbondingData && unbondingData.unbonding_responses) {
-          for (const resp of unbondingData.unbonding_responses) {
-            for (const entry of resp.entries) {
-              summary.push({
-                amount: ukavaToKava(entry.balance),
-                completionTime: entry.completion_time,
-                daysLeft: daysLeft(entry.completion_time)
-              })
-            }
-          }
-        }
-        unbondingSummary.value = summary
-        unbondingList.value = summary
+        rewardsEarned.value = 0
         lastRewardTime.value = null
       } catch (error) {
         console.error('Failed to refresh staking info:', error)
       }
     }
 
-    const handleDelegateTokens = async () => {
+    const handleNominateValidator = async () => {
       if (!isValidStake.value) return
 
       try {
@@ -493,7 +432,7 @@ export default {
         unstakingSuccess.value = false
         unstakingError.value = null
 
-        const hash = await delegateTokens(
+        const hash = await nominateValidator(
           walletAddress.value,
           validatorAddress.value,
           stakeAmount.value
@@ -503,8 +442,33 @@ export default {
         stakeAmount.value = 0 // Reset form
         refreshStakingInfo()
       } catch (error) {
-        console.error('Failed to delegate tokens:', error)
-        stakingError.value = error.message || 'Failed to delegate tokens'
+        console.error('Failed to nominate validator:', error)
+        stakingError.value = error.message || 'Failed to nominate validator'
+      } finally {
+        isProcessing.value = false
+      }
+    }
+
+    const handleUnnominateValidator = async () => {
+      try {
+        isProcessing.value = true
+        stakingSuccess.value = false
+        stakingError.value = null
+        unstakingSuccess.value = false
+        unstakingError.value = null
+
+        const hash = await unnominateValidator(
+          walletAddress.value,
+          validatorAddress.value,
+          unstakeAmount.value
+        )
+        transactionHash.value = hash
+        unstakingSuccess.value = true
+        unstakeAmount.value = 0 // Reset form
+        await refreshStakingInfo()
+      } catch (error) {
+        console.error('Failed to unnominate validator:', error)
+        unstakingError.value = error.message || 'Failed to unnominate validator'
       } finally {
         isProcessing.value = false
       }
@@ -512,36 +476,6 @@ export default {
 
     const closeModal = () => {
       emit('close')
-    }
-
-    const handleUndelegateStake = async () => {
-      try {
-        isProcessing.value = true
-        console.log('-------vue console. handleUndelegateStake start-------')
-        console.log('vue console. walletAddress', walletAddress.value)
-        console.log('vue console. validatorAddress', validatorAddress.value)
-
-        stakingSuccess.value = false
-        stakingError.value = null
-        unstakingSuccess.value = false
-        unstakingError.value = null
-
-        const hash = await undelegateStake(
-          walletAddress.value,
-          validatorAddress.value,
-          unstakeAmount.value
-        )
-        console.log('vue console. hash', hash)
-        transactionHash.value = hash
-        unstakingSuccess.value = true
-        unstakeAmount.value = 0 // Reset form
-        await refreshStakingInfo()
-      } catch (error) {
-        console.error('Failed to undelegate stake:', error)
-        unstakingError.value = error.message || 'Failed to undelegate stake'
-      } finally {
-        isProcessing.value = false
-      }
     }
 
     const truncateAddress = (address) => {
@@ -567,21 +501,18 @@ export default {
       unstakingError,
       transactionHash,
       connectWallet: handleConnectWallet,
-      delegateTokens: handleDelegateTokens,
-      undelegateStake: handleUndelegateStake,
+      nominateValidator: handleNominateValidator,
+      unnominateValidator: handleUnnominateValidator,
       truncateAddress,
       walletError,
       isConnecting,
       isProcessing,
       stakedAmount,
       rewardsEarned,
-      unbondingList,
       lastRewardTime,
       availableBalance,
       activeTab,
-      totalKavaBalance,
-      formattedRewards,
-      unbondingSummary
+      totalMovrBalance
     }
   }
 }
@@ -658,6 +589,83 @@ export default {
   color: #374151;
 }
 
+/* Network Description */
+.network-description {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.network-description p {
+  color: #4b5563;
+  margin: 0;
+}
+
+/* Wallet Warning */
+.wallet-warning {
+  background-color: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  display: flex;
+  gap: 1rem;
+}
+
+.warning-icon {
+  color: #ea580c;
+  flex-shrink: 0;
+}
+
+.warning-content {
+  flex: 1;
+}
+
+.warning-title {
+  color: #ea580c;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.warning-message {
+  color: #9a3412;
+  font-size: 0.875rem;
+  margin: 0 0 0.75rem 0;
+}
+
+/* Wallet Connection */
+.wallet-connection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Network Links */
+.network-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.network-links-bottom {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.link-primary {
+  color: #6366f1;
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+.link-primary:hover {
+  text-decoration: underline;
+}
+
 /* Tab Navigation */
 .tab-container {
   display: flex;
@@ -704,50 +712,6 @@ export default {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* Network Description */
-.network-description {
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
-.network-description p {
-  color: #4b5563;
-  margin: 0;
-}
-
-/* Wallet Connection */
-.wallet-connection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-/* Network Links */
-.network-links {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-}
-
-.network-links-bottom {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.link-primary {
-  color: #6366f1;
-  text-decoration: none;
-  font-size: 0.875rem;
-}
-
-.link-primary:hover {
-  text-decoration: underline;
 }
 
 /* Buttons */
@@ -978,39 +942,6 @@ export default {
   font-size: 0.875rem;
 }
 
-/* Wallet Warning */
-.wallet-warning {
-  background-color: #fff7ed;
-  border: 1px solid #fdba74;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin: 1rem 0;
-  display: flex;
-  gap: 1rem;
-}
-
-.warning-icon {
-  color: #ea580c;
-  flex-shrink: 0;
-}
-
-.warning-content {
-  flex: 1;
-}
-
-.warning-title {
-  color: #ea580c;
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
-}
-
-.warning-message {
-  color: #9a3412;
-  font-size: 0.875rem;
-  margin: 0 0 0.75rem 0;
-}
-
 /* Remove number input arrows */
 input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button {
@@ -1064,33 +995,7 @@ input[type='number'] {
   opacity: 1;
 }
 
-.unbonding-list {
-  margin-top: 1rem;
-  background: #f9fafb;
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
-  border: 1px solid #e5e7eb;
-}
-.unbonding-title {
-  font-size: 0.95rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #92400e;
-}
-.unbonding-list ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.unbonding-list li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.9rem;
-  margin-bottom: 0.25rem;
-}
-.unbonding-days {
-  color: #b45309;
-  font-size: 0.85rem;
+.delegate-button {
+  margin-top: 1.5rem;
 }
 </style>
