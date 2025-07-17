@@ -18,10 +18,6 @@ const router = createRouter({
       path: '/policy',
       name: 'policy',
       component: async () => await import('../components/privacyPolicy/PrivacyPolicy.vue')
-<<<<<<< HEAD
-    }
-  ]
-=======
     },
     {
       path: '/swap',
@@ -34,7 +30,7 @@ const router = createRouter({
     if (savedPosition) {
       return savedPosition
     }
-    
+
     // If there's a hash in the URL, scroll to that element
     if (to.hash) {
       return new Promise((resolve) => {
@@ -53,11 +49,10 @@ const router = createRouter({
         }, 100)
       })
     }
-    
+
     // Default: scroll to top
     return { top: 0, behavior: 'smooth' }
   }
->>>>>>> b083905059a8bae0e16c7015d2c510c1126c098e
 })
 
 export default router
