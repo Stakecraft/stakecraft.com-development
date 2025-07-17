@@ -116,6 +116,7 @@
 
             <!-- Tab Navigation -->
             <div class="tab-container">
+
               <button
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'stake' }"
@@ -153,6 +154,7 @@
                   </div>
                   <div class="input-hint">
                     <span>Minimum: {{ minimumStake }} NEAR</span>
+
                     <button
                       @click="stakeAmount = Number(totalNearBalance)"
                       class="max-button"
@@ -437,7 +439,6 @@ export default {
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
-
         const hash = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
@@ -462,7 +463,6 @@ export default {
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
-
         const hash = await undelegateTokens(
           walletAddress.value,
           validatorAddress.value,

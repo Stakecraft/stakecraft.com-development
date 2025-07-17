@@ -45,7 +45,6 @@ export const getKavaBalance = async (walletAddress) => {
     const balances = await client.getAllBalances(walletAddress)
     // Find the KAVA balance (denom: 'ukava')
     const kavaBalance = balances.find((b) => b.denom === 'ukava')
-    // Convert from micro-KAVA to KAVA
     return kavaBalance ? Number(kavaBalance.amount) / 1_000_000 : 0
   } catch (error) {
     console.error('Error getting KAVA balance:', error)

@@ -521,7 +521,6 @@ export default {
         } else if (window.solflare) {
           connectedWalletType.value = 'Solflare'
         }
-
         await refreshStakingInfo()
         await loadStakingAccounts()
       } catch (error) {
@@ -1191,6 +1190,7 @@ export default {
   font-weight: 500;
   color: #1f2937;
 }
+
 
 /* Warning Card */
 .warning-card {

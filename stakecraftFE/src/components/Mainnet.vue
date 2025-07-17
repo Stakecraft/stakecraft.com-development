@@ -16,7 +16,6 @@
         </div>
       </button>
     </div>
-    <!-- <modal v-show="isModalVisible" @close="closeModal" :network="{ selectedNetwork }" /> -->
     <solana-staking
       v-if="selectedNetwork?.title === 'Solana'"
       :network="selectedNetwork"
@@ -147,7 +146,6 @@
       :network="selectedNetwork"
       @close="closeModal"
     />
-
     <modal
       v-if="
         ![
@@ -531,6 +529,7 @@ export default {
       //   explorer: ['https://walrus.xyz/explorer'], // Replace with actual explorer link if available
       //   howToStake: 'https://docs.wal.app/7-staking-and-unstaking.html'
       // }
+
     ]
 
     const isModalVisible = ref(false)
