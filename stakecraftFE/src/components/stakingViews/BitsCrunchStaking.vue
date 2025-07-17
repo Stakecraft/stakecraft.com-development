@@ -1,11 +1,11 @@
 <template>
   <transition name="modal-fade">
-    <div v-if="network" class="modal-overlay" @click.self="closeModal">
+    <div v-if="network" class="modal-overlay" @click.self="close">
       <div class="modal-container" @click.stop>
         <div class="modal-content">
           <div class="modal-header">
             <h2 class="modal-title">{{ network.title }}</h2>
-            <button @click="closeModal" class="close-button">
+            <button @click="close" class="close-button">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -443,7 +443,7 @@ export default {
       }
     }
 
-    const closeModal = () => {
+    const close = () => {
       emit('close')
     }
     const truncateAddress = (address) => {
@@ -478,7 +478,7 @@ export default {
       stakingRewards,
       activeTab,
       hasApproval,
-      closeModal
+      close
     }
   }
 }

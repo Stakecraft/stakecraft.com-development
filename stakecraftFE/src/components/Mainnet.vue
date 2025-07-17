@@ -122,27 +122,27 @@
       :network="selectedNetwork"
       @close="closeModal"
     />
-    <qprotocol-staking
+    <QProtocolStaking
       v-if="selectedNetwork?.title === 'Q Protocol'"
       :network="selectedNetwork"
       @close="closeModal"
     />
-    <covalent-staking
+    <CovalentStaking
       v-if="selectedNetwork?.title === 'Covalent'"
       :network="selectedNetwork"
       @close="closeModal"
     />
-    <subquery-staking
+    <SubQueryStaking
       v-if="selectedNetwork?.title === 'SubQuery'"
       :network="selectedNetwork"
       @close="closeModal"
     />
-    <bitscrunch-staking
+    <BitsCrunchStaking
       v-if="selectedNetwork?.title === 'BitsCrunch'"
       :network="selectedNetwork"
       @close="closeModal"
     />
-    <redbelly-staking
+    <RedbellyStaking
       v-if="selectedNetwork?.title === 'Redbelly'"
       :network="selectedNetwork"
       @close="closeModal"
@@ -522,15 +522,15 @@ export default {
         explorer: ['']
       },
 
-      {
-        image: walrusImg, // Add the Walrus logo to your assets folder
-        title: 'Walrus',
-        description:
-          'Walrus is a decentralized storage and data availability protocol built on Sui, designed for large binary files. It features delegated proof of stake (dPoS) with the WAL token for governance and staking.',
-        validator: ['stakecraft walrus validator address'], // Replace with actual validator address if available
-        explorer: ['https://walrus.xyz/explorer'], // Replace with actual explorer link if available
-        howToStake: 'https://docs.wal.app/7-staking-and-unstaking.html'
-      }
+      // {
+      //   image: walrusImg, // Add the Walrus logo to your assets folder
+      //   title: 'Walrus',
+      //   description:
+      //     'Walrus is a decentralized storage and data availability protocol built on Sui, designed for large binary files. It features delegated proof of stake (dPoS) with the WAL token for governance and staking.',
+      //   validator: ['stakecraft walrus validator address'], // Replace with actual validator address if available
+      //   explorer: ['https://walrus.xyz/explorer'], // Replace with actual explorer link if available
+      //   howToStake: 'https://docs.wal.app/7-staking-and-unstaking.html'
+      // }
     ]
 
     const isModalVisible = ref(false)
@@ -540,6 +540,8 @@ export default {
       selectedNetwork.value = network
       isModalVisible.value = true
     }
+
+    console.log('selected netowrk', selectedNetwork)
 
     const closeModal = () => {
       isModalVisible.value = false
