@@ -116,6 +116,7 @@
 
             <!-- Tab Navigation -->
             <div class="tab-container">
+
               <button
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'stake' }"
@@ -153,6 +154,7 @@
                   </div>
                   <div class="input-hint">
                     <span>Minimum: {{ minimumStake }} SUPRA</span>
+
                     <button
                       @click="stakeAmount = Number(totalSupraBalance)"
                       class="max-button"

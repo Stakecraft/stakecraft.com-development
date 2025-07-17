@@ -16,7 +16,6 @@ export default {
     const theme = inject('theme')
     const setTheme = inject('setTheme')
     const sunMoon = ref(sunImage)
-
     // Initialize icon based on current theme
     const updateIcon = (currentTheme) => {
       if (currentTheme === 'dark') {

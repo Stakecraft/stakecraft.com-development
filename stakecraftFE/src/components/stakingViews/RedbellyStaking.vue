@@ -1,9 +1,8 @@
 <template>
   <transition name="modal-fade">
-    <div class="modal-overlay" @click.self="closeModal">
-      <div v-if="network" class="modal-container" @click.stop>
+    <div v-if="network" class="modal-overlay" @click.self="closeModal">
+      <div class="modal-container" @click.stop>
         <div class="modal-content">
-          <!-- Header -->
           <div class="modal-header">
             <h2 class="modal-title">{{ network.title }}</h2>
             <button @click="closeModal" class="close-button">
@@ -17,20 +16,15 @@
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                class="lucide lucide-x"
               >
                 <path d="M18 6 6 18" />
                 <path d="m6 6 12 12" />
               </svg>
             </button>
           </div>
-
-          <!-- Network Description -->
           <div v-if="!walletConnected" class="network-description">
             <p>{{ network.description }}</p>
           </div>
-
-          <!-- Wallet Warning -->
           <div v-if="walletError" class="wallet-warning">
             <div class="warning-icon">
               <svg
@@ -54,69 +48,50 @@
             <div class="warning-content">
               <h3 class="warning-title">Wallet Not Found</h3>
               <p class="warning-message">
-                To use NEAR staking, you need to install the Meteor wallet extension.
+                To use Redbelly staking, you need to install the MetaMask wallet extension.
               </p>
             </div>
           </div>
-
-          <!-- Wallet Connection -->
           <div v-if="!walletConnected" class="wallet-connection">
             <button
               @click="connectWallet"
               class="primary-button full-width"
               :disabled="isConnecting"
             >
-              {{ isConnecting ? 'Connecting...' : 'Connect Meteor Wallet' }}
+              {{ isConnecting ? 'Connecting...' : 'Connect MetaMask Wallet' }}
             </button>
-
-            <!-- Network Links -->
             <div class="network-links">
               <a
                 v-if="network.explorer"
                 :href="network.explorer[0]"
                 target="_blank"
                 class="link-primary"
+                >View on Explorer</a
               >
-                View on Explorer
-              </a>
-              <a
-                v-if="network.howToStake"
-                :href="network.howToStake"
-                target="_blank"
-                class="link-primary"
-              >
-                How to Stake
-              </a>
             </div>
           </div>
-
-          <!-- Connected Wallet Info -->
           <div v-if="walletConnected">
             <div class="wallet-info-card">
               <div class="wallet-info-row">
                 <span class="info-label">Connected Wallet:</span>
-                <span class="info-value tooltip-container">
-                  {{ truncateAddress(walletAddress) }}
-                  <span class="tooltip">{{ walletAddress }}</span>
-                </span>
+                <span class="info-value tooltip-container"
+                  >{{ truncateAddress(walletAddress)
+                  }}<span class="tooltip">{{ walletAddress }}</span></span
+                >
               </div>
               <div v-if="transactionHash" class="transaction-info">
                 <div class="wallet-info-row">
                   <span class="info-label">Last Transaction:</span>
                   <a
-                    :href="`https://nearblocks.io/txns/${transactionHash}`"
+                    :href="`https://explorer.redbelly.network/tx/${transactionHash}`"
                     target="_blank"
                     class="transaction-link"
+                    >View on Explorer</a
                   >
-                    View on Explorer
-                  </a>
                 </div>
               </div>
             </div>
-
-            <!-- Tab Navigation -->
             <div class="tab-container">
-
               <button
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'stake' }"
@@ -132,106 +107,85 @@
                 Unstake
               </button>
             </div>
-
-            <!-- Staking Tab Content -->
             <div v-if="activeTab === 'stake'" class="tab-content">
               <div class="staking-form">
-                <!-- Staking Amount Input -->
                 <div class="form-group">
-                  <label class="form-label">Amount to Stake (NEAR)</label>
+                  <label class="form-label">Amount to Stake (RBNT)</label>
                   <div class="input-container">
                     <input
                       v-model.number="stakeAmount"
                       type="number"
                       :min="minimumStake"
-                      step="0.1"
+                      step="0.01"
                       class="form-input"
                       placeholder="Enter amount"
                     />
-                    <div class="input-suffix">
-                      <span>NEAR</span>
-                    </div>
+                    <div class="input-suffix"><span>RBNT</span></div>
                   </div>
                   <div class="input-hint">
-                    <span>Minimum: {{ minimumStake }} NEAR</span>
-
+                    <span>Minimum: {{ minimumStake }} RBNT</span>
                     <button
-                      @click="stakeAmount = Number(totalNearBalance)"
+                      @click="stakeAmount = Number(rbntBalance)"
                       class="max-button"
-                      :disabled="Number(totalNearBalance) <= 0"
+                      :disabled="Number(rbntBalance) <= 0"
                     >
                       Max
                     </button>
                   </div>
                 </div>
-
-                <!-- Validator Address -->
                 <div class="form-group">
                   <label class="form-label">Validator Address</label>
-                  <input
-                    :value="network.validator"
-                    type="text"
-                    class="form-input"
-                    placeholder="Enter validator address"
-                    readonly
-                  />
+                  <input :value="network.validator[0]" type="text" class="form-input" readonly />
                 </div>
-
-                <!-- Staking Info -->
                 <div class="info-card">
                   <h3 class="info-card-title">Current Staking Status</h3>
                   <div class="info-card-content">
                     <div class="info-row">
-                      <span class="info-label">Available Balance:</span>
-                      <span class="info-value">{{ availableBalance }} NEAR</span>
+                      <span class="info-label">Available Balance:</span
+                      ><span class="info-value">{{ rbntBalance }} RBNT</span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} NEAR</span>
+                      <span class="info-label">Currently Staked:</span
+                      ><span class="info-value">{{ stakedAmount }} RBNT</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Staking Rewards:</span
+                      ><span class="info-value">{{ stakingRewards }} RBNT</span>
                     </div>
                   </div>
                 </div>
-
-                <!-- Success/Error Messages for Staking -->
-                <div v-if="stakingSuccess" class="success-message">Successfully delegated !</div>
-                <div v-if="stakingError" class="error-message">
-                  {{ stakingError }}
+                <div v-if="stakingSuccess" class="success-message">
+                  Successfully staked {{ stakeAmount }} RBNT!
                 </div>
-
-                <!-- Stake Action Button -->
+                <div v-if="stakingError" class="error-message">{{ stakingError }}</div>
                 <button
-                  @click="delegateTokens"
+                  @click="handleStake"
                   :disabled="!isValidStake || isProcessing"
-                  class="primary-button full-width delegate-button"
+                  class="primary-button full-width stake-button"
                   :class="{ 'button-disabled': !isValidStake || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Delegate NEAR' }}
+                  {{ isProcessing ? 'Processing...' : 'Stake RBNT Tokens' }}
                 </button>
               </div>
             </div>
-
-            <!-- Unstaking Tab Content -->
             <div v-if="activeTab === 'unstake'" class="tab-content">
               <div class="staking-form">
-                <!-- Unstaking Amount Input -->
                 <div class="form-group">
-                  <label class="form-label">Amount to Unstake (NEAR)</label>
+                  <label class="form-label">Amount to Unstake (RBNT)</label>
                   <div class="input-container">
                     <input
                       v-model.number="unstakeAmount"
                       type="number"
                       :min="0"
                       :max="stakedAmount"
-                      step="0.1"
+                      step="0.01"
                       class="form-input"
                       placeholder="Enter amount to unstake"
                     />
-                    <div class="input-suffix">
-                      <span>NEAR</span>
-                    </div>
+                    <div class="input-suffix"><span>RBNT</span></div>
                   </div>
                   <div class="input-hint">
-                    <span>Available to unstake: {{ stakedAmount }} NEAR</span>
+                    <span>Available to unstake: {{ stakedAmount }} RBNT</span>
                     <button
                       @click="unstakeAmount = stakedAmount"
                       class="max-button"
@@ -241,73 +195,52 @@
                     </button>
                   </div>
                 </div>
-
-                <!-- Unstaking Info -->
                 <div class="info-card">
                   <h3 class="info-card-title">Unstaking Information</h3>
                   <div class="info-card-content">
                     <div class="info-row">
-                      <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} NEAR</span>
+                      <span class="info-label">Currently Staked:</span
+                      ><span class="info-value">{{ stakedAmount }} RBNT</span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">Rewards Earned:</span>
-                      <span class="info-value">{{ rewardsEarned }} NEAR</span>
+                      <span class="info-label">Staking Rewards:</span
+                      ><span class="info-value">{{ stakingRewards }} RBNT</span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">Unbonding Period:</span>
-                      <span class="info-value">36 hours</span>
+                      <span class="info-label">Unbonding Period:</span
+                      ><span class="info-value">21 days</span>
                     </div>
                   </div>
                 </div>
-
-                <!-- Unstaking Warning -->
                 <div class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
-                    <strong>Important:</strong> Unstaked tokens will be locked for 45 ~ 60 hours
+                    <strong>Important:</strong> Unstaked RBNT tokens will be locked for 21 days
                     before becoming available for withdrawal.
                   </div>
                 </div>
-
-                <!-- Success/Error Messages for Unstaking -->
                 <div v-if="unstakingSuccess" class="success-message">
-                  Successfully Undelegated !
+                  Successfully unstaked {{ unstakeAmount }} RBNT!
                 </div>
-                <div v-if="unstakingError" class="error-message">
-                  {{ unstakingError }}
-                </div>
-
-                <!-- Unstake Action Button -->
+                <div v-if="unstakingError" class="error-message">{{ unstakingError }}</div>
                 <button
-                  @click="undelegateTokens"
+                  @click="handleUnstake"
                   :disabled="!isValidUnstake || isProcessing"
-                  class="primary-button full-width delegate-button unstake-button"
+                  class="primary-button full-width unstake-button"
                   :class="{ 'button-disabled': !isValidUnstake || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Undelegate NEAR' }}
+                  {{ isProcessing ? 'Processing...' : 'Unstake RBNT Tokens' }}
                 </button>
               </div>
             </div>
-
-            <!-- Network Links -->
             <div class="network-links-bottom">
               <a
                 v-if="network.explorer"
                 :href="network.explorer[0]"
                 target="_blank"
                 class="link-primary"
+                >View on Explorer</a
               >
-                View on Explorer
-              </a>
-              <a
-                v-if="network.howToStake"
-                :href="network.howToStake"
-                target="_blank"
-                class="link-primary"
-              >
-                How to Stake
-              </a>
             </div>
           </div>
         </div>
@@ -317,55 +250,38 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import {
-  walletConnect,
-  delegateTokens,
-  getAccountId,
-  getTotalStakedAmount,
-  undelegateTokens,
-  getNearBalance
-} from '../../utils/NearStaking'
-import { utils } from 'near-api-js'
+  connectWallet,
+  stakeTokens,
+  unstakeTokens,
+  getRBNTBalance,
+  getStakingInfo
+} from '../../utils/RedbellyStaking'
 
 export default {
-  name: 'NearStaking',
-  props: {
-    network: {
-      type: Object,
-      required: true
-    }
-  },
+  name: 'RedbellyStaking',
+  props: { network: { type: Object, required: true } },
   emits: ['close'],
   setup(props, { emit }) {
-    const walletConnected = ref(false)
-    const walletAddress = ref('')
-    const stakeAmount = ref(0)
-    const unstakeAmount = ref(0)
-    const validatorAddress = ref('')
-    const stakedAmount = ref(0)
-    const rewardsEarned = ref(0)
-    const lastRewardTime = ref(null)
-    const stakingSuccess = ref(false)
-    const unstakingSuccess = ref(false)
-    const stakingError = ref(null)
-    const unstakingError = ref(null)
-    const transactionHash = ref('')
-    const minimumStake = 0.01
-    const isConnecting = ref(false)
-    const isProcessing = ref(false)
-    const walletError = ref(false)
-    const availableBalance = ref(0)
-    const activeTab = ref('stake')
-    const totalNearBalance = ref(0)
+    const walletConnected = ref(false),
+      walletAddress = ref(''),
+      stakeAmount = ref(0),
+      unstakeAmount = ref(0)
+    const minimumStake = 10,
+      stakingSuccess = ref(false),
+      unstakingSuccess = ref(false),
+      stakingError = ref(null),
+      unstakingError = ref(null)
+    const transactionHash = ref(''),
+      walletError = ref(false),
+      isConnecting = ref(false),
+      isProcessing = ref(false)
+    const rbntBalance = ref('0.0000'),
+      stakedAmount = ref(0),
+      stakingRewards = ref(0),
+      activeTab = ref('stake')
 
-    onMounted(() => {
-      if (props.network?.validator?.[0]) {
-        validatorAddress.value = props.network.validator[0]
-      }
-    })
-
-    // Add watch on activeTab to clear messages
     watch(activeTab, () => {
       stakingSuccess.value = false
       stakingError.value = null
@@ -376,14 +292,8 @@ export default {
 
     const isValidStake = computed(() => {
       const amount = parseFloat(stakeAmount.value)
-      return (
-        !isNaN(amount) &&
-        amount >= minimumStake &&
-        validatorAddress.value &&
-        amount <= Number(totalNearBalance.value)
-      )
+      return !isNaN(amount) && amount >= minimumStake && amount <= Number(rbntBalance.value)
     })
-
     const isValidUnstake = computed(() => {
       const amount = parseFloat(unstakeAmount.value)
       return !isNaN(amount) && amount > 0 && amount <= stakedAmount.value
@@ -392,89 +302,73 @@ export default {
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
-        stakingError.value = null
-        await walletConnect()
-        const connectedId = await getAccountId()
-        walletAddress.value = connectedId
+        walletError.value = false
+        const address = await connectWallet()
+        walletAddress.value = address
         walletConnected.value = true
         await refreshStakingInfo()
-        return walletAddress.value
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         walletError.value = true
-        stakingError.value = error.message
       } finally {
         isConnecting.value = false
       }
     }
 
     const refreshStakingInfo = async () => {
-      if (!walletAddress.value || !validatorAddress.value) return
-
+      if (!walletAddress.value) return
       try {
-        const nearBalance = await getNearBalance(walletAddress.value)
-        totalNearBalance.value = nearBalance
-        availableBalance.value = Number(nearBalance).toFixed(4)
-
-        const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
-        if (stakingInfo.amount) {
-          stakedAmount.value = Number(utils.format.formatNearAmount(stakingInfo.amount)).toFixed(3)
-        } else {
-          stakedAmount.value = 0.0
-        }
-        rewardsEarned.value = '0'
-        lastRewardTime.value = null
+        const balance = await getRBNTBalance(walletAddress.value)
+        rbntBalance.value = balance.toFixed(4)
+        const stakingInfo = await getStakingInfo(walletAddress.value, props.network.validator[0])
+        stakedAmount.value = stakingInfo.stakedAmount
+        stakingRewards.value = stakingInfo.stakingRewards
       } catch (error) {
         console.error('Failed to refresh staking info:', error)
-        stakingError.value = error.message
       }
     }
 
-    const handleDelegateTokens = async () => {
+    const handleStake = async () => {
       if (!isValidStake.value) return
-
       try {
         isProcessing.value = true
         stakingSuccess.value = false
         stakingError.value = null
-        unstakingSuccess.value = false
-        unstakingError.value = null
-        const hash = await delegateTokens(
+        const hash = await stakeTokens(
           walletAddress.value,
-          validatorAddress.value,
+          props.network.validator[0],
           stakeAmount.value
         )
         transactionHash.value = hash
         stakingSuccess.value = true
-        stakeAmount.value = 0 // Reset form
+        stakeAmount.value = 0
         await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to stake tokens:', error)
-        stakingError.value = error.message
+        stakingError.value = error.message || 'Failed to stake tokens'
       } finally {
         isProcessing.value = false
       }
     }
 
-    const handleUndelegateTokens = async () => {
+    const handleUnstake = async () => {
+      if (!isValidUnstake.value) return
       try {
         isProcessing.value = true
-        stakingSuccess.value = false
-        stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
-        const hash = await undelegateTokens(
+        const hash = await unstakeTokens(
           walletAddress.value,
-          validatorAddress.value,
+          props.network.validator[0],
           unstakeAmount.value
         )
         transactionHash.value = hash
         unstakingSuccess.value = true
-        unstakeAmount.value = 0 // Reset form
+        unstakeAmount.value = 0
         await refreshStakingInfo()
       } catch (error) {
-        console.error('Failed to undelegate tokens:', error)
-        unstakingError.value = error.message
+        console.error('Failed to unstake tokens:', error)
+        unstakingError.value = error.message || 'Failed to unstake tokens'
       } finally {
         isProcessing.value = false
       }
@@ -483,7 +377,6 @@ export default {
     const closeModal = () => {
       emit('close')
     }
-
     const truncateAddress = (address) => {
       if (!address) return ''
       if (address.length <= 12) return address
@@ -491,15 +384,10 @@ export default {
     }
 
     return {
-      validatorAddress,
-      closeModal,
       walletConnected,
       walletAddress,
       stakeAmount,
       unstakeAmount,
-      stakedAmount,
-      rewardsEarned,
-      lastRewardTime,
       minimumStake,
       isValidStake,
       isValidUnstake,
@@ -508,34 +396,32 @@ export default {
       stakingError,
       unstakingError,
       transactionHash,
+      connectWallet: handleConnectWallet,
+      handleStake,
+      handleUnstake,
+      truncateAddress,
+      walletError,
       isConnecting,
       isProcessing,
-      walletError,
-      availableBalance,
+      rbntBalance,
+      stakedAmount,
+      stakingRewards,
       activeTab,
-      totalNearBalance,
-      connectWallet: handleConnectWallet,
-      delegateTokens: handleDelegateTokens,
-      undelegateTokens: handleUndelegateTokens,
-      truncateAddress
+      closeModal
     }
   }
 }
 </script>
 
 <style scoped>
-/* Modal Animation */
 .modal-fade-enter,
 .modal-fade-leave-to {
   opacity: 0;
 }
-
 .modal-fade-enter-active,
 .modal-fade-leave-active {
   transition: opacity 0.3s ease;
 }
-
-/* Modal Layout */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -546,9 +432,8 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10001; /* Higher than header (9999) and mobile header (10000) */
+  z-index: 10001;
 }
-
 .modal-container {
   background-color: white;
   border-radius: 0.75rem;
@@ -558,27 +443,24 @@ export default {
   max-width: 28rem;
   width: 100%;
   overflow: hidden;
+  max-height: 90vh;
+  overflow-y: auto;
 }
-
 .modal-content {
   padding: 1.5rem;
 }
-
-/* Header */
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
 }
-
 .modal-title {
   font-size: 1.25rem;
   font-weight: 700;
   color: #1f2937;
   margin: 0;
 }
-
 .close-button {
   background: none;
   border: none;
@@ -587,61 +469,83 @@ export default {
   padding: 0.25rem;
   transition: color 0.2s;
 }
-
 .close-button:hover {
   color: #374151;
 }
-
-/* Network Description */
+.tab-container {
+  display: flex;
+  background-color: #f3f4f6;
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+.tab-button {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #6b7280;
+}
+.tab-button.tab-active {
+  background-color: #6366f1;
+  color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.tab-button:hover:not(.tab-active) {
+  color: #374151;
+  background-color: #e5e7eb;
+}
+.tab-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .network-description {
   text-align: center;
   margin-bottom: 1.5rem;
 }
-
 .network-description p {
   color: #4b5563;
   margin: 0;
 }
-
-/* Wallet Connection */
 .wallet-connection {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
 }
-
-/* Network Links */
 .network-links {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   margin-top: 1.5rem;
 }
-
 .network-links-bottom {
   display: flex;
   justify-content: center;
   gap: 1rem;
   margin-top: 1rem;
 }
-
 .link-primary {
   color: #6366f1;
   text-decoration: none;
   font-size: 0.875rem;
 }
-
 .link-primary:hover {
   text-decoration: underline;
 }
-
-/* Buttons */
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-}
-
 .primary-button {
   background-color: #6366f1;
   color: white;
@@ -654,69 +558,72 @@ export default {
     background-color 0.2s,
     transform 0.1s;
 }
-
 .primary-button:hover:not(:disabled) {
   background-color: #4f46e5;
 }
-
 .primary-button:active:not(:disabled) {
   transform: translateY(1px);
 }
-
 .full-width {
   width: 100%;
 }
-
 .button-disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
-.delegate-button {
-  margin-top: 1.5rem;
+.unstake-button {
+  background-color: #dc2626;
 }
-
-/* Wallet Info Card */
+.unstake-button:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+.max-button {
+  background: none;
+  border: none;
+  color: #6366f1;
+  cursor: pointer;
+  font-size: 0.75rem;
+  text-decoration: underline;
+}
+.max-button:hover:not(:disabled) {
+  color: #4f46e5;
+}
+.max-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .wallet-info-card {
   background-color: #f9fafb;
   border-radius: 0.5rem;
   padding: 0.75rem;
   margin-bottom: 1rem;
 }
-
 .wallet-info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
 .transaction-info {
   margin-top: 0.5rem;
   padding-top: 0.5rem;
   border-top: 1px solid #e5e7eb;
 }
-
 .transaction-link {
   color: #6366f1;
   text-decoration: none;
   font-size: 0.75rem;
 }
-
 .transaction-link:hover {
   text-decoration: underline;
 }
-
-/* Form Elements */
 .staking-form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
-
 .form-group {
   margin-bottom: 0.5rem;
 }
-
 .form-label {
   display: block;
   font-size: 0.875rem;
@@ -724,11 +631,9 @@ export default {
   color: #374151;
   margin-bottom: 0.25rem;
 }
-
 .input-container {
   position: relative;
 }
-
 .form-input {
   width: 100%;
   padding: 0.5rem 0.75rem;
@@ -741,13 +646,11 @@ export default {
     border-color 0.2s,
     box-shadow 0.2s;
 }
-
 .form-input:focus {
   outline: none;
   border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
-
 .input-suffix {
   position: absolute;
   right: 0.75rem;
@@ -758,16 +661,14 @@ export default {
   pointer-events: none;
   color: #6b7280;
 }
-
 .input-hint {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-top: 0.25rem;
   font-size: 0.75rem;
   color: #6b7280;
 }
-
-/* Info Cards */
 .info-card {
   margin-top: 0.5rem;
   background-color: #f9fafb;
@@ -775,7 +676,6 @@ export default {
   padding: 0.75rem;
   margin-bottom: 0.2rem;
 }
-
 .info-card-title {
   font-size: 0.875rem;
   font-weight: 500;
@@ -783,138 +683,23 @@ export default {
   margin-top: 0;
   margin-bottom: 0.5rem;
 }
-
 .info-card-content {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
-
 .info-row {
   display: flex;
   justify-content: space-between;
   font-size: 0.875rem;
 }
-
 .info-label {
   color: #6b7280;
 }
-
 .info-value {
   font-weight: 500;
   color: #1f2937;
 }
-
-/* Success/Error Messages */
-.success-message {
-  color: #059669;
-  background-color: #ecfdf5;
-  padding: 0.75rem;
-  border-radius: 0.375rem;
-  margin-top: 1rem;
-  font-size: 0.875rem;
-}
-
-.error-message {
-  color: #dc2626;
-  background-color: #fef2f2;
-  padding: 0.75rem;
-  border-radius: 0.375rem;
-  margin-top: 1rem;
-  font-size: 0.875rem;
-}
-
-/* Wallet Warning */
-.wallet-warning {
-  background-color: #fff7ed;
-  border: 1px solid #fdba74;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin: 1rem 0;
-  display: flex;
-  gap: 1rem;
-}
-
-.warning-icon {
-  color: #ea580c;
-  flex-shrink: 0;
-}
-
-.warning-content {
-  flex: 1;
-}
-
-.warning-title {
-  color: #ea580c;
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
-}
-
-.warning-message {
-  color: #9a3412;
-  font-size: 0.875rem;
-  margin: 0 0 0.75rem 0;
-}
-
-/* Remove number input arrows */
-input[type='number']::-webkit-inner-spin-button,
-input[type='number']::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-input[type='number'] {
-  -moz-appearance: textfield;
-}
-
-/* Add new styles for tabs and unstaking */
-.tab-container {
-  display: flex;
-  background-color: #f3f4f6;
-  border-radius: 0.5rem;
-  padding: 0.25rem;
-  margin-bottom: 1.5rem;
-}
-
-.tab-button {
-  flex: 1;
-  padding: 0.5rem 1rem;
-  border: none;
-  background: none;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: #6b7280;
-}
-
-.tab-button.tab-active {
-  background-color: #6366f1;
-  color: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.tab-button:hover:not(.tab-active) {
-  color: #374151;
-  background-color: #e5e7eb;
-}
-
-.tab-content {
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .warning-card {
   background-color: #fef3c7;
   border: 1px solid #f59e0b;
@@ -925,48 +710,69 @@ input[type='number'] {
   gap: 0.75rem;
   align-items: flex-start;
 }
-
 .warning-icon-small {
   font-size: 1.25rem;
   flex-shrink: 0;
 }
-
 .warning-text {
   font-size: 0.875rem;
   color: #92400e;
 }
-
-.unstake-button {
-  background-color: #dc2626;
+.success-message {
+  color: #059669;
+  background-color: #ecfdf5;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
 }
-
-.unstake-button:hover:not(:disabled) {
-  background-color: #b91c1c;
+.error-message {
+  color: #dc2626;
+  background-color: #fef2f2;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
 }
-
-.max-button {
-  background: none;
-  border: none;
-  color: #6366f1;
-  cursor: pointer;
-  font-size: 0.75rem;
-  text-decoration: underline;
+.wallet-warning {
+  background-color: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  display: flex;
+  gap: 1rem;
 }
-
-.max-button:hover:not(:disabled) {
-  color: #4f46e5;
+.warning-icon {
+  color: #ea580c;
+  flex-shrink: 0;
 }
-
-.max-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.warning-content {
+  flex: 1;
 }
-
+.warning-title {
+  color: #ea580c;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+.warning-message {
+  color: #9a3412;
+  font-size: 0.875rem;
+  margin: 0 0 0.75rem 0;
+}
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+}
 .tooltip-container {
   position: relative;
   cursor: help;
 }
-
 .tooltip {
   visibility: hidden;
   position: absolute;
@@ -987,7 +793,6 @@ input[type='number'] {
     opacity 0.2s,
     visibility 0.2s;
 }
-
 .tooltip::after {
   content: '';
   position: absolute;
@@ -998,7 +803,6 @@ input[type='number'] {
   border-style: solid;
   border-color: #1f2937 transparent transparent transparent;
 }
-
 .tooltip-container:hover .tooltip {
   visibility: visible;
   opacity: 1;

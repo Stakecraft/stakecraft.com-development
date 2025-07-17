@@ -30,7 +30,7 @@ const router = createRouter({
     if (savedPosition) {
       return savedPosition
     }
-    
+
     // If there's a hash in the URL, scroll to that element
     if (to.hash) {
       return new Promise((resolve) => {
@@ -49,7 +49,7 @@ const router = createRouter({
         }, 100)
       })
     }
-    
+
     // Default: scroll to top
     return { top: 0, behavior: 'smooth' }
   }

@@ -1,7 +1,7 @@
 <template>
   <transition name="modal-fade">
-    <div class="modal-overlay" @click.self="closeModal">
-      <div v-if="network" class="modal-container" @click.stop>
+    <div v-if="network" class="modal-overlay" @click.self="closeModal">
+      <div class="modal-container" @click.stop>
         <div class="modal-content">
           <!-- Header -->
           <div class="modal-header">
@@ -54,7 +54,7 @@
             <div class="warning-content">
               <h3 class="warning-title">Wallet Not Found</h3>
               <p class="warning-message">
-                To use NEAR staking, you need to install the Meteor wallet extension.
+                To use Juno staking, you need to install the Keplr wallet extension.
               </p>
             </div>
           </div>
@@ -66,7 +66,7 @@
               class="primary-button full-width"
               :disabled="isConnecting"
             >
-              {{ isConnecting ? 'Connecting...' : 'Connect Meteor Wallet' }}
+              {{ isConnecting ? 'Connecting...' : 'Connect Keplr Wallet' }}
             </button>
 
             <!-- Network Links -->
@@ -104,7 +104,7 @@
                 <div class="wallet-info-row">
                   <span class="info-label">Last Transaction:</span>
                   <a
-                    :href="`https://nearblocks.io/txns/${transactionHash}`"
+                    :href="`https://atomscan.com/juno/transactions/${transactionHash}`"
                     target="_blank"
                     class="transaction-link"
                   >
@@ -116,7 +116,6 @@
 
             <!-- Tab Navigation -->
             <div class="tab-container">
-
               <button
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'stake' }"
@@ -138,27 +137,26 @@
               <div class="staking-form">
                 <!-- Staking Amount Input -->
                 <div class="form-group">
-                  <label class="form-label">Amount to Stake (NEAR)</label>
+                  <label class="form-label">Amount to Stake (JUNO)</label>
                   <div class="input-container">
                     <input
                       v-model.number="stakeAmount"
                       type="number"
                       :min="minimumStake"
-                      step="0.1"
+                      step="1"
                       class="form-input"
                       placeholder="Enter amount"
                     />
                     <div class="input-suffix">
-                      <span>NEAR</span>
+                      <span>JUNO</span>
                     </div>
                   </div>
                   <div class="input-hint">
-                    <span>Minimum: {{ minimumStake }} NEAR</span>
-
+                    <span>Minimum: {{ minimumStake }} JUNO</span>
                     <button
-                      @click="stakeAmount = Number(totalNearBalance)"
+                      @click="stakeAmount = Number(totalJunoBalance)"
                       class="max-button"
-                      :disabled="Number(totalNearBalance) <= 0"
+                      :disabled="Number(totalJunoBalance) <= 0"
                     >
                       Max
                     </button>
@@ -183,11 +181,11 @@
                   <div class="info-card-content">
                     <div class="info-row">
                       <span class="info-label">Available Balance:</span>
-                      <span class="info-value">{{ availableBalance }} NEAR</span>
+                      <span class="info-value">{{ availableBalance }} JUNO</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} NEAR</span>
+                      <span class="info-value">{{ stakedAmount }} JUNO</span>
                     </div>
                   </div>
                 </div>
@@ -205,7 +203,7 @@
                   class="primary-button full-width delegate-button"
                   :class="{ 'button-disabled': !isValidStake || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Delegate NEAR' }}
+                  {{ isProcessing ? 'Processing...' : 'Delegate JUNO' }}
                 </button>
               </div>
             </div>
@@ -215,23 +213,23 @@
               <div class="staking-form">
                 <!-- Unstaking Amount Input -->
                 <div class="form-group">
-                  <label class="form-label">Amount to Unstake (NEAR)</label>
+                  <label class="form-label">Amount to Unstake (JUNO)</label>
                   <div class="input-container">
                     <input
                       v-model.number="unstakeAmount"
                       type="number"
                       :min="0"
                       :max="stakedAmount"
-                      step="0.1"
+                      step="1"
                       class="form-input"
                       placeholder="Enter amount to unstake"
                     />
                     <div class="input-suffix">
-                      <span>NEAR</span>
+                      <span>JUNO</span>
                     </div>
                   </div>
                   <div class="input-hint">
-                    <span>Available to unstake: {{ stakedAmount }} NEAR</span>
+                    <span>Available to unstake: {{ stakedAmount }} JUNO</span>
                     <button
                       @click="unstakeAmount = stakedAmount"
                       class="max-button"
@@ -248,15 +246,15 @@
                   <div class="info-card-content">
                     <div class="info-row">
                       <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} NEAR</span>
+                      <span class="info-value">{{ stakedAmount }} JUNO</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Rewards Earned:</span>
-                      <span class="info-value">{{ rewardsEarned }} NEAR</span>
+                      <span class="info-value">{{ rewardsEarned }} JUNO</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Unbonding Period:</span>
-                      <span class="info-value">36 hours</span>
+                      <span class="info-value">21 days</span>
                     </div>
                   </div>
                 </div>
@@ -265,8 +263,8 @@
                 <div class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
-                    <strong>Important:</strong> Unstaked tokens will be locked for 45 ~ 60 hours
-                    before becoming available for withdrawal.
+                    <strong>Important:</strong> Unstaked tokens will be locked for 21 days before
+                    becoming available for withdrawal.
                   </div>
                 </div>
 
@@ -280,12 +278,12 @@
 
                 <!-- Unstake Action Button -->
                 <button
-                  @click="undelegateTokens"
+                  @click="undelegateStake"
                   :disabled="!isValidUnstake || isProcessing"
                   class="primary-button full-width delegate-button unstake-button"
                   :class="{ 'button-disabled': !isValidUnstake || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Undelegate NEAR' }}
+                  {{ isProcessing ? 'Processing...' : 'Undelegate JUNO' }}
                 </button>
               </div>
             </div>
@@ -319,17 +317,15 @@
 <script>
 import { ref, computed, onMounted, watch } from 'vue'
 import {
-  walletConnect,
+  connectWallet,
   delegateTokens,
-  getAccountId,
+  undelegateStake,
   getTotalStakedAmount,
-  undelegateTokens,
-  getNearBalance
-} from '../../utils/NearStaking'
-import { utils } from 'near-api-js'
+  getJunoBalance
+} from '../../utils/JunoStaking'
 
 export default {
-  name: 'NearStaking',
+  name: 'JunoStaking',
   props: {
     network: {
       type: Object,
@@ -343,21 +339,22 @@ export default {
     const stakeAmount = ref(0)
     const unstakeAmount = ref(0)
     const validatorAddress = ref('')
-    const stakedAmount = ref(0)
-    const rewardsEarned = ref(0)
-    const lastRewardTime = ref(null)
+    const delegationInfo = ref(null)
+    const minimumStake = 0.01
     const stakingSuccess = ref(false)
     const unstakingSuccess = ref(false)
     const stakingError = ref(null)
     const unstakingError = ref(null)
     const transactionHash = ref('')
-    const minimumStake = 0.01
+    const walletError = ref(false)
     const isConnecting = ref(false)
     const isProcessing = ref(false)
-    const walletError = ref(false)
+    const stakedAmount = ref(0)
+    const rewardsEarned = ref(0)
+    const lastRewardTime = ref(null)
     const availableBalance = ref(0)
     const activeTab = ref('stake')
-    const totalNearBalance = ref(0)
+    const totalJunoBalance = ref(0)
 
     onMounted(() => {
       if (props.network?.validator?.[0]) {
@@ -380,7 +377,7 @@ export default {
         !isNaN(amount) &&
         amount >= minimumStake &&
         validatorAddress.value &&
-        amount <= Number(totalNearBalance.value)
+        amount <= Number(totalJunoBalance.value)
       )
     })
 
@@ -392,41 +389,37 @@ export default {
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
-        stakingError.value = null
-        await walletConnect()
-        const connectedId = await getAccountId()
-        walletAddress.value = connectedId
+        const address = await connectWallet()
+        walletAddress.value = address
         walletConnected.value = true
-        await refreshStakingInfo()
-        return walletAddress.value
+        isConnecting.value = false
+        refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         walletError.value = true
-        stakingError.value = error.message
-      } finally {
         isConnecting.value = false
       }
     }
 
     const refreshStakingInfo = async () => {
-      if (!walletAddress.value || !validatorAddress.value) return
+      if (!walletAddress.value) return
 
       try {
-        const nearBalance = await getNearBalance(walletAddress.value)
-        totalNearBalance.value = nearBalance
-        availableBalance.value = Number(nearBalance).toFixed(4)
+        const junoBalance = await getJunoBalance(walletAddress.value)
+        totalJunoBalance.value = junoBalance
+        availableBalance.value = Number(junoBalance).toFixed(4)
 
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
         if (stakingInfo.amount) {
-          stakedAmount.value = Number(utils.format.formatNearAmount(stakingInfo.amount)).toFixed(3)
+          stakedAmount.value = Number(stakingInfo.amount) / 10 ** 6
         } else {
           stakedAmount.value = 0.0
         }
-        rewardsEarned.value = '0'
+
+        rewardsEarned.value = 0
         lastRewardTime.value = null
       } catch (error) {
         console.error('Failed to refresh staking info:', error)
-        stakingError.value = error.message
       }
     }
 
@@ -439,6 +432,7 @@ export default {
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
+
         const hash = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
@@ -447,23 +441,24 @@ export default {
         transactionHash.value = hash
         stakingSuccess.value = true
         stakeAmount.value = 0 // Reset form
-        await refreshStakingInfo()
+        refreshStakingInfo()
       } catch (error) {
-        console.error('Failed to stake tokens:', error)
-        stakingError.value = error.message
+        console.error('Failed to delegate tokens:', error)
+        stakingError.value = error.message || 'Failed to delegate tokens'
       } finally {
         isProcessing.value = false
       }
     }
 
-    const handleUndelegateTokens = async () => {
+    const handleUndelegateStake = async () => {
       try {
         isProcessing.value = true
         stakingSuccess.value = false
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
-        const hash = await undelegateTokens(
+
+        const hash = await undelegateStake(
           walletAddress.value,
           validatorAddress.value,
           unstakeAmount.value
@@ -473,8 +468,8 @@ export default {
         unstakeAmount.value = 0 // Reset form
         await refreshStakingInfo()
       } catch (error) {
-        console.error('Failed to undelegate tokens:', error)
-        unstakingError.value = error.message
+        console.error('Failed to undelegate stake:', error)
+        unstakingError.value = error.message || 'Failed to undelegate stake'
       } finally {
         isProcessing.value = false
       }
@@ -497,9 +492,7 @@ export default {
       walletAddress,
       stakeAmount,
       unstakeAmount,
-      stakedAmount,
-      rewardsEarned,
-      lastRewardTime,
+      delegationInfo,
       minimumStake,
       isValidStake,
       isValidUnstake,
@@ -508,16 +501,19 @@ export default {
       stakingError,
       unstakingError,
       transactionHash,
-      isConnecting,
-      isProcessing,
-      walletError,
-      availableBalance,
-      activeTab,
-      totalNearBalance,
       connectWallet: handleConnectWallet,
       delegateTokens: handleDelegateTokens,
-      undelegateTokens: handleUndelegateTokens,
-      truncateAddress
+      undelegateStake: handleUndelegateStake,
+      truncateAddress,
+      walletError,
+      isConnecting,
+      isProcessing,
+      stakedAmount,
+      rewardsEarned,
+      lastRewardTime,
+      availableBalance,
+      activeTab,
+      totalJunoBalance
     }
   }
 }
@@ -558,6 +554,8 @@ export default {
   max-width: 28rem;
   width: 100%;
   overflow: hidden;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .modal-content {
@@ -601,6 +599,39 @@ export default {
 .network-description p {
   color: #4b5563;
   margin: 0;
+}
+
+/* Wallet Warning */
+.wallet-warning {
+  background-color: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  display: flex;
+  gap: 1rem;
+}
+
+.warning-icon {
+  color: #ea580c;
+  flex-shrink: 0;
+}
+
+.warning-content {
+  flex: 1;
+}
+
+.warning-title {
+  color: #ea580c;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.warning-message {
+  color: #9a3412;
+  font-size: 0.875rem;
+  margin: 0 0 0.75rem 0;
 }
 
 /* Wallet Connection */
@@ -769,11 +800,10 @@ export default {
 
 /* Info Cards */
 .info-card {
-  margin-top: 0.5rem;
   background-color: #f9fafb;
   border-radius: 0.5rem;
   padding: 0.75rem;
-  margin-bottom: 0.2rem;
+  margin-bottom: 1rem;
 }
 
 .info-card-title {
@@ -824,37 +854,26 @@ export default {
   font-size: 0.875rem;
 }
 
-/* Wallet Warning */
-.wallet-warning {
-  background-color: #fff7ed;
-  border: 1px solid #fdba74;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin: 1rem 0;
-  display: flex;
-  gap: 1rem;
-}
-
-.warning-icon {
-  color: #ea580c;
-  flex-shrink: 0;
-}
-
-.warning-content {
-  flex: 1;
-}
-
-.warning-title {
-  color: #ea580c;
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
-}
-
-.warning-message {
-  color: #9a3412;
+.install-guide {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background-color: #fef2f2;
+  border-radius: 0.375rem;
   font-size: 0.875rem;
-  margin: 0 0 0.75rem 0;
+}
+
+.install-guide ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.install-guide a {
+  color: #6366f1;
+  text-decoration: none;
+}
+
+.install-guide a:hover {
+  text-decoration: underline;
 }
 
 /* Remove number input arrows */

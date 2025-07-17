@@ -152,10 +152,12 @@ export default {
 .blurred {
   backdrop-filter: blur(10px);
   background: var(--van-header-background);
+
   border-radius: 20px;
   /* Keep the header in the same position to avoid visual jumping */
   /* padding: 0 28px; */
   box-sizing: border-box; /* Ensure padding is included in width calculation */
+
 }
 
 .header,
@@ -172,6 +174,7 @@ export default {
   position: fixed;
   left: 70px;
   width: calc(100% - 140px);
+
   transition:
     backdrop-filter 0.3s ease,
     background-color 0.3s ease,
@@ -272,6 +275,7 @@ export default {
 
 .slide-enter-active,
 .slide-leave-active {
+
   transition:
     transform 0.5s ease,
     opacity 0.3s ease;

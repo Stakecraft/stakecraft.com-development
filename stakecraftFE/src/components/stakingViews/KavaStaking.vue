@@ -1,7 +1,7 @@
 <template>
   <transition name="modal-fade">
-    <div class="modal-overlay" @click.self="closeModal">
-      <div v-if="network" class="modal-container" @click.stop>
+    <div v-if="network" class="modal-overlay" @click.self="closeModal">
+      <div class="modal-container" @click.stop>
         <div class="modal-content">
           <!-- Header -->
           <div class="modal-header">
@@ -116,6 +116,7 @@
 
             <!-- Tab Navigation -->
             <div class="tab-container">
+
               <button
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'stake' }"
@@ -123,6 +124,7 @@
               >
                 Stake
               </button>
+
               <button
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'unstake' }"
@@ -153,6 +155,7 @@
                   </div>
                   <div class="input-hint">
                     <span>Minimum: {{ minimumStake }} KAVA</span>
+
                     <button
                       @click="stakeAmount = Number(totalKavaBalance)"
                       class="max-button"
@@ -187,6 +190,7 @@
                       <span class="info-label">Currently Staked:</span>
                       <span class="info-value">{{ stakedAmount }} KAVA</span>
                     </div>
+
                     <div class="info-row">
                       <span class="info-label">Rewards Earned:</span>
                       <span class="info-value">{{ formattedRewards }} KAVA</span>
@@ -195,6 +199,7 @@
                 </div>
 
                 <!-- Success/Error Messages for Staking -->
+
                 <div v-if="stakingSuccess" class="success-message">Successfully delegated !</div>
                 <div v-if="stakingError" class="error-message">
                   {{ stakingError }}
@@ -234,6 +239,7 @@
                   </div>
                   <div class="input-hint">
                     <span>Available to unstake: {{ stakedAmount }} KAVA</span>
+
                     <button
                       @click="unstakeAmount = stakedAmount"
                       class="max-button"
@@ -446,6 +452,7 @@ export default {
         availableBalance.value = Number(kavaBalance).toFixed(4)
 
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
+
         if (stakingInfo.amount) {
           stakedAmount.value = Number(stakingInfo.amount) / 10 ** 6
         } else {

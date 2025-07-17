@@ -16,7 +16,6 @@
         </div>
       </button>
     </div>
-    <!-- <modal v-show="isModalVisible" @close="closeModal" :network="{ selectedNetwork }" /> -->
     <solana-staking
       v-if="selectedNetwork?.title === 'Solana'"
       :network="selectedNetwork"
@@ -27,12 +26,12 @@
       :network="selectedNetwork"
       @close="closeModal"
     />
-    <!-- <koii-staking
+    <koii-staking
       v-if="selectedNetwork?.title === 'Koii'"
       :network="selectedNetwork"
       @close="closeModal"
-    /> -->
-    <!-- <agoric-staking
+    />
+    <agoric-staking
       v-if="selectedNetwork?.title === 'Agoric'"
       :network="selectedNetwork"
       @close="closeModal"
@@ -51,13 +50,13 @@
       v-if="selectedNetwork?.title === 'Bitsong'"
       :network="selectedNetwork"
       @close="closeModal"
-    /> -->
-    <!-- <aura-staking
+    />
+    <aura-staking
       v-if="selectedNetwork?.title === 'Aura Network'"
       :network="selectedNetwork"
       @close="closeModal"
-    /> -->
-    <!-- <juno-staking
+    />
+    <juno-staking
       v-if="selectedNetwork?.title === 'Juno'"
       :network="selectedNetwork"
       @close="closeModal"
@@ -71,7 +70,7 @@
       v-if="selectedNetwork?.title === 'Ki Foundation'"
       :network="selectedNetwork"
       @close="closeModal"
-    /> -->
+    />
     <supra-staking
       v-if="selectedNetwork?.title === 'Supra Oracles'"
       :network="selectedNetwork"
@@ -82,17 +81,71 @@
       :network="selectedNetwork"
       @close="closeModal"
     />
-    <!-- <zeta-staking
+    <zeta-staking
       v-if="selectedNetwork?.title === 'Zachain'"
       :network="selectedNetwork"
       @close="closeModal"
-    /> -->
-    <!-- <polygon-staking
+    />
+    <polygon-staking
       v-if="selectedNetwork?.title === 'Polygon'"
       :network="selectedNetwork"
       @close="closeModal"
-    /> -->
-
+    />
+    <moonriver-staking
+      v-if="selectedNetwork?.title === 'Moonriver'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <graph-staking
+      v-if="selectedNetwork?.title === 'The Graph'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <centrifuge-staking
+      v-if="selectedNetwork?.title === 'Centrifuge'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <altair-staking
+      v-if="selectedNetwork?.title === 'Altair'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <stafi-staking
+      v-if="selectedNetwork?.title === 'Stafi'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <aura-staking
+      v-if="selectedNetwork?.title === 'Aura Network'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <QProtocolStaking
+      v-if="selectedNetwork?.title === 'Q Protocol'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <CovalentStaking
+      v-if="selectedNetwork?.title === 'Covalent'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <SubQueryStaking
+      v-if="selectedNetwork?.title === 'SubQuery'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <BitsCrunchStaking
+      v-if="selectedNetwork?.title === 'BitsCrunch'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
+    <RedbellyStaking
+      v-if="selectedNetwork?.title === 'Redbelly'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
     <modal
       v-if="
         ![
@@ -107,7 +160,19 @@
           'Zetachain',
           'Ki Foundation',
           'Supra Oracles',
-          'Near Protocol'
+          'Near Protocol',
+          'Polygon',
+          'Moonriver',
+          'The Graph',
+          'Centrifuge',
+          'Altair',
+          'Stafi',
+          'Aura Network',
+          'Q Protocol',
+          'Covalent',
+          'SubQuery',
+          'BitsCrunch',
+          'Redbelly'
         ].includes(selectedNetwork?.title)
       "
       v-show="isModalVisible"
@@ -145,37 +210,60 @@ import supraoraclesImg from '../assets/supraoracles.png'
 import walrusImg from '../assets/walrus.png'
 
 import modal from './Modal.vue'
-import { ref, inject } from 'vue'
+import { ref } from 'vue'
 import SolanaStaking from './stakingViews/SolanaStaking.vue'
 import KavaStaking from './stakingViews/KavaStaking.vue'
 import NearStaking from './stakingViews/NearStaking.vue'
 import SupraStaking from './stakingViews/SupraStaking.vue'
-// import AgoricStaking from './stakingViews/AgoricStaking.vue'
-// import BandStaking from './stakingViews/BandStaking.vue'
-// import StargazeStaking from './stakingViews/StargazeStaking.vue'
-// import BitsongStaking from './stakingViews/BitsongStaking.vue'
-// import JunoStaking from './stakingViews/JunoStaking.vue'
-// import KiStaking from './stakingViews/KiStaking.vue'
-// import PolygonStaking from './stakingViews/PolygonStaking.vue'
-// import KoiiStaking from './stakingViews/KoiiStaking.vue' // not complted
-// import ZetaStaking from './stakingViews/ZetaStaking.vue' // not complted
+import AgoricStaking from './stakingViews/AgoricStaking.vue'
+import BandStaking from './stakingViews/BandStaking.vue'
+import StargazeStaking from './stakingViews/StargazeStaking.vue'
+import BitsongStaking from './stakingViews/BitsongStaking.vue'
+import JunoStaking from './stakingViews/JunoStaking.vue'
+import KiStaking from './stakingViews/KiStaking.vue'
+import PolygonStaking from './stakingViews/PolygonStaking.vue'
+import KoiiStaking from './stakingViews/KoiiStaking.vue' // not complted
+import ZetaStaking from './stakingViews/ZetaStaking.vue' // not complted
+import MoonriverStaking from './stakingViews/MoonriverStaking.vue'
+import GraphStaking from './stakingViews/GraphStaking.vue'
+import CentrifugeStaking from './stakingViews/CentrifugeStaking.vue'
+import AltairStaking from './stakingViews/AltairStaking.vue'
+import StafiStaking from './stakingViews/StafiStaking.vue'
+import AuraStaking from './stakingViews/AuraStaking.vue'
+import QProtocolStaking from './stakingViews/QProtocolStaking.vue'
+import CovalentStaking from './stakingViews/CovalentStaking.vue'
+import SubQueryStaking from './stakingViews/SubQueryStaking.vue'
+import BitsCrunchStaking from './stakingViews/BitsCrunchStaking.vue'
+import RedbellyStaking from './stakingViews/RedbellyStaking.vue'
 
 export default {
+  name: 'MainnetComponent',
   components: {
     SolanaStaking,
     KavaStaking,
     SupraStaking,
     NearStaking,
-    // KoiiStaking,
-    // AgoricStaking,
-    // BandStaking,
-    // StargazeStaking,
-    // BitsongStaking,
-    // JunoStaking,
-    // ZetaStaking,
-    // KiStaking,
-    modal
-    // PolygonStaking
+    KoiiStaking,
+    AgoricStaking,
+    BandStaking,
+    StargazeStaking,
+    BitsongStaking,
+    JunoStaking,
+    ZetaStaking,
+    KiStaking,
+    modal,
+    PolygonStaking,
+    MoonriverStaking,
+    GraphStaking,
+    CentrifugeStaking,
+    AltairStaking,
+    StafiStaking,
+    AuraStaking,
+    QProtocolStaking,
+    CovalentStaking,
+    SubQueryStaking,
+    BitsCrunchStaking,
+    RedbellyStaking
   },
   setup() {
     const networks = [
@@ -432,15 +520,16 @@ export default {
         explorer: ['']
       },
 
-      {
-        image: walrusImg, // Add the Walrus logo to your assets folder
-        title: 'Walrus',
-        description:
-          'Walrus is a decentralized storage and data availability protocol built on Sui, designed for large binary files. It features delegated proof of stake (dPoS) with the WAL token for governance and staking.',
-        validator: ['stakecraft walrus validator address'], // Replace with actual validator address if available
-        explorer: ['https://walrus.xyz/explorer'], // Replace with actual explorer link if available
-        howToStake: 'https://docs.wal.app/7-staking-and-unstaking.html'
-      }
+      // {
+      //   image: walrusImg, // Add the Walrus logo to your assets folder
+      //   title: 'Walrus',
+      //   description:
+      //     'Walrus is a decentralized storage and data availability protocol built on Sui, designed for large binary files. It features delegated proof of stake (dPoS) with the WAL token for governance and staking.',
+      //   validator: ['stakecraft walrus validator address'], // Replace with actual validator address if available
+      //   explorer: ['https://walrus.xyz/explorer'], // Replace with actual explorer link if available
+      //   howToStake: 'https://docs.wal.app/7-staking-and-unstaking.html'
+      // }
+
     ]
 
     const isModalVisible = ref(false)
@@ -450,6 +539,8 @@ export default {
       selectedNetwork.value = network
       isModalVisible.value = true
     }
+
+    console.log('selected netowrk', selectedNetwork)
 
     const closeModal = () => {
       isModalVisible.value = false

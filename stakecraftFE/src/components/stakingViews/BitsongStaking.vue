@@ -7,58 +7,28 @@
           <div class="modal-header">
             <h2 class="modal-title">{{ network.title }}</h2>
             <button @click="closeModal" class="close-button">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="lucide lucide-x"
-              >
-                <path d="M18 6 6 18" />
-                <path d="m6 6 12 12" />
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
           </div>
-
+          
           <!-- Network Description -->
           <div v-if="!walletConnected" class="network-description">
             <p>{{ network.description }}</p>
           </div>
-
+          
           <!-- Wallet Warning -->
           <div v-if="walletError" class="wallet-warning">
             <div class="warning-icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
-                ></path>
-                <line x1="12" y1="9" x2="12" y2="13"></line>
-                <line x1="12" y1="17" x2="12.01" y2="17"></line>
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             </div>
             <div class="warning-content">
               <h3 class="warning-title">Wallet Not Found</h3>
               <p class="warning-message">
-                To use NEAR staking, you need to install the Meteor wallet extension.
+                To use Bitsong staking, you need to install the Keplr wallet extension.
               </p>
             </div>
           </div>
-
+          
           <!-- Wallet Connection -->
           <div v-if="!walletConnected" class="wallet-connection">
             <button
@@ -66,9 +36,9 @@
               class="primary-button full-width"
               :disabled="isConnecting"
             >
-              {{ isConnecting ? 'Connecting...' : 'Connect Meteor Wallet' }}
+              {{ isConnecting ? 'Connecting...' : 'Connect Keplr Wallet' }}
             </button>
-
+            
             <!-- Network Links -->
             <div class="network-links">
               <a
@@ -89,7 +59,7 @@
               </a>
             </div>
           </div>
-
+          
           <!-- Connected Wallet Info -->
           <div v-if="walletConnected">
             <div class="wallet-info-card">
@@ -104,7 +74,7 @@
                 <div class="wallet-info-row">
                   <span class="info-label">Last Transaction:</span>
                   <a
-                    :href="`https://nearblocks.io/txns/${transactionHash}`"
+                    :href="`https://www.mintscan.io/bitsong/tx/${transactionHash}`"
                     target="_blank"
                     class="transaction-link"
                   >
@@ -113,18 +83,17 @@
                 </div>
               </div>
             </div>
-
+            
             <!-- Tab Navigation -->
             <div class="tab-container">
-
-              <button
+              <button 
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'stake' }"
                 @click="activeTab = 'stake'"
               >
                 Stake
               </button>
-              <button
+              <button 
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'unstake' }"
                 @click="activeTab = 'unstake'"
@@ -138,33 +107,32 @@
               <div class="staking-form">
                 <!-- Staking Amount Input -->
                 <div class="form-group">
-                  <label class="form-label">Amount to Stake (NEAR)</label>
+                  <label class="form-label">Amount to Stake (BTSG)</label>
                   <div class="input-container">
                     <input
                       v-model.number="stakeAmount"
                       type="number"
                       :min="minimumStake"
-                      step="0.1"
+                      step="1"
                       class="form-input"
                       placeholder="Enter amount"
                     />
                     <div class="input-suffix">
-                      <span>NEAR</span>
+                      <span>BTSG</span>
                     </div>
                   </div>
                   <div class="input-hint">
-                    <span>Minimum: {{ minimumStake }} NEAR</span>
-
-                    <button
-                      @click="stakeAmount = Number(totalNearBalance)"
+                    <span>Minimum: {{ minimumStake }} BTSG</span>
+                    <button 
+                      @click="stakeAmount = Number(totalBtsgBalance)"
                       class="max-button"
-                      :disabled="Number(totalNearBalance) <= 0"
+                      :disabled="Number(totalBtsgBalance) <= 0"
                     >
                       Max
                     </button>
                   </div>
                 </div>
-
+                
                 <!-- Validator Address -->
                 <div class="form-group">
                   <label class="form-label">Validator Address</label>
@@ -183,17 +151,19 @@
                   <div class="info-card-content">
                     <div class="info-row">
                       <span class="info-label">Available Balance:</span>
-                      <span class="info-value">{{ availableBalance }} NEAR</span>
+                      <span class="info-value">{{ availableBalance }} BTSG</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} NEAR</span>
+                      <span class="info-value">{{ stakedAmount }} BTSG</span>
                     </div>
                   </div>
                 </div>
 
                 <!-- Success/Error Messages for Staking -->
-                <div v-if="stakingSuccess" class="success-message">Successfully delegated !</div>
+                <div v-if="stakingSuccess" class="success-message">
+                  Successfully delegated !
+                </div>
                 <div v-if="stakingError" class="error-message">
                   {{ stakingError }}
                 </div>
@@ -205,7 +175,7 @@
                   class="primary-button full-width delegate-button"
                   :class="{ 'button-disabled': !isValidStake || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Delegate NEAR' }}
+                  {{ isProcessing ? 'Processing...' : 'Delegate BTSG' }}
                 </button>
               </div>
             </div>
@@ -215,24 +185,24 @@
               <div class="staking-form">
                 <!-- Unstaking Amount Input -->
                 <div class="form-group">
-                  <label class="form-label">Amount to Unstake (NEAR)</label>
+                  <label class="form-label">Amount to Unstake (BTSG)</label>
                   <div class="input-container">
                     <input
                       v-model.number="unstakeAmount"
                       type="number"
                       :min="0"
                       :max="stakedAmount"
-                      step="0.1"
+                      step="1"
                       class="form-input"
                       placeholder="Enter amount to unstake"
                     />
                     <div class="input-suffix">
-                      <span>NEAR</span>
+                      <span>BTSG</span>
                     </div>
                   </div>
                   <div class="input-hint">
-                    <span>Available to unstake: {{ stakedAmount }} NEAR</span>
-                    <button
+                    <span>Available to unstake: {{ stakedAmount }} BTSG</span>
+                    <button 
                       @click="unstakeAmount = stakedAmount"
                       class="max-button"
                       :disabled="stakedAmount <= 0"
@@ -248,15 +218,15 @@
                   <div class="info-card-content">
                     <div class="info-row">
                       <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} NEAR</span>
+                      <span class="info-value">{{ stakedAmount }} BTSG</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Rewards Earned:</span>
-                      <span class="info-value">{{ rewardsEarned }} NEAR</span>
+                      <span class="info-value">{{ rewardsEarned }} BTSG</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Unbonding Period:</span>
-                      <span class="info-value">36 hours</span>
+                      <span class="info-value">21 days</span>
                     </div>
                   </div>
                 </div>
@@ -265,8 +235,7 @@
                 <div class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
-                    <strong>Important:</strong> Unstaked tokens will be locked for 45 ~ 60 hours
-                    before becoming available for withdrawal.
+                    <strong>Important:</strong> Unstaked tokens will be locked for 21 days before becoming available for withdrawal.
                   </div>
                 </div>
 
@@ -280,16 +249,16 @@
 
                 <!-- Unstake Action Button -->
                 <button
-                  @click="undelegateTokens"
+                  @click="undelegateStake"
                   :disabled="!isValidUnstake || isProcessing"
                   class="primary-button full-width delegate-button unstake-button"
                   :class="{ 'button-disabled': !isValidUnstake || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Undelegate NEAR' }}
+                  {{ isProcessing ? 'Processing...' : 'Undelegate BTSG' }}
                 </button>
               </div>
             </div>
-
+            
             <!-- Network Links -->
             <div class="network-links-bottom">
               <a
@@ -319,17 +288,15 @@
 <script>
 import { ref, computed, onMounted, watch } from 'vue'
 import {
-  walletConnect,
+  connectWallet,
   delegateTokens,
-  getAccountId,
+  undelegateStake,
   getTotalStakedAmount,
-  undelegateTokens,
-  getNearBalance
-} from '../../utils/NearStaking'
-import { utils } from 'near-api-js'
+  getBtsgBalance
+} from '../../utils/BitsongStaking'
 
 export default {
-  name: 'NearStaking',
+  name: 'BitsongStaking',
   props: {
     network: {
       type: Object,
@@ -343,21 +310,22 @@ export default {
     const stakeAmount = ref(0)
     const unstakeAmount = ref(0)
     const validatorAddress = ref('')
-    const stakedAmount = ref(0)
-    const rewardsEarned = ref(0)
-    const lastRewardTime = ref(null)
+    const delegationInfo = ref(null)
+    const minimumStake = 0.02
     const stakingSuccess = ref(false)
     const unstakingSuccess = ref(false)
     const stakingError = ref(null)
     const unstakingError = ref(null)
     const transactionHash = ref('')
-    const minimumStake = 0.01
+    const walletError = ref(false)
     const isConnecting = ref(false)
     const isProcessing = ref(false)
-    const walletError = ref(false)
+    const stakedAmount = ref(0)
+    const rewardsEarned = ref(0)
+    const lastRewardTime = ref(null)
     const availableBalance = ref(0)
     const activeTab = ref('stake')
-    const totalNearBalance = ref(0)
+    const totalBtsgBalance = ref(0)
 
     onMounted(() => {
       if (props.network?.validator?.[0]) {
@@ -376,12 +344,7 @@ export default {
 
     const isValidStake = computed(() => {
       const amount = parseFloat(stakeAmount.value)
-      return (
-        !isNaN(amount) &&
-        amount >= minimumStake &&
-        validatorAddress.value &&
-        amount <= Number(totalNearBalance.value)
-      )
+      return !isNaN(amount) && amount >= minimumStake && validatorAddress.value && amount <= Number(totalBtsgBalance.value)
     })
 
     const isValidUnstake = computed(() => {
@@ -392,41 +355,37 @@ export default {
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
-        stakingError.value = null
-        await walletConnect()
-        const connectedId = await getAccountId()
-        walletAddress.value = connectedId
+        const address = await connectWallet()
+        walletAddress.value = address
         walletConnected.value = true
-        await refreshStakingInfo()
-        return walletAddress.value
+        isConnecting.value = false
+        refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         walletError.value = true
-        stakingError.value = error.message
-      } finally {
         isConnecting.value = false
       }
     }
 
     const refreshStakingInfo = async () => {
-      if (!walletAddress.value || !validatorAddress.value) return
+      if (!walletAddress.value) return
 
       try {
-        const nearBalance = await getNearBalance(walletAddress.value)
-        totalNearBalance.value = nearBalance
-        availableBalance.value = Number(nearBalance).toFixed(4)
+        const btsgBalance = await getBtsgBalance(walletAddress.value)
+        totalBtsgBalance.value = btsgBalance
+        availableBalance.value = Number(btsgBalance).toFixed(4)
 
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
         if (stakingInfo.amount) {
-          stakedAmount.value = Number(utils.format.formatNearAmount(stakingInfo.amount)).toFixed(3)
+          stakedAmount.value = Number(stakingInfo.amount) / 10 ** 6
         } else {
           stakedAmount.value = 0.0
         }
-        rewardsEarned.value = '0'
+
+        rewardsEarned.value = 0
         lastRewardTime.value = null
       } catch (error) {
         console.error('Failed to refresh staking info:', error)
-        stakingError.value = error.message
       }
     }
 
@@ -439,6 +398,7 @@ export default {
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
+        
         const hash = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
@@ -447,23 +407,24 @@ export default {
         transactionHash.value = hash
         stakingSuccess.value = true
         stakeAmount.value = 0 // Reset form
-        await refreshStakingInfo()
+        refreshStakingInfo()
       } catch (error) {
-        console.error('Failed to stake tokens:', error)
-        stakingError.value = error.message
+        console.error('Failed to delegate tokens:', error)
+        stakingError.value = error.message || 'Failed to delegate tokens'
       } finally {
         isProcessing.value = false
       }
     }
 
-    const handleUndelegateTokens = async () => {
+    const handleUndelegateStake = async () => {
       try {
         isProcessing.value = true
         stakingSuccess.value = false
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
-        const hash = await undelegateTokens(
+        
+        const hash = await undelegateStake(
           walletAddress.value,
           validatorAddress.value,
           unstakeAmount.value
@@ -473,8 +434,8 @@ export default {
         unstakeAmount.value = 0 // Reset form
         await refreshStakingInfo()
       } catch (error) {
-        console.error('Failed to undelegate tokens:', error)
-        unstakingError.value = error.message
+        console.error('Failed to undelegate stake:', error)
+        unstakingError.value = error.message || 'Failed to undelegate stake'
       } finally {
         isProcessing.value = false
       }
@@ -497,9 +458,7 @@ export default {
       walletAddress,
       stakeAmount,
       unstakeAmount,
-      stakedAmount,
-      rewardsEarned,
-      lastRewardTime,
+      delegationInfo,
       minimumStake,
       isValidStake,
       isValidUnstake,
@@ -508,16 +467,19 @@ export default {
       stakingError,
       unstakingError,
       transactionHash,
-      isConnecting,
-      isProcessing,
-      walletError,
-      availableBalance,
-      activeTab,
-      totalNearBalance,
       connectWallet: handleConnectWallet,
       delegateTokens: handleDelegateTokens,
-      undelegateTokens: handleUndelegateTokens,
-      truncateAddress
+      undelegateStake: handleUndelegateStake,
+      truncateAddress,
+      walletError,
+      isConnecting,
+      isProcessing,
+      stakedAmount,
+      rewardsEarned,
+      lastRewardTime,
+      availableBalance,
+      activeTab,
+      totalBtsgBalance
     }
   }
 }
@@ -546,15 +508,13 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10001; /* Higher than header (9999) and mobile header (10000) */
+  z-index: 50;
 }
 
 .modal-container {
   background-color: white;
   border-radius: 0.75rem;
-  box-shadow:
-    0 10px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   max-width: 28rem;
   width: 100%;
   overflow: hidden;
@@ -650,9 +610,7 @@ export default {
   padding: 0.75rem 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition:
-    background-color 0.2s,
-    transform 0.1s;
+  transition: background-color 0.2s, transform 0.1s;
 }
 
 .primary-button:hover:not(:disabled) {
@@ -737,9 +695,7 @@ export default {
   font-size: 0.875rem;
   color: #1f2937;
   background-color: white;
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-input:focus {
@@ -983,9 +939,7 @@ input[type='number'] {
   z-index: 10;
   margin-bottom: 0.5rem;
   opacity: 0;
-  transition:
-    opacity 0.2s,
-    visibility 0.2s;
+  transition: opacity 0.2s, visibility 0.2s;
 }
 
 .tooltip::after {
@@ -1003,4 +957,4 @@ input[type='number'] {
   visibility: visible;
   opacity: 1;
 }
-</style>
+</style> 

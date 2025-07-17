@@ -1,7 +1,7 @@
 <template>
   <transition name="modal-fade">
-    <div class="modal-overlay" @click.self="closeModal">
-      <div v-if="network" class="modal-container" @click.stop>
+    <div v-if="network" class="modal-overlay" @click.self="closeModal">
+      <div class="modal-container" @click.stop>
         <div class="modal-content">
           <!-- Header -->
           <div class="modal-header">
@@ -54,7 +54,7 @@
             <div class="warning-content">
               <h3 class="warning-title">Wallet Not Found</h3>
               <p class="warning-message">
-                To use NEAR staking, you need to install the Meteor wallet extension.
+                To use Aura Network staking, you need to install the Keplr wallet extension.
               </p>
             </div>
           </div>
@@ -66,7 +66,7 @@
               class="primary-button full-width"
               :disabled="isConnecting"
             >
-              {{ isConnecting ? 'Connecting...' : 'Connect Meteor Wallet' }}
+              {{ isConnecting ? 'Connecting...' : 'Connect Keplr Wallet' }}
             </button>
 
             <!-- Network Links -->
@@ -104,7 +104,7 @@
                 <div class="wallet-info-row">
                   <span class="info-label">Last Transaction:</span>
                   <a
-                    :href="`https://nearblocks.io/txns/${transactionHash}`"
+                    :href="`https://aurascan.io/transactions/${transactionHash}`"
                     target="_blank"
                     class="transaction-link"
                   >
@@ -116,7 +116,6 @@
 
             <!-- Tab Navigation -->
             <div class="tab-container">
-
               <button
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'stake' }"
@@ -138,27 +137,26 @@
               <div class="staking-form">
                 <!-- Staking Amount Input -->
                 <div class="form-group">
-                  <label class="form-label">Amount to Stake (NEAR)</label>
+                  <label class="form-label">Amount to Stake (AURA)</label>
                   <div class="input-container">
                     <input
                       v-model.number="stakeAmount"
                       type="number"
                       :min="minimumStake"
-                      step="0.1"
+                      step="1"
                       class="form-input"
                       placeholder="Enter amount"
                     />
                     <div class="input-suffix">
-                      <span>NEAR</span>
+                      <span>AURA</span>
                     </div>
                   </div>
                   <div class="input-hint">
-                    <span>Minimum: {{ minimumStake }} NEAR</span>
-
+                    <span>Minimum: {{ minimumStake }} AURA</span>
                     <button
-                      @click="stakeAmount = Number(totalNearBalance)"
+                      @click="stakeAmount = Number(totalAuraBalance)"
                       class="max-button"
-                      :disabled="Number(totalNearBalance) <= 0"
+                      :disabled="Number(totalAuraBalance) <= 0"
                     >
                       Max
                     </button>
@@ -183,11 +181,15 @@
                   <div class="info-card-content">
                     <div class="info-row">
                       <span class="info-label">Available Balance:</span>
-                      <span class="info-value">{{ availableBalance }} NEAR</span>
+                      <span class="info-value">{{ availableBalance }} AURA</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} NEAR</span>
+                      <span class="info-value">{{ stakedAmount }} AURA</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Rewards Earned:</span>
+                      <span class="info-value">{{ formattedRewards }} AURA</span>
                     </div>
                   </div>
                 </div>
@@ -205,7 +207,7 @@
                   class="primary-button full-width delegate-button"
                   :class="{ 'button-disabled': !isValidStake || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Delegate NEAR' }}
+                  {{ isProcessing ? 'Processing...' : 'Delegate AURA' }}
                 </button>
               </div>
             </div>
@@ -215,23 +217,23 @@
               <div class="staking-form">
                 <!-- Unstaking Amount Input -->
                 <div class="form-group">
-                  <label class="form-label">Amount to Unstake (NEAR)</label>
+                  <label class="form-label">Amount to Unstake (AURA)</label>
                   <div class="input-container">
                     <input
                       v-model.number="unstakeAmount"
                       type="number"
                       :min="0"
                       :max="stakedAmount"
-                      step="0.1"
+                      step="1"
                       class="form-input"
                       placeholder="Enter amount to unstake"
                     />
                     <div class="input-suffix">
-                      <span>NEAR</span>
+                      <span>AURA</span>
                     </div>
                   </div>
                   <div class="input-hint">
-                    <span>Available to unstake: {{ stakedAmount }} NEAR</span>
+                    <span>Available to unstake: {{ stakedAmount }} AURA</span>
                     <button
                       @click="unstakeAmount = stakedAmount"
                       class="max-button"
@@ -248,15 +250,15 @@
                   <div class="info-card-content">
                     <div class="info-row">
                       <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} NEAR</span>
+                      <span class="info-value">{{ stakedAmount }} AURA</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Rewards Earned:</span>
-                      <span class="info-value">{{ rewardsEarned }} NEAR</span>
+                      <span class="info-value">{{ formattedRewards }} AURA</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Unbonding Period:</span>
-                      <span class="info-value">36 hours</span>
+                      <span class="info-value">21 days</span>
                     </div>
                   </div>
                 </div>
@@ -265,8 +267,8 @@
                 <div class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
-                    <strong>Important:</strong> Unstaked tokens will be locked for 45 ~ 60 hours
-                    before becoming available for withdrawal.
+                    <strong>Important:</strong> Unstaked tokens will be locked for 21 days before
+                    becoming available for withdrawal.
                   </div>
                 </div>
 
@@ -280,12 +282,12 @@
 
                 <!-- Unstake Action Button -->
                 <button
-                  @click="undelegateTokens"
+                  @click="undelegateStake"
                   :disabled="!isValidUnstake || isProcessing"
                   class="primary-button full-width delegate-button unstake-button"
                   :class="{ 'button-disabled': !isValidUnstake || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Undelegate NEAR' }}
+                  {{ isProcessing ? 'Processing...' : 'Undelegate AURA' }}
                 </button>
               </div>
             </div>
@@ -319,17 +321,20 @@
 <script>
 import { ref, computed, onMounted, watch } from 'vue'
 import {
-  walletConnect,
+  connectWallet,
   delegateTokens,
-  getAccountId,
+  undelegateStake,
   getTotalStakedAmount,
-  undelegateTokens,
-  getNearBalance
-} from '../../utils/NearStaking'
-import { utils } from 'near-api-js'
+  getAuraBalance,
+  getAuraRewards
+} from '../../utils/AuraStaking'
+
+function uauraToAura(amount) {
+  return (Number(amount) / 1_000_000).toFixed(10)
+}
 
 export default {
-  name: 'NearStaking',
+  name: 'AuraStaking',
   props: {
     network: {
       type: Object,
@@ -343,21 +348,23 @@ export default {
     const stakeAmount = ref(0)
     const unstakeAmount = ref(0)
     const validatorAddress = ref('')
-    const stakedAmount = ref(0)
-    const rewardsEarned = ref(0)
-    const lastRewardTime = ref(null)
+    const delegationInfo = ref(null)
+    const minimumStake = 0.01
     const stakingSuccess = ref(false)
     const unstakingSuccess = ref(false)
     const stakingError = ref(null)
     const unstakingError = ref(null)
     const transactionHash = ref('')
-    const minimumStake = 0.01
+    const walletError = ref(false)
     const isConnecting = ref(false)
     const isProcessing = ref(false)
-    const walletError = ref(false)
+    const stakedAmount = ref(0)
+    const rewardsEarned = ref(0)
+    const lastRewardTime = ref(null)
     const availableBalance = ref(0)
     const activeTab = ref('stake')
-    const totalNearBalance = ref(0)
+    const totalAuraBalance = ref(0)
+    const formattedRewards = ref('0')
 
     onMounted(() => {
       if (props.network?.validator?.[0]) {
@@ -380,7 +387,7 @@ export default {
         !isNaN(amount) &&
         amount >= minimumStake &&
         validatorAddress.value &&
-        amount <= Number(totalNearBalance.value)
+        amount <= Number(totalAuraBalance.value)
       )
     })
 
@@ -392,41 +399,45 @@ export default {
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
-        stakingError.value = null
-        await walletConnect()
-        const connectedId = await getAccountId()
-        walletAddress.value = connectedId
+        const address = await connectWallet()
+        walletAddress.value = address
         walletConnected.value = true
-        await refreshStakingInfo()
-        return walletAddress.value
+        isConnecting.value = false
+        refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         walletError.value = true
-        stakingError.value = error.message
-      } finally {
         isConnecting.value = false
       }
     }
 
     const refreshStakingInfo = async () => {
-      if (!walletAddress.value || !validatorAddress.value) return
+      if (!walletAddress.value) return
 
       try {
-        const nearBalance = await getNearBalance(walletAddress.value)
-        totalNearBalance.value = nearBalance
-        availableBalance.value = Number(nearBalance).toFixed(4)
+        const auraBalance = await getAuraBalance(walletAddress.value)
+        totalAuraBalance.value = auraBalance
+        availableBalance.value = Number(auraBalance).toFixed(4)
 
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
         if (stakingInfo.amount) {
-          stakedAmount.value = Number(utils.format.formatNearAmount(stakingInfo.amount)).toFixed(3)
+          stakedAmount.value = Number(stakingInfo.amount) / 10 ** 6
         } else {
           stakedAmount.value = 0.0
         }
-        rewardsEarned.value = '0'
+
+        // Fetch rewards
+        const rewardsData = await getAuraRewards(walletAddress.value, validatorAddress.value)
+        let totalReward = 0
+        if (rewardsData && rewardsData.total && rewardsData.total.length > 0) {
+          totalReward = uauraToAura(rewardsData.total[0].amount)
+        }
+        formattedRewards.value = totalReward
+        rewardsEarned.value = totalReward
+
         lastRewardTime.value = null
       } catch (error) {
         console.error('Failed to refresh staking info:', error)
-        stakingError.value = error.message
       }
     }
 
@@ -439,6 +450,7 @@ export default {
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
+
         const hash = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
@@ -447,23 +459,28 @@ export default {
         transactionHash.value = hash
         stakingSuccess.value = true
         stakeAmount.value = 0 // Reset form
-        await refreshStakingInfo()
+        refreshStakingInfo()
       } catch (error) {
-        console.error('Failed to stake tokens:', error)
-        stakingError.value = error.message
+        console.error('Failed to delegate tokens:', error)
+        stakingError.value = error.message || 'Failed to delegate tokens'
       } finally {
         isProcessing.value = false
       }
     }
 
-    const handleUndelegateTokens = async () => {
+    const closeModal = () => {
+      emit('close')
+    }
+
+    const handleUndelegateStake = async () => {
       try {
         isProcessing.value = true
         stakingSuccess.value = false
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
-        const hash = await undelegateTokens(
+
+        const hash = await undelegateStake(
           walletAddress.value,
           validatorAddress.value,
           unstakeAmount.value
@@ -473,15 +490,11 @@ export default {
         unstakeAmount.value = 0 // Reset form
         await refreshStakingInfo()
       } catch (error) {
-        console.error('Failed to undelegate tokens:', error)
-        unstakingError.value = error.message
+        console.error('Failed to undelegate stake:', error)
+        unstakingError.value = error.message || 'Failed to undelegate stake'
       } finally {
         isProcessing.value = false
       }
-    }
-
-    const closeModal = () => {
-      emit('close')
     }
 
     const truncateAddress = (address) => {
@@ -497,9 +510,7 @@ export default {
       walletAddress,
       stakeAmount,
       unstakeAmount,
-      stakedAmount,
-      rewardsEarned,
-      lastRewardTime,
+      delegationInfo,
       minimumStake,
       isValidStake,
       isValidUnstake,
@@ -508,16 +519,20 @@ export default {
       stakingError,
       unstakingError,
       transactionHash,
-      isConnecting,
-      isProcessing,
-      walletError,
-      availableBalance,
-      activeTab,
-      totalNearBalance,
       connectWallet: handleConnectWallet,
       delegateTokens: handleDelegateTokens,
-      undelegateTokens: handleUndelegateTokens,
-      truncateAddress
+      undelegateStake: handleUndelegateStake,
+      truncateAddress,
+      walletError,
+      isConnecting,
+      isProcessing,
+      stakedAmount,
+      rewardsEarned,
+      lastRewardTime,
+      availableBalance,
+      activeTab,
+      totalAuraBalance,
+      formattedRewards
     }
   }
 }
@@ -546,7 +561,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10001; /* Higher than header (9999) and mobile header (10000) */
+  z-index: 10001;
 }
 
 .modal-container {
@@ -558,6 +573,8 @@ export default {
   max-width: 28rem;
   width: 100%;
   overflow: hidden;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .modal-content {
@@ -590,6 +607,54 @@ export default {
 
 .close-button:hover {
   color: #374151;
+}
+
+/* Tab Navigation */
+.tab-container {
+  display: flex;
+  background-color: #f3f4f6;
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #6b7280;
+}
+
+.tab-button.tab-active {
+  background-color: #6366f1;
+  color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tab-button:hover:not(.tab-active) {
+  color: #374151;
+  background-color: #e5e7eb;
+}
+
+/* Tab Content */
+.tab-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Network Description */
@@ -637,11 +702,6 @@ export default {
 }
 
 /* Buttons */
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-}
-
 .primary-button {
   background-color: #6366f1;
   color: white;
@@ -672,8 +732,30 @@ export default {
   cursor: not-allowed;
 }
 
-.delegate-button {
-  margin-top: 1.5rem;
+.unstake-button {
+  background-color: #dc2626;
+}
+
+.unstake-button:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+.max-button {
+  background: none;
+  border: none;
+  color: #6366f1;
+  cursor: pointer;
+  font-size: 0.75rem;
+  text-decoration: underline;
+}
+
+.max-button:hover:not(:disabled) {
+  color: #4f46e5;
+}
+
+.max-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Wallet Info Card */
@@ -762,6 +844,7 @@ export default {
 .input-hint {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-top: 0.25rem;
   font-size: 0.75rem;
   color: #6b7280;
@@ -803,6 +886,28 @@ export default {
 .info-value {
   font-weight: 500;
   color: #1f2937;
+}
+
+/* Warning Card */
+.warning-card {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin: 1rem 0;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.warning-icon-small {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.warning-text {
+  font-size: 0.875rem;
+  color: #92400e;
 }
 
 /* Success/Error Messages */
@@ -866,100 +971,6 @@ input[type='number']::-webkit-outer-spin-button {
 
 input[type='number'] {
   -moz-appearance: textfield;
-}
-
-/* Add new styles for tabs and unstaking */
-.tab-container {
-  display: flex;
-  background-color: #f3f4f6;
-  border-radius: 0.5rem;
-  padding: 0.25rem;
-  margin-bottom: 1.5rem;
-}
-
-.tab-button {
-  flex: 1;
-  padding: 0.5rem 1rem;
-  border: none;
-  background: none;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: #6b7280;
-}
-
-.tab-button.tab-active {
-  background-color: #6366f1;
-  color: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.tab-button:hover:not(.tab-active) {
-  color: #374151;
-  background-color: #e5e7eb;
-}
-
-.tab-content {
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.warning-card {
-  background-color: #fef3c7;
-  border: 1px solid #f59e0b;
-  border-radius: 0.5rem;
-  padding: 0.75rem;
-  margin: 1rem 0;
-  display: flex;
-  gap: 0.75rem;
-  align-items: flex-start;
-}
-
-.warning-icon-small {
-  font-size: 1.25rem;
-  flex-shrink: 0;
-}
-
-.warning-text {
-  font-size: 0.875rem;
-  color: #92400e;
-}
-
-.unstake-button {
-  background-color: #dc2626;
-}
-
-.unstake-button:hover:not(:disabled) {
-  background-color: #b91c1c;
-}
-
-.max-button {
-  background: none;
-  border: none;
-  color: #6366f1;
-  cursor: pointer;
-  font-size: 0.75rem;
-  text-decoration: underline;
-}
-
-.max-button:hover:not(:disabled) {
-  color: #4f46e5;
-}
-
-.max-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .tooltip-container {

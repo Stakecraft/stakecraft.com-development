@@ -1,11 +1,11 @@
 import { SigningStargateClient, GasPrice } from '@cosmjs/stargate'
 
-const KAVA_CHAIN_ID = 'kava_2222-10'
+const AURA_CHAIN_ID = 'xstaxy-1'
 
 const RPC_ENDPOINTS = [
-  'https://kava-rpc.polkachu.com',
-  'https://kava-rpc.publicnode.com',
-  'https://rpc-kava-ia.cosmosia.notional.ventures'
+  'https://rpc.aura.network',
+  'https://aura-rpc.polkachu.com',
+  'https://m-aura.rpc.utsa.tech'
 ]
 
 // Connect wallet
@@ -13,8 +13,8 @@ export const connectWallet = async () => {
   if (!window.keplr) {
     throw new Error('Please install Keplr extension')
   }
-  await window.keplr.enable(KAVA_CHAIN_ID)
-  const offlineSigner = window.getOfflineSigner(KAVA_CHAIN_ID)
+  await window.keplr.enable(AURA_CHAIN_ID)
+  const offlineSigner = window.getOfflineSigner(AURA_CHAIN_ID)
   const accounts = await offlineSigner.getAccounts()
   return accounts[0].address
 }
@@ -25,7 +25,7 @@ export const tryRpcEndpoints = async (offlineSigner) => {
   for (const endpoint of RPC_ENDPOINTS) {
     try {
       const client = await SigningStargateClient.connectWithSigner(endpoint, offlineSigner, {
-        gasPrice: GasPrice.fromString('0.025ukava')
+        gasPrice: GasPrice.fromString('0.001uaura')
       })
       return client
     } catch (error) {
@@ -36,28 +36,28 @@ export const tryRpcEndpoints = async (offlineSigner) => {
   throw new Error(`Failed to connect to any RPC endpoint. Last error: ${lastError?.message}`)
 }
 
-// Get KAVA balance for a wallet address
-export const getKavaBalance = async (walletAddress) => {
+// Get AURA balance for a wallet address
+export const getAuraBalance = async (walletAddress) => {
   try {
-    await window.keplr.enable(KAVA_CHAIN_ID)
-    const offlineSigner = window.getOfflineSigner(KAVA_CHAIN_ID)
+    await window.keplr.enable(AURA_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(AURA_CHAIN_ID)
     const client = await tryRpcEndpoints(offlineSigner)
     const balances = await client.getAllBalances(walletAddress)
-    // Find the KAVA balance (denom: 'ukava')
-    const kavaBalance = balances.find((b) => b.denom === 'ukava')
-    return kavaBalance ? Number(kavaBalance.amount) / 1_000_000 : 0
+    // Find the AURA balance (denom: 'uaura')
+    const auraBalance = balances.find((b) => b.denom === 'uaura')
+    // Convert from micro-AURA to AURA
+    return auraBalance ? Number(auraBalance.amount) / 1_000_000 : 0
   } catch (error) {
-    console.error('Error getting KAVA balance:', error)
-    throw new Error(`Failed to get KAVA balance: ${error.message}`)
+    console.error('Error getting AURA balance:', error)
+    throw new Error(`Failed to get AURA balance: ${error.message}`)
   }
 }
 
 export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) => {
   try {
-    await window.keplr.enable(KAVA_CHAIN_ID)
-    const offlineSigner = window.getOfflineSigner(KAVA_CHAIN_ID)
+    await window.keplr.enable(AURA_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(AURA_CHAIN_ID)
     const client = await tryRpcEndpoints(offlineSigner)
-    console.log('client', client)
     const stakingInfo = await client.getDelegation(delegatorAddress, validatorAddress)
     return stakingInfo
   } catch (error) {
@@ -69,18 +69,18 @@ export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) =
 // Delegate tokens
 export const delegateTokens = async (delegatorAddress, validatorAddress, amount) => {
   try {
-    await window.keplr.enable(KAVA_CHAIN_ID)
-    const offlineSigner = window.getOfflineSigner(KAVA_CHAIN_ID)
+    await window.keplr.enable(AURA_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(AURA_CHAIN_ID)
     const client = await tryRpcEndpoints(offlineSigner)
     const result = await client.delegateTokens(
       delegatorAddress,
       validatorAddress,
       {
-        denom: 'ukava',
+        denom: 'uaura',
         amount: (amount * 1_000_000).toString()
       },
       'auto',
-      'Delegate KAVA tokens'
+      'Delegate AURA tokens'
     )
     return result.transactionHash
   } catch (error) {
@@ -91,8 +91,8 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
 
 export const undelegateStake = async (delegatorAddress, validatorAddress, unstakeAmount) => {
   try {
-    await window.keplr.enable(KAVA_CHAIN_ID)
-    const offlineSigner = window.getOfflineSigner(KAVA_CHAIN_ID)
+    await window.keplr.enable(AURA_CHAIN_ID)
+    const offlineSigner = window.getOfflineSigner(AURA_CHAIN_ID)
     const client = await tryRpcEndpoints(offlineSigner)
 
     const delegation = await client.getDelegation(delegatorAddress, validatorAddress)
@@ -102,9 +102,6 @@ export const undelegateStake = async (delegatorAddress, validatorAddress, unstak
       throw new Error('No delegation found')
     }
 
-    // Get the delegation amount from the correct path in the object
-    // const delegationAmount = delegation?.amount
-    // console.log('delegationAmount', delegationAmount)
     console.log('unstakeAmount', unstakeAmount)
 
     if (!unstakeAmount) {
@@ -113,7 +110,7 @@ export const undelegateStake = async (delegatorAddress, validatorAddress, unstak
 
     // Format the amount properly for undelegation
     const amount = {
-      denom: 'ukava',
+      denom: 'uaura',
       amount: (unstakeAmount * 1_000_000).toString()
     }
     console.log('formatted amount', amount)
@@ -123,7 +120,7 @@ export const undelegateStake = async (delegatorAddress, validatorAddress, unstak
       validatorAddress,
       amount,
       'auto',
-      'Undelegate KAVA tokens'
+      'Undelegate AURA tokens'
     )
     console.log('result', result)
     return result.transactionHash
@@ -134,32 +131,32 @@ export const undelegateStake = async (delegatorAddress, validatorAddress, unstak
 }
 
 // Get staking rewards for a delegator/validator pair
-export const getKavaRewards = async (delegatorAddress, validatorAddress) => {
+export const getAuraRewards = async (delegatorAddress, validatorAddress) => {
   try {
     console.log('validatorAddress', validatorAddress)
 
     const earnedRewards = await fetch(
-      `https://api.data.kava.io/cosmos/distribution/v1beta1/delegators/${delegatorAddress}/rewards`
+      `https://lcd.aura.network/cosmos/distribution/v1beta1/delegators/${delegatorAddress}/rewards`
     ).then((r) => r.json())
     console.log('earnedRewards', earnedRewards)
     return earnedRewards
   } catch (error) {
-    console.error('Error getting KAVA rewards:', error)
+    console.error('Error getting AURA rewards:', error)
     return 0
   }
 }
 
 // Get unbonding delegations for a delegator/validator pair
-export const getKavaUnbonding = async (delegatorAddress, validatorAddress) => {
+export const getAuraUnbonding = async (delegatorAddress, validatorAddress) => {
   try {
     console.log('validatorAddress', validatorAddress)
     const unbonding_responses = await fetch(
-      `https://api.data.kava.io/cosmos/staking/v1beta1/delegators/${delegatorAddress}/unbonding_delegations`
+      `https://lcd.aura.network/cosmos/staking/v1beta1/delegators/${delegatorAddress}/unbonding_delegations`
     ).then((r) => r.json())
     console.log('unbonding_responses', unbonding_responses)
     return unbonding_responses
   } catch (error) {
-    console.error('Error getting KAVA unbonding:', error)
+    console.error('Error getting AURA unbonding:', error)
     return []
   }
 }

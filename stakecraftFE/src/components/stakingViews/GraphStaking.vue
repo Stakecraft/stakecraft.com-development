@@ -1,7 +1,7 @@
 <template>
   <transition name="modal-fade">
-    <div class="modal-overlay" @click.self="closeModal">
-      <div v-if="network" class="modal-container" @click.stop>
+    <div v-if="network" class="modal-overlay" @click.self="closeModal">
+      <div class="modal-container" @click.stop>
         <div class="modal-content">
           <!-- Header -->
           <div class="modal-header">
@@ -54,7 +54,7 @@
             <div class="warning-content">
               <h3 class="warning-title">Wallet Not Found</h3>
               <p class="warning-message">
-                To use NEAR staking, you need to install the Meteor wallet extension.
+                To use The Graph delegation, you need to install the MetaMask wallet extension.
               </p>
             </div>
           </div>
@@ -66,7 +66,7 @@
               class="primary-button full-width"
               :disabled="isConnecting"
             >
-              {{ isConnecting ? 'Connecting...' : 'Connect Meteor Wallet' }}
+              {{ isConnecting ? 'Connecting...' : 'Connect MetaMask Wallet' }}
             </button>
 
             <!-- Network Links -->
@@ -85,7 +85,7 @@
                 target="_blank"
                 class="link-primary"
               >
-                How to Stake
+                How to Delegate
               </a>
             </div>
           </div>
@@ -104,11 +104,11 @@
                 <div class="wallet-info-row">
                   <span class="info-label">Last Transaction:</span>
                   <a
-                    :href="`https://nearblocks.io/txns/${transactionHash}`"
+                    :href="`https://etherscan.io/tx/${transactionHash}`"
                     target="_blank"
                     class="transaction-link"
                   >
-                    View on Explorer
+                    View on Etherscan
                   </a>
                 </div>
               </div>
@@ -116,176 +116,185 @@
 
             <!-- Tab Navigation -->
             <div class="tab-container">
-
               <button
                 class="tab-button"
-                :class="{ 'tab-active': activeTab === 'stake' }"
-                @click="activeTab = 'stake'"
+                :class="{ 'tab-active': activeTab === 'delegate' }"
+                @click="activeTab = 'delegate'"
               >
-                Stake
+                Delegate
               </button>
               <button
                 class="tab-button"
-                :class="{ 'tab-active': activeTab === 'unstake' }"
-                @click="activeTab = 'unstake'"
+                :class="{ 'tab-active': activeTab === 'undelegate' }"
+                @click="activeTab = 'undelegate'"
               >
-                Unstake
+                Undelegate
               </button>
             </div>
 
-            <!-- Staking Tab Content -->
-            <div v-if="activeTab === 'stake'" class="tab-content">
+            <!-- Delegation Tab Content -->
+            <div v-if="activeTab === 'delegate'" class="tab-content">
               <div class="staking-form">
-                <!-- Staking Amount Input -->
+                <!-- Delegation Amount Input -->
                 <div class="form-group">
-                  <label class="form-label">Amount to Stake (NEAR)</label>
+                  <label class="form-label">Amount to Delegate (GRT)</label>
                   <div class="input-container">
                     <input
-                      v-model.number="stakeAmount"
+                      v-model.number="delegateAmount"
                       type="number"
-                      :min="minimumStake"
-                      step="0.1"
+                      :min="minimumDelegate"
+                      step="1"
                       class="form-input"
                       placeholder="Enter amount"
                     />
                     <div class="input-suffix">
-                      <span>NEAR</span>
+                      <span>GRT</span>
                     </div>
                   </div>
                   <div class="input-hint">
-                    <span>Minimum: {{ minimumStake }} NEAR</span>
-
+                    <span>Minimum: {{ minimumDelegate }} GRT</span>
                     <button
-                      @click="stakeAmount = Number(totalNearBalance)"
+                      @click="delegateAmount = Number(totalGrtBalance)"
                       class="max-button"
-                      :disabled="Number(totalNearBalance) <= 0"
+                      :disabled="Number(totalGrtBalance) <= 0"
                     >
                       Max
                     </button>
                   </div>
                 </div>
 
-                <!-- Validator Address -->
+                <!-- Indexer Address -->
                 <div class="form-group">
-                  <label class="form-label">Validator Address</label>
+                  <label class="form-label">Indexer Address</label>
                   <input
                     :value="network.validator"
                     type="text"
                     class="form-input"
-                    placeholder="Enter validator address"
+                    placeholder="Enter indexer address"
                     readonly
                   />
                 </div>
 
-                <!-- Staking Info -->
+                <!-- Delegation Info -->
                 <div class="info-card">
-                  <h3 class="info-card-title">Current Staking Status</h3>
+                  <h3 class="info-card-title">Current Delegation Status</h3>
                   <div class="info-card-content">
                     <div class="info-row">
                       <span class="info-label">Available Balance:</span>
-                      <span class="info-value">{{ availableBalance }} NEAR</span>
+                      <span class="info-value">{{ availableBalance }} GRT</span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} NEAR</span>
+                      <span class="info-label">Currently Delegated:</span>
+                      <span class="info-value">{{ delegatedAmount }} GRT</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Query Fees Earned:</span>
+                      <span class="info-value">{{ rewardsEarned }} GRT</span>
                     </div>
                   </div>
                 </div>
 
-                <!-- Success/Error Messages for Staking -->
-                <div v-if="stakingSuccess" class="success-message">Successfully delegated !</div>
-                <div v-if="stakingError" class="error-message">
-                  {{ stakingError }}
+                <!-- Success/Error Messages for Delegation -->
+                <div v-if="delegationSuccess" class="success-message">
+                  Successfully delegated GRT tokens!
+                </div>
+                <div v-if="delegationError" class="error-message">
+                  {{ delegationError }}
                 </div>
 
-                <!-- Stake Action Button -->
+                <!-- Delegate Action Button -->
                 <button
-                  @click="delegateTokens"
-                  :disabled="!isValidStake || isProcessing"
+                  @click="delegateToIndexer"
+                  :disabled="!isValidDelegate || isProcessing"
                   class="primary-button full-width delegate-button"
-                  :class="{ 'button-disabled': !isValidStake || isProcessing }"
+                  :class="{ 'button-disabled': !isValidDelegate || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Delegate NEAR' }}
+                  {{ isProcessing ? 'Processing...' : 'Delegate GRT' }}
                 </button>
               </div>
             </div>
 
-            <!-- Unstaking Tab Content -->
-            <div v-if="activeTab === 'unstake'" class="tab-content">
+            <!-- Undelegation Tab Content -->
+            <div v-if="activeTab === 'undelegate'" class="tab-content">
               <div class="staking-form">
-                <!-- Unstaking Amount Input -->
+                <!-- Undelegation Amount Input -->
                 <div class="form-group">
-                  <label class="form-label">Amount to Unstake (NEAR)</label>
+                  <label class="form-label">Amount to Undelegate (GRT)</label>
                   <div class="input-container">
                     <input
-                      v-model.number="unstakeAmount"
+                      v-model.number="undelegateAmount"
                       type="number"
                       :min="0"
-                      :max="stakedAmount"
-                      step="0.1"
+                      :max="delegatedAmount"
+                      step="1"
                       class="form-input"
-                      placeholder="Enter amount to unstake"
+                      placeholder="Enter amount to undelegate"
                     />
                     <div class="input-suffix">
-                      <span>NEAR</span>
+                      <span>GRT</span>
                     </div>
                   </div>
                   <div class="input-hint">
-                    <span>Available to unstake: {{ stakedAmount }} NEAR</span>
+                    <span>Available to undelegate: {{ delegatedAmount }} GRT</span>
                     <button
-                      @click="unstakeAmount = stakedAmount"
+                      @click="undelegateAmount = delegatedAmount"
                       class="max-button"
-                      :disabled="stakedAmount <= 0"
+                      :disabled="delegatedAmount <= 0"
                     >
                       Max
                     </button>
                   </div>
                 </div>
 
-                <!-- Unstaking Info -->
+                <!-- Undelegation Info -->
                 <div class="info-card">
-                  <h3 class="info-card-title">Unstaking Information</h3>
+                  <h3 class="info-card-title">Undelegation Information</h3>
                   <div class="info-card-content">
                     <div class="info-row">
-                      <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} NEAR</span>
+                      <span class="info-label">Currently Delegated:</span>
+                      <span class="info-value">{{ delegatedAmount }} GRT</span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">Rewards Earned:</span>
-                      <span class="info-value">{{ rewardsEarned }} NEAR</span>
+                      <span class="info-label">Query Fees Earned:</span>
+                      <span class="info-value">{{ rewardsEarned }} GRT</span>
                     </div>
                     <div class="info-row">
-                      <span class="info-label">Unbonding Period:</span>
-                      <span class="info-value">36 hours</span>
+                      <span class="info-label">Thawing Period:</span>
+                      <span class="info-value">28 days</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Delegation Tax:</span>
+                      <span class="info-value">0.5%</span>
                     </div>
                   </div>
                 </div>
 
-                <!-- Unstaking Warning -->
+                <!-- Undelegation Warning -->
                 <div class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
-                    <strong>Important:</strong> Unstaked tokens will be locked for 45 ~ 60 hours
-                    before becoming available for withdrawal.
+                    <strong>Important:</strong> Undelegated tokens will enter a 28-day thawing
+                    period before becoming available for withdrawal. A 0.5% delegation tax will be
+                    applied.
                   </div>
                 </div>
 
-                <!-- Success/Error Messages for Unstaking -->
-                <div v-if="unstakingSuccess" class="success-message">
-                  Successfully Undelegated !
+                <!-- Success/Error Messages for Undelegation -->
+                <div v-if="undelegationSuccess" class="success-message">
+                  Successfully undelegated GRT tokens!
                 </div>
-                <div v-if="unstakingError" class="error-message">
-                  {{ unstakingError }}
+                <div v-if="undelegationError" class="error-message">
+                  {{ undelegationError }}
                 </div>
 
-                <!-- Unstake Action Button -->
+                <!-- Undelegate Action Button -->
                 <button
-                  @click="undelegateTokens"
-                  :disabled="!isValidUnstake || isProcessing"
+                  @click="undelegateFromIndexer"
+                  :disabled="!isValidUndelegate || isProcessing"
                   class="primary-button full-width delegate-button unstake-button"
-                  :class="{ 'button-disabled': !isValidUnstake || isProcessing }"
+                  :class="{ 'button-disabled': !isValidUndelegate || isProcessing }"
                 >
-                  {{ isProcessing ? 'Processing...' : 'Undelegate NEAR' }}
+                  {{ isProcessing ? 'Processing...' : 'Undelegate GRT' }}
                 </button>
               </div>
             </div>
@@ -306,7 +315,7 @@
                 target="_blank"
                 class="link-primary"
               >
-                How to Stake
+                How to Delegate
               </a>
             </div>
           </div>
@@ -319,17 +328,16 @@
 <script>
 import { ref, computed, onMounted, watch } from 'vue'
 import {
-  walletConnect,
-  delegateTokens,
-  getAccountId,
-  getTotalStakedAmount,
-  undelegateTokens,
-  getNearBalance
-} from '../../utils/NearStaking'
-import { utils } from 'near-api-js'
+  connectWallet,
+  delegateToIndexer,
+  undelegateFromIndexer,
+  getDelegatedAmount,
+  getGrtBalance,
+  getQueryFeesEarned
+} from '../../utils/GraphStaking'
 
 export default {
-  name: 'NearStaking',
+  name: 'GraphStaking',
   props: {
     network: {
       type: Object,
@@ -340,141 +348,138 @@ export default {
   setup(props, { emit }) {
     const walletConnected = ref(false)
     const walletAddress = ref('')
-    const stakeAmount = ref(0)
-    const unstakeAmount = ref(0)
-    const validatorAddress = ref('')
-    const stakedAmount = ref(0)
-    const rewardsEarned = ref(0)
-    const lastRewardTime = ref(null)
-    const stakingSuccess = ref(false)
-    const unstakingSuccess = ref(false)
-    const stakingError = ref(null)
-    const unstakingError = ref(null)
+    const delegateAmount = ref(0)
+    const undelegateAmount = ref(0)
+    const indexerAddress = ref('')
+    const delegationInfo = ref(null)
+    const minimumDelegate = 100 // 100 GRT minimum
+    const delegationSuccess = ref(false)
+    const undelegationSuccess = ref(false)
+    const delegationError = ref(null)
+    const undelegationError = ref(null)
     const transactionHash = ref('')
-    const minimumStake = 0.01
+    const walletError = ref(false)
     const isConnecting = ref(false)
     const isProcessing = ref(false)
-    const walletError = ref(false)
+    const delegatedAmount = ref(0)
+    const rewardsEarned = ref(0)
+    const lastRewardTime = ref(null)
     const availableBalance = ref(0)
-    const activeTab = ref('stake')
-    const totalNearBalance = ref(0)
+    const activeTab = ref('delegate')
+    const totalGrtBalance = ref(0)
 
     onMounted(() => {
       if (props.network?.validator?.[0]) {
-        validatorAddress.value = props.network.validator[0]
+        indexerAddress.value = props.network.validator[0]
       }
     })
 
     // Add watch on activeTab to clear messages
     watch(activeTab, () => {
-      stakingSuccess.value = false
-      stakingError.value = null
-      unstakingSuccess.value = false
-      unstakingError.value = null
+      delegationSuccess.value = false
+      delegationError.value = null
+      undelegationSuccess.value = false
+      undelegationError.value = null
       transactionHash.value = ''
     })
 
-    const isValidStake = computed(() => {
-      const amount = parseFloat(stakeAmount.value)
+    const isValidDelegate = computed(() => {
+      const amount = parseFloat(delegateAmount.value)
       return (
         !isNaN(amount) &&
-        amount >= minimumStake &&
-        validatorAddress.value &&
-        amount <= Number(totalNearBalance.value)
+        amount >= minimumDelegate &&
+        indexerAddress.value &&
+        amount <= Number(totalGrtBalance.value)
       )
     })
 
-    const isValidUnstake = computed(() => {
-      const amount = parseFloat(unstakeAmount.value)
-      return !isNaN(amount) && amount > 0 && amount <= stakedAmount.value
+    const isValidUndelegate = computed(() => {
+      const amount = parseFloat(undelegateAmount.value)
+      return !isNaN(amount) && amount > 0 && amount <= delegatedAmount.value
     })
 
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
-        stakingError.value = null
-        await walletConnect()
-        const connectedId = await getAccountId()
-        walletAddress.value = connectedId
+        const address = await connectWallet()
+        walletAddress.value = address
         walletConnected.value = true
-        await refreshStakingInfo()
-        return walletAddress.value
+        isConnecting.value = false
+        refreshDelegationInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         walletError.value = true
-        stakingError.value = error.message
-      } finally {
         isConnecting.value = false
       }
     }
 
-    const refreshStakingInfo = async () => {
-      if (!walletAddress.value || !validatorAddress.value) return
+    const refreshDelegationInfo = async () => {
+      if (!walletAddress.value) return
 
       try {
-        const nearBalance = await getNearBalance(walletAddress.value)
-        totalNearBalance.value = nearBalance
-        availableBalance.value = Number(nearBalance).toFixed(4)
+        const grtBalance = await getGrtBalance(walletAddress.value)
+        totalGrtBalance.value = grtBalance
+        availableBalance.value = Number(grtBalance).toFixed(2)
 
-        const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
-        if (stakingInfo.amount) {
-          stakedAmount.value = Number(utils.format.formatNearAmount(stakingInfo.amount)).toFixed(3)
-        } else {
-          stakedAmount.value = 0.0
-        }
-        rewardsEarned.value = '0'
+        const delegationInfo = await getDelegatedAmount(walletAddress.value, indexerAddress.value)
+        delegatedAmount.value = delegationInfo || 0
+
+        const queryFees = await getQueryFeesEarned(walletAddress.value, indexerAddress.value)
+        rewardsEarned.value = queryFees || 0
+
         lastRewardTime.value = null
       } catch (error) {
-        console.error('Failed to refresh staking info:', error)
-        stakingError.value = error.message
+        console.error('Failed to refresh delegation info:', error)
       }
     }
 
-    const handleDelegateTokens = async () => {
-      if (!isValidStake.value) return
+    const handleDelegateToIndexer = async () => {
+      if (!isValidDelegate.value) return
 
       try {
         isProcessing.value = true
-        stakingSuccess.value = false
-        stakingError.value = null
-        unstakingSuccess.value = false
-        unstakingError.value = null
-        const hash = await delegateTokens(
+        delegationSuccess.value = false
+        delegationError.value = null
+        undelegationSuccess.value = false
+        undelegationError.value = null
+
+        const hash = await delegateToIndexer(
           walletAddress.value,
-          validatorAddress.value,
-          stakeAmount.value
+          indexerAddress.value,
+          delegateAmount.value
         )
         transactionHash.value = hash
-        stakingSuccess.value = true
-        stakeAmount.value = 0 // Reset form
-        await refreshStakingInfo()
+        delegationSuccess.value = true
+        delegateAmount.value = 0 // Reset form
+        refreshDelegationInfo()
       } catch (error) {
-        console.error('Failed to stake tokens:', error)
-        stakingError.value = error.message
+        console.error('Failed to delegate to indexer:', error)
+        delegationError.value = error.message || 'Failed to delegate tokens'
       } finally {
         isProcessing.value = false
       }
     }
 
-    const handleUndelegateTokens = async () => {
+    const handleUndelegateFromIndexer = async () => {
       try {
         isProcessing.value = true
-        stakingSuccess.value = false
-        stakingError.value = null
-        unstakingSuccess.value = false
-        unstakingError.value = null
-        const hash = await undelegateTokens(
+        delegationSuccess.value = false
+        delegationError.value = null
+        undelegationSuccess.value = false
+        undelegationError.value = null
+
+        const hash = await undelegateFromIndexer(
           walletAddress.value,
-          validatorAddress.value,
-          unstakeAmount.value
+          indexerAddress.value,
+          undelegateAmount.value
         )
         transactionHash.value = hash
-        unstakingSuccess.value = true
-        unstakeAmount.value = 0 // Reset form
-        await refreshStakingInfo()
+        undelegationSuccess.value = true
+        undelegateAmount.value = 0 // Reset form
+        await refreshDelegationInfo()
       } catch (error) {
-        console.error('Failed to undelegate tokens:', error)
-        unstakingError.value = error.message
+        console.error('Failed to undelegate from indexer:', error)
+        undelegationError.value = error.message || 'Failed to undelegate tokens'
       } finally {
         isProcessing.value = false
       }
@@ -491,33 +496,34 @@ export default {
     }
 
     return {
-      validatorAddress,
+      indexerAddress,
       closeModal,
       walletConnected,
       walletAddress,
-      stakeAmount,
-      unstakeAmount,
-      stakedAmount,
-      rewardsEarned,
-      lastRewardTime,
-      minimumStake,
-      isValidStake,
-      isValidUnstake,
-      stakingSuccess,
-      unstakingSuccess,
-      stakingError,
-      unstakingError,
+      delegateAmount,
+      undelegateAmount,
+      delegationInfo,
+      minimumDelegate,
+      isValidDelegate,
+      isValidUndelegate,
+      delegationSuccess,
+      undelegationSuccess,
+      delegationError,
+      undelegationError,
       transactionHash,
+      connectWallet: handleConnectWallet,
+      delegateToIndexer: handleDelegateToIndexer,
+      undelegateFromIndexer: handleUndelegateFromIndexer,
+      truncateAddress,
+      walletError,
       isConnecting,
       isProcessing,
-      walletError,
+      delegatedAmount,
+      rewardsEarned,
+      lastRewardTime,
       availableBalance,
       activeTab,
-      totalNearBalance,
-      connectWallet: handleConnectWallet,
-      delegateTokens: handleDelegateTokens,
-      undelegateTokens: handleUndelegateTokens,
-      truncateAddress
+      totalGrtBalance
     }
   }
 }
@@ -558,6 +564,8 @@ export default {
   max-width: 28rem;
   width: 100%;
   overflow: hidden;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .modal-content {
@@ -603,6 +611,39 @@ export default {
   margin: 0;
 }
 
+/* Wallet Warning */
+.wallet-warning {
+  background-color: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  display: flex;
+  gap: 1rem;
+}
+
+.warning-icon {
+  color: #ea580c;
+  flex-shrink: 0;
+}
+
+.warning-content {
+  flex: 1;
+}
+
+.warning-title {
+  color: #ea580c;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.warning-message {
+  color: #9a3412;
+  font-size: 0.875rem;
+  margin: 0 0 0.75rem 0;
+}
+
 /* Wallet Connection */
 .wallet-connection {
   display: flex;
@@ -636,12 +677,55 @@ export default {
   text-decoration: underline;
 }
 
-/* Buttons */
-.action-buttons {
+/* Tab Navigation */
+.tab-container {
   display: flex;
-  gap: 0.5rem;
+  background-color: #f3f4f6;
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+  margin-bottom: 1.5rem;
 }
 
+.tab-button {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #6b7280;
+}
+
+.tab-button.tab-active {
+  background-color: #6366f1;
+  color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tab-button:hover:not(.tab-active) {
+  color: #374151;
+  background-color: #e5e7eb;
+}
+
+/* Tab Content */
+.tab-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Buttons */
 .primary-button {
   background-color: #6366f1;
   color: white;
@@ -672,8 +756,30 @@ export default {
   cursor: not-allowed;
 }
 
-.delegate-button {
-  margin-top: 1.5rem;
+.unstake-button {
+  background-color: #dc2626;
+}
+
+.unstake-button:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+.max-button {
+  background: none;
+  border: none;
+  color: #6366f1;
+  cursor: pointer;
+  font-size: 0.75rem;
+  text-decoration: underline;
+}
+
+.max-button:hover:not(:disabled) {
+  color: #4f46e5;
+}
+
+.max-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Wallet Info Card */
@@ -762,6 +868,7 @@ export default {
 .input-hint {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-top: 0.25rem;
   font-size: 0.75rem;
   color: #6b7280;
@@ -805,116 +912,7 @@ export default {
   color: #1f2937;
 }
 
-/* Success/Error Messages */
-.success-message {
-  color: #059669;
-  background-color: #ecfdf5;
-  padding: 0.75rem;
-  border-radius: 0.375rem;
-  margin-top: 1rem;
-  font-size: 0.875rem;
-}
-
-.error-message {
-  color: #dc2626;
-  background-color: #fef2f2;
-  padding: 0.75rem;
-  border-radius: 0.375rem;
-  margin-top: 1rem;
-  font-size: 0.875rem;
-}
-
-/* Wallet Warning */
-.wallet-warning {
-  background-color: #fff7ed;
-  border: 1px solid #fdba74;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin: 1rem 0;
-  display: flex;
-  gap: 1rem;
-}
-
-.warning-icon {
-  color: #ea580c;
-  flex-shrink: 0;
-}
-
-.warning-content {
-  flex: 1;
-}
-
-.warning-title {
-  color: #ea580c;
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
-}
-
-.warning-message {
-  color: #9a3412;
-  font-size: 0.875rem;
-  margin: 0 0 0.75rem 0;
-}
-
-/* Remove number input arrows */
-input[type='number']::-webkit-inner-spin-button,
-input[type='number']::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-input[type='number'] {
-  -moz-appearance: textfield;
-}
-
-/* Add new styles for tabs and unstaking */
-.tab-container {
-  display: flex;
-  background-color: #f3f4f6;
-  border-radius: 0.5rem;
-  padding: 0.25rem;
-  margin-bottom: 1.5rem;
-}
-
-.tab-button {
-  flex: 1;
-  padding: 0.5rem 1rem;
-  border: none;
-  background: none;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: #6b7280;
-}
-
-.tab-button.tab-active {
-  background-color: #6366f1;
-  color: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.tab-button:hover:not(.tab-active) {
-  color: #374151;
-  background-color: #e5e7eb;
-}
-
-.tab-content {
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+/* Warning Card */
 .warning-card {
   background-color: #fef3c7;
   border: 1px solid #f59e0b;
@@ -936,30 +934,34 @@ input[type='number'] {
   color: #92400e;
 }
 
-.unstake-button {
-  background-color: #dc2626;
+/* Success/Error Messages */
+.success-message {
+  color: #059669;
+  background-color: #ecfdf5;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
 }
 
-.unstake-button:hover:not(:disabled) {
-  background-color: #b91c1c;
+.error-message {
+  color: #dc2626;
+  background-color: #fef2f2;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
 }
 
-.max-button {
-  background: none;
-  border: none;
-  color: #6366f1;
-  cursor: pointer;
-  font-size: 0.75rem;
-  text-decoration: underline;
+/* Remove number input arrows */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-.max-button:hover:not(:disabled) {
-  color: #4f46e5;
-}
-
-.max-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+input[type='number'] {
+  -moz-appearance: textfield;
 }
 
 .tooltip-container {
@@ -1002,5 +1004,9 @@ input[type='number'] {
 .tooltip-container:hover .tooltip {
   visibility: visible;
   opacity: 1;
+}
+
+.delegate-button {
+  margin-top: 1.5rem;
 }
 </style>
