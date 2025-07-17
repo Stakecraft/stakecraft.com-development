@@ -44,8 +44,7 @@ export const getKavaBalance = async (walletAddress) => {
     const client = await tryRpcEndpoints(offlineSigner)
     const balances = await client.getAllBalances(walletAddress)
     // Find the KAVA balance (denom: 'ukava')
-    const kavaBalance = balances.find(b => b.denom === 'ukava')
-    // Convert from micro-KAVA to KAVA
+    const kavaBalance = balances.find((b) => b.denom === 'ukava')
     return kavaBalance ? Number(kavaBalance.amount) / 1_000_000 : 0
   } catch (error) {
     console.error('Error getting KAVA balance:', error)
@@ -98,7 +97,7 @@ export const undelegateStake = async (delegatorAddress, validatorAddress, unstak
 
     const delegation = await client.getDelegation(delegatorAddress, validatorAddress)
     console.log('delegation', delegation)
-    
+
     if (!delegation) {
       throw new Error('No delegation found')
     }
@@ -131,5 +130,36 @@ export const undelegateStake = async (delegatorAddress, validatorAddress, unstak
   } catch (error) {
     console.error('Error undelegating stake:', error)
     throw new Error(`Failed to undelegate stake: ${error.message}`)
+  }
+}
+
+// Get staking rewards for a delegator/validator pair
+export const getKavaRewards = async (delegatorAddress, validatorAddress) => {
+  try {
+    console.log('validatorAddress', validatorAddress)
+
+    const earnedRewards = await fetch(
+      `https://api.data.kava.io/cosmos/distribution/v1beta1/delegators/${delegatorAddress}/rewards`
+    ).then((r) => r.json())
+    console.log('earnedRewards', earnedRewards)
+    return earnedRewards
+  } catch (error) {
+    console.error('Error getting KAVA rewards:', error)
+    return 0
+  }
+}
+
+// Get unbonding delegations for a delegator/validator pair
+export const getKavaUnbonding = async (delegatorAddress, validatorAddress) => {
+  try {
+    console.log('validatorAddress', validatorAddress)
+    const unbonding_responses = await fetch(
+      `https://api.data.kava.io/cosmos/staking/v1beta1/delegators/${delegatorAddress}/unbonding_delegations`
+    ).then((r) => r.json())
+    console.log('unbonding_responses', unbonding_responses)
+    return unbonding_responses
+  } catch (error) {
+    console.error('Error getting KAVA unbonding:', error)
+    return []
   }
 }

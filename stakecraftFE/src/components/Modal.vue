@@ -22,7 +22,7 @@
             </svg>
           </button>
         </header>
-asas
+        asas
         <!-- <div class="modal-body">
           {{ network.description }}
         </div>
@@ -125,10 +125,11 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent backdrop to indicate modal is active */
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 10001; /* Higher than header (9999) and mobile header (10000) */
 }
 
 .modal {

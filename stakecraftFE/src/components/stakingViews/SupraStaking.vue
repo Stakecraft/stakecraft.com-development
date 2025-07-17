@@ -116,14 +116,15 @@
 
             <!-- Tab Navigation -->
             <div class="tab-container">
-              <button 
+
+              <button
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'stake' }"
                 @click="activeTab = 'stake'"
               >
                 Stake
               </button>
-              <button 
+              <button
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'unstake' }"
                 @click="activeTab = 'unstake'"
@@ -153,7 +154,8 @@
                   </div>
                   <div class="input-hint">
                     <span>Minimum: {{ minimumStake }} SUPRA</span>
-                    <button 
+
+                    <button
                       @click="stakeAmount = Number(totalSupraBalance)"
                       class="max-button"
                       :disabled="Number(totalSupraBalance) <= 0"
@@ -191,9 +193,7 @@
                 </div>
 
                 <!-- Success/Error Messages for Staking -->
-                <div v-if="stakingSuccess" class="success-message">
-                  Successfully delegated !
-                </div>
+                <div v-if="stakingSuccess" class="success-message">Successfully delegated !</div>
                 <div v-if="stakingError" class="error-message">
                   {{ stakingError }}
                 </div>
@@ -232,7 +232,7 @@
                   </div>
                   <div class="input-hint">
                     <span>Available to unstake: {{ stakedAmount }} SUPRA</span>
-                    <button 
+                    <button
                       @click="unstakeAmount = stakedAmount"
                       class="max-button"
                       :disabled="stakedAmount <= 0"
@@ -265,7 +265,8 @@
                 <div class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
-                    <strong>Important:</strong> Unstaked tokens will be locked for 7 days before becoming available for withdrawal.
+                    <strong>Important:</strong> Unstaked tokens will be locked for 7 days before
+                    becoming available for withdrawal.
                   </div>
                 </div>
 
@@ -374,7 +375,12 @@ export default {
 
     const isValidStake = computed(() => {
       const amount = parseFloat(stakeAmount.value)
-      return !isNaN(amount) && amount >= minimumStake && validatorAddress.value && amount <= Number(totalSupraBalance.value)
+      return (
+        !isNaN(amount) &&
+        amount >= minimumStake &&
+        validatorAddress.value &&
+        amount <= Number(totalSupraBalance.value)
+      )
     })
 
     const isValidUnstake = computed(() => {
@@ -441,7 +447,7 @@ export default {
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
-        
+
         const hash = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
@@ -466,7 +472,7 @@ export default {
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
-        
+
         const hash = await undelegateTokens(
           walletAddress.value,
           validatorAddress.value,
@@ -551,7 +557,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 50;
+  z-index: 10001; /* Higher than header (9999) and mobile header (10000) */
 }
 
 .modal-container {
@@ -988,7 +994,9 @@ input[type='number'] {
   z-index: 10;
   margin-bottom: 0.5rem;
   opacity: 0;
-  transition: opacity 0.2s, visibility 0.2s;
+  transition:
+    opacity 0.2s,
+    visibility 0.2s;
 }
 
 .tooltip::after {

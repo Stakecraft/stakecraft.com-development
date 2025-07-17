@@ -1,35 +1,37 @@
 <template>
   <div id="testnet">
-    <div class="titleHeader">TestNet</div>
-    <div class="buttonsWrapper">
-      <button
-        class="networks"
-        @click="openNetworkDescription(index)"
-        v-for="(network, index) in networks"
-        :key="network.title"
-        :class="{ withHeight: showNetworkDescription[index] }"
-      >
-        <div class="networkPresentation">
-          <div class="networkImg">
-            <img :src="network.image" :alt="network.title" />
+    <div class="mainAreas">
+      <div class="titleHeader">TestNet</div>
+      <div class="buttonsWrapper">
+        <button
+          class="networks"
+          @click="openNetworkDescription(index)"
+          v-for="(network, index) in networks"
+          :key="network.title"
+          :class="{ withHeight: showNetworkDescription[index] }"
+        >
+          <div class="networkPresentation">
+            <div class="networkImg">
+              <img :src="network.image" :alt="network.title" />
+            </div>
+            <div class="networkName">
+              {{ network.title }}
+            </div>
+            <button
+              class="add"
+              :class="{ around: showNetworkDescription[index] }"
+              v-if="network.description"
+            >
+              +
+            </button>
           </div>
-          <div class="networkName">
-            {{ network.title }}
+          <div class="description" v-if="network.description">
+            {{ network.description }}
           </div>
-          <button
-            class="add"
-            :class="{ around: showNetworkDescription[index] }"
-            v-if="network.description"
-          >
-            +
-          </button>
-        </div>
-        <div class="description" v-if="network.description">
-          {{ network.description }}
-        </div>
-      </button>
+        </button>
+      </div>
     </div>
-    <partnerships />
+    <Partnerships />
   </div>
 </template>
 
@@ -101,6 +103,11 @@ export default {
   background: var(--van-testnet-background);
 }
 
+#testnet .mainAreas {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 .networks {
   background: #111217;
   box-sizing: border-box;
@@ -112,7 +119,9 @@ export default {
   padding: 0;
   max-height: 108px;
   overflow: hidden;
-  transition: max-height 0.3s ease-in, border 0.1s ease-in;
+  transition:
+    max-height 0.3s ease-in,
+    border 0.1s ease-in;
 }
 
 .networks.withHeight {

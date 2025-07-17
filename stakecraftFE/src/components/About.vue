@@ -249,7 +249,7 @@ button {
 }
 
 .teamRow2 .member2 {
-  background-image: url('../assets/alexn.svg');
+  background-image: url('../assets/alexN.svg');
 }
 
 .memberTextArea {
@@ -278,7 +278,7 @@ button {
 }
 
 .teamRow2 .member2:hover {
-  background-image: url('../assets/alexnHover.svg');
+  background-image: url('../assets/alexNHover.svg');
 }
 
 .memberTitle {

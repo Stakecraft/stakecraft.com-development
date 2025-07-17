@@ -1,13 +1,13 @@
 <template>
   <label class="switch">
-    <input type="checkbox" @click="toggleTheme()" />
+    <input type="checkbox" :checked="theme === 'dark'" @click="toggleTheme()" />
     <span class="slider round"></span>
     <img :src="sunMoon" class="sunMoon" />
   </label>
 </template>
 
 <script>
-import { inject, ref } from 'vue'
+import { inject, ref, onMounted, watch } from 'vue'
 import sunImage from '../assets/sun.png'
 import moonImage from '../assets/moon.png'
 
@@ -16,14 +16,29 @@ export default {
     const theme = inject('theme')
     const setTheme = inject('setTheme')
     const sunMoon = ref(sunImage)
-
-    function toggleTheme() {
-      setTheme(theme.value === 'light' ? 'dark' : 'light')
-      if (theme.value === 'dark') {
+    // Initialize icon based on current theme
+    const updateIcon = (currentTheme) => {
+      if (currentTheme === 'dark') {
         sunMoon.value = moonImage
       } else {
         sunMoon.value = sunImage
       }
+    }
+
+    // Set initial icon on mount
+    onMounted(() => {
+      updateIcon(theme.value)
+    })
+
+    // Watch for theme changes and update icon
+    watch(theme, (newTheme) => {
+      updateIcon(newTheme)
+    })
+
+    function toggleTheme() {
+      const newTheme = theme.value === 'light' ? 'dark' : 'light'
+      setTheme(newTheme)
+      // Icon will be updated by the watcher
     }
 
     return { toggleTheme, theme, sunMoon }
