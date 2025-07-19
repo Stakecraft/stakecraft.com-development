@@ -113,9 +113,9 @@ export default {
   box-sizing: border-box;
   border: none;
   cursor: pointer;
-  margin-bottom: 26px;
+  /* margin-bottom: 20px; */
   border-radius: 20px;
-  width: 410px;
+  width: 100%;
   padding: 0;
   max-height: 108px;
   overflow: hidden;
@@ -134,7 +134,7 @@ export default {
   background-clip: content-box, border-box;
   border: 1px solid transparent;
   border-radius: 20px;
-  margin-bottom: 24px;
+  /* margin-bottom: 24px; */
 }
 
 .networkPresentation {
@@ -154,10 +154,9 @@ export default {
 }
 
 .buttonsWrapper {
-  display: flex;
-  flex-direction: row;
   box-sizing: border-box;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 20px;
   justify-content: space-between;
   align-items: flex-start;
@@ -202,11 +201,18 @@ export default {
   #testnet {
     box-sizing: border-box;
     width: 100vw;
-    padding: 0 19px 48px 19px;
+    padding: 40px 20px;
+    gap: 10px;
   }
 
   .networks {
     width: auto;
+  }
+}
+
+@media only screen and (max-width: 450px) {
+  .buttonsWrapper {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   }
 }
 </style>

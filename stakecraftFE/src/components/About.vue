@@ -21,7 +21,8 @@
             <button class="add" :class="{ around: showDescription[0] }">+</button>
           </div>
           <div class="capabilityDescription">
-            We use the latest infrastructure/hardware and our network is located within state of the art data centre facilities. 
+            We use the latest infrastructure/hardware and our network is located within state of the
+            art data centre facilities.
           </div>
         </button>
 
@@ -35,21 +36,8 @@
             <button class="add" :class="{ around: showDescription[1] }">+</button>
           </div>
           <div class="capabilityDescription">
-            Anyone can follow all our operations. Our activity is open to users. We believe this is the way it should be done.
-          </div>
-        </button>
-
-        <button
-          class="wrapper"
-          @click="openDescription(1)"
-          :class="{ withHeight: showDescription[1] }"
-        >
-          <div class="presentation">
-            <div class="capabilityTitle">Trustworthy team</div>
-            <button class="add" :class="{ around: showDescription[2] }">+</button>
-          </div>
-          <div class="capabilityDescription">
-            Through hard work, our team has earned recognition in the crypto community as the reliable team that approaches with the highest degree of responsibility to all tasks and monitors security of all data.
+            Anyone can follow all our operations. Our activity is open to users. We believe this is
+            the way it should be done.
           </div>
         </button>
 
@@ -63,45 +51,51 @@
             <button class="add" :class="{ around: showDescription[index] }">+</button>
           </div>
           <div class="capabilityDescription">
-            We focus on providing our clients with support to solve problems and keep their business running smoothly.
+            We focus on providing our clients with support to solve problems and keep their business
+            running smoothly.
           </div>
         </button>
       </div>
     </div>
     <div class="team">
-      <div class="teamRow1">
-        <div class="member1">
+      <div class="firstRow">
+        <div class="vasily">
+          <div class="memberTitle">Vasily Istomin</div>
           <div class="memberTextArea">
-            <div class="memberTitle">Vasily Istomin</div>
             <div class="memberDescription">
               Project manager, business analysis, business planning, and customer relations. Crypto
               enthusiast.
             </div>
           </div>
         </div>
-        <div class="member2">
+      </div>
+      <div class="secondRow">
+        <div class="alexander">
+          <div class="memberTitle">Alexander Lysenko</div>
           <div class="memberTextArea">
-            <div class="memberTitle">Alexander Lysenko</div>
             <div class="memberDescription">
-              Over 15 years of UNIX software system administration and DevOps experience.
+              CEO at Hubcap SRL. Over 15 years of UNIX software system administration and DevOps
+              experience.
             </div>
           </div>
         </div>
       </div>
-      <div class="teamRow2">
-        <div class="member1">
+      <div class="thirdRow">
+        <div class="stanislav">
+          <div class="memberTitle">Stanislav Culcitchi</div>
           <div class="memberTextArea">
-            <div class="memberTitle">Stanislav Culcitchi</div>
             <div class="memberDescription">
               Network engineer with 6 years of experience, automatization and scripting specialist.
             </div>
           </div>
         </div>
-        <div class="member2">
+      </div>
+      <div class="fourthRow">
+        <div class="alex">
+          <div class="memberTitle">Alex Novacovschi</div>
           <div class="memberTextArea">
-            <div class="memberTitle">Alex Novacovschi</div>
             <div class="memberDescription">
-              DevOps engineer, blockchain expert, crypto enthusiast.
+              DevOps engineer, blockchain expert, crypto enthusiast
             </div>
           </div>
         </div>
@@ -153,10 +147,11 @@ button {
   flex-direction: row;
   justify-content: space-between;
   padding-bottom: 100px;
+  gap: 10%;
 }
 
 .about {
-  max-width: 581px;
+  width: 100%;
 }
 
 .shortDescription {
@@ -167,8 +162,9 @@ button {
 }
 
 .team {
-  max-width: 575.49px;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
 }
 
 .ourCapabilities .title {
@@ -182,6 +178,7 @@ button {
 
 .ourCapabilities .wrapper {
   height: 62px;
+  width: 100%;
   overflow: hidden;
   margin-bottom: 18px;
   transition: 0.3s linear height;
@@ -222,84 +219,141 @@ button {
   transform: rotate(45deg);
 }
 
-.teamRow1 > *,
-.teamRow2 > * {
-  width: 272px;
-  height: 299px;
-  transition: 0.3s linear background;
+.vasily {
+  width: 270px;
+  aspect-ratio: 1/1.1;
+  transition: 0.3s linear background-image;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 0 0 15px 23px;
+  background-size: cover;
   background-repeat: no-repeat;
-}
-
-.teamRow1 .member1 {
   background-image: url('../assets/vasily.svg');
-  margin: 0 25px 25px 0;
+  position: relative;
+  cursor: pointer;
 }
 
-.teamRow1 .member2 {
+.alexander {
+  width: 270px;
+  aspect-ratio: 1/1.1;
+  transition: 0.3s linear background-image;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background-size: cover;
+  background-repeat: no-repeat;
   background-image: url('../assets/alexl.svg');
+  position: relative;
+  cursor: pointer;
 }
 
-.teamRow2 .member1 {
+.stanislav {
+  width: 270px;
+  aspect-ratio: 1/1.1;
+  transition: 0.3s linear background-image;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background-size: cover;
+  background-repeat: no-repeat;
   background-image: url('../assets/stanislav.svg');
-  margin: 0 25px 25px 0;
+  position: relative;
+  cursor: pointer;
 }
 
-.teamRow2 .member2 {
+.alex {
+  width: 270px;
+  aspect-ratio: 1/1.1;
+  transition: 0.3s linear background-image;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background-size: cover;
+  background-repeat: no-repeat;
   background-image: url('../assets/alexN.svg');
+  position: relative;
+  cursor: pointer;
+}
+
+.vasily::before,
+.alexander::before,
+.stanislav::before,
+.alex::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0);
+  transition: 0.4s ease-in-out background-color;
+  pointer-events: none;
+}
+
+.firstRow:hover .vasily::before,
+.secondRow:hover .alexander::before,
+.thirdRow:hover .stanislav::before,
+.fourthRow:hover .alex::before {
+  background-color: rgba(0, 0, 0, 0.7);
+  opacity: 0.8;
 }
 
 .memberTextArea {
-  height: 35px;
+  height: 0;
   overflow: hidden;
-  transition: 0.3s linear height;
-}
-
-.teamRow1 .member1:hover {
-  background-image: url('../assets/vasilyHover.svg');
-}
-
-.teamRow1 .member1:hover .memberTextArea,
-.teamRow1 .member2:hover .memberTextArea,
-.teamRow2 .member1:hover .memberTextArea,
-.teamRow2 .member2:hover .memberTextArea {
-  height: 130px;
-}
-
-.teamRow1 .member2:hover {
-  background-image: url('../assets/alexlHover.svg');
-}
-
-.teamRow2 .member1:hover {
-  background-image: url('../assets/stanislavHover.svg');
-}
-
-.teamRow2 .member2:hover {
-  background-image: url('../assets/alexNHover.svg');
+  transition: 0.4s ease-in-out height;
 }
 
 .memberTitle {
   font-family: poppins;
   font-weight: 700;
-  font-size: 20px;
+  font-size: 18px;
   line-height: 26px;
   color: #fff;
-  margin-bottom: 4px;
+  padding: 20px;
 }
 
 .memberDescription {
   font-family: poppins;
   font-weight: 400;
-  font-size: 16px;
+  font-size: 12px;
   line-height: 24px;
   color: #fff;
-  width: 221.83px;
+  padding: 0 20px 20px 20px;
+  margin: 0;
+  transform: translateY(20px);
+  opacity: 0;
+  transition:
+    0.4s ease-in-out transform,
+    0.4s ease-in-out opacity;
+  transition-delay: 0.1s;
 }
 
-@media only screen and (max-width: 900px) {
+.firstRow:hover .memberTitle,
+.secondRow:hover .memberTitle,
+.thirdRow:hover .memberTitle,
+.fourthRow:hover .memberTitle {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.firstRow:hover .memberTextArea,
+.secondRow:hover .memberTextArea,
+.thirdRow:hover .memberTextArea,
+.fourthRow:hover .memberTextArea {
+  height: auto;
+  min-height: 80px;
+}
+
+.firstRow:hover .memberDescription,
+.secondRow:hover .memberDescription,
+.thirdRow:hover .memberDescription,
+.fourthRow:hover .memberDescription {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+@media only screen and (max-width: 1208px) {
   #aboutUs {
     padding-top: 0px;
   }
@@ -321,8 +375,14 @@ button {
   }
 
   .team {
-    max-width: auto;
-    display: block;
+    display: grid;
+  }
+
+  .alex,
+  .vasily,
+  .alexander,
+  .stanislav {
+    width: 100%;
   }
 
   .ourCapabilities .presentation {
@@ -346,20 +406,20 @@ button {
     margin-bottom: 18px;
   }
 
-  .teamRow1 > *,
-  .teamRow2 > * {
-    width: calc(100vw - 8.5px);
-    height: calc(100vw - 8.5px);
-    margin: 0 0 25px 0 !important;
-    background-size: contain;
-    box-sizing: border-box;
-    padding: 0;
-  }
-
   .memberTextArea {
+    height: auto !important;
+    opacity: 1 !important;
     box-sizing: border-box;
-    margin-left: 23px;
+    /* margin-left: 23px; */
     margin-bottom: 15px;
+  }
+}
+@media screen and (max-width: 425px) {
+  .team {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  .memberDescription {
+    height: 0px;
   }
 }
 </style>

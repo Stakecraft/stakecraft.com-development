@@ -88,7 +88,7 @@ export default {
     }
 
     const handleResize = () => {
-      dropdownVisible.value = window.innerWidth <= 945
+      dropdownVisible.value = window.innerWidth <= 1024
       // console.log('handleResize', dropdownVisible.value, window.innerWidth)
     }
 
@@ -157,7 +157,6 @@ export default {
   /* Keep the header in the same position to avoid visual jumping */
   /* padding: 0 28px; */
   box-sizing: border-box; /* Ensure padding is included in width calculation */
-
 }
 
 .header,
@@ -275,7 +274,6 @@ export default {
 
 .slide-enter-active,
 .slide-leave-active {
-
   transition:
     transform 0.5s ease,
     opacity 0.3s ease;

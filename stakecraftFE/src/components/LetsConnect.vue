@@ -53,6 +53,7 @@ export default {
 
 .socialMedia {
   display: flex;
+  justify-content: space-between;
 }
 
 .socialMedia a {
