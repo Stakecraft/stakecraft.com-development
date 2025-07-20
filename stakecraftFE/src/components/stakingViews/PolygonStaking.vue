@@ -384,14 +384,14 @@ export default {
     const refreshStakingInfo = async () => {
       if (!walletAddress.value) return
       try {
-        const polygonBalance = await getPolygonBalance(walletAddress.value, signer.value)
+        const polygonBalance = await getPolygonBalance(walletAddress.value)
         console.log('polygonBalance', polygonBalance)
         totalPolygonBalance.value = Number(polygonBalance) / 10 ** 18
         availableBalance.value = totalPolygonBalance.value.toFixed(4)
         console.log('totalPolygonBalance', totalPolygonBalance.value)
         console.log('availableBalance', availableBalance.value)
 
-        const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
+        const stakingInfo = await getTotalStakedAmount(walletAddress.value)
         console.log('stakingInfo', stakingInfo)
         if (stakingInfo) {
           stakedAmount.value = stakingInfo / 10 ** 18
