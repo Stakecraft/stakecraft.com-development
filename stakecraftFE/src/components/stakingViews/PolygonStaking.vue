@@ -1,7 +1,7 @@
 <template>
   <transition name="modal-fade">
-    <div class="modal-overlay" @click.self="closeModal">
-      <div v-if="network" class="modal-container" @click.stop>
+    <div v-if="network" class="modal-overlay" @click.self="closeModal">
+      <div class="modal-container" @click.stop>
         <div class="modal-content">
           <!-- Header -->
           <div class="modal-header">
@@ -388,9 +388,6 @@ export default {
         console.log('polygonBalance', polygonBalance)
         totalPolygonBalance.value = Number(polygonBalance) / 10 ** 18
         availableBalance.value = totalPolygonBalance.value.toFixed(4)
-        console.log('totalPolygonBalance', totalPolygonBalance.value)
-        console.log('availableBalance', availableBalance.value)
-
         const stakingInfo = await getTotalStakedAmount(walletAddress.value)
         console.log('stakingInfo', stakingInfo)
         if (stakingInfo) {
@@ -399,7 +396,7 @@ export default {
           stakedAmount.value = 0
         }
       } catch (error) {
-        // handle error
+        console.error('Error refreshing staking info:', error)
       }
     }
 
@@ -440,7 +437,11 @@ export default {
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
-        const hash = await undelegateStake(walletAddress.value, validatorAddress.value)
+        const hash = await undelegateStake(
+          walletAddress.value,
+          validatorAddress.value,
+          unstakeAmount.value
+        )
         transactionHash.value = hash
         unstakingSuccess.value = true
         unstakeAmount.value = 0
