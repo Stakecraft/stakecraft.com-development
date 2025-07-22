@@ -518,7 +518,7 @@ export default {
           'Redbelly - the only fully accountable layer 1 blockchain for Compliant Asset Tokenisation. Native to regulated assets, open, fast, scalable.',
         validator: ['0xA'],
         explorer: ['']
-      },
+      }
 
       // {
       //   image: walrusImg, // Add the Walrus logo to your assets folder
@@ -529,7 +529,6 @@ export default {
       //   explorer: ['https://walrus.xyz/explorer'], // Replace with actual explorer link if available
       //   howToStake: 'https://docs.wal.app/7-staking-and-unstaking.html'
       // }
-
     ]
 
     const isModalVisible = ref(false)
@@ -563,7 +562,7 @@ export default {
   background: var(--van-mainnet-network-background);
   padding: 15px 22px;
   box-sizing: border-box;
-  width: 300px;
+  width: 100%;
   border: none;
   cursor: pointer;
   display: flex;
@@ -582,11 +581,10 @@ export default {
 }
 
 .buttonsArea {
-  display: flex;
-  flex-direction: row;
-  padding-bottom: 71px;
+  padding-bottom: 70px;
   box-sizing: border-box;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
   justify-content: flex-start;
 }
@@ -605,14 +603,17 @@ export default {
   object-fit: cover;
 }
 
-@media only screen and (max-width: 900px) {
+@media only screen and (max-width: 1024px) {
   .buttonsArea {
-    width: 100vw !important;
+    width: 100% !important;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    padding-bottom: 40px;
   }
 
   .networks {
-    width: 159.5px;
-    height: 92px;
+    width: 100%;
+    height: 90px;
     align-items: center;
     justify-content: center;
     flex-direction: column;
@@ -627,6 +628,13 @@ export default {
   .networkName {
     margin: 0;
     font-size: 16px;
+  }
+}
+
+@media only screen and (max-width: 450px) {
+  .buttonsArea {
+    padding-bottom: 0;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
 }
 </style>

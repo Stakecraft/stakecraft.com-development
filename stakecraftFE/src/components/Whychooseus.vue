@@ -149,9 +149,10 @@ export default {
   overflow: hidden;
   display: flex;
   margin-top: 38px;
-  justify-content:space-between;
+  justify-content: space-between;
   width: 100%;
   gap: 20px;
+  /* border-radius: 50px; */
 }
 
 /* Position and animate the SVG */
@@ -232,11 +233,13 @@ export default {
   }
 
   .statWrapper {
-    max-width: 335px;
-    max-height: 132px;
+    max-width: 100%;
+    max-height: 100%;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    justify-content: stretch;
+    gap: 40px;
+    /* justify-content: space-between; */
     padding: 0 14px;
   }
 

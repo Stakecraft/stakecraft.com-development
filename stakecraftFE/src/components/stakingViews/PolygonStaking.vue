@@ -1,7 +1,7 @@
 <template>
   <transition name="modal-fade">
-    <div class="modal-overlay" @click.self="closeModal">
-      <div v-if="network" class="modal-container" @click.stop>
+    <div v-if="network" class="modal-overlay" @click.self="closeModal">
+      <div class="modal-container" @click.stop>
         <div class="modal-content">
           <!-- Header -->
           <div class="modal-header">
@@ -104,7 +104,7 @@
                 <div class="wallet-info-row">
                   <span class="info-label">Last Transaction:</span>
                   <a
-                    :href="`https://polygonscan.com/tx/${transactionHash}`"
+                    :href="`https://etherscan.io/tx/${transactionHash}`"
                     target="_blank"
                     class="transaction-link"
                   >
@@ -234,15 +234,15 @@
                   <div class="info-card-content">
                     <div class="info-row">
                       <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} POL</span>
+                      <span class="info-value">{{ stakedAmount.toFixed(4) }} POL</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Rewards Earned:</span>
-                      <span class="info-value">{{ rewardsEarned }} POL</span>
+                      <span class="info-value">{{ rewardsEarned.toFixed(4) }} POL</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">Unstaking Period:</span>
-                      <span class="info-value">21 days</span>
+                      <span class="info-value">3 ~ 4 days</span>
                     </div>
                   </div>
                 </div>
@@ -251,7 +251,7 @@
                 <div class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
-                    <strong>Important:</strong> Unstaked tokens will be locked for 21 days before
+                    <strong>Important:</strong> Unstaked tokens will be locked for 4 days before
                     becoming available for withdrawal.
                   </div>
                 </div>
@@ -304,7 +304,8 @@ import {
   delegateTokens,
   undelegateStake,
   getTotalStakedAmount,
-  getPolygonBalance
+  getPolygonBalance,
+  getRewardsEarned
 } from '../../utils/PolygonStaking'
 
 export default {
@@ -322,7 +323,7 @@ export default {
     const stakeAmount = ref(0)
     const unstakeAmount = ref(0)
     const validatorAddress = ref('')
-    const minimumStake = 0.1
+    const minimumStake = 0.01
     const stakingSuccess = ref(false)
     const unstakingSuccess = ref(false)
     const stakingError = ref(null)
@@ -384,22 +385,23 @@ export default {
     const refreshStakingInfo = async () => {
       if (!walletAddress.value) return
       try {
-        const polygonBalance = await getPolygonBalance(walletAddress.value, signer.value)
+        const polygonBalance = await getPolygonBalance(walletAddress.value)
         console.log('polygonBalance', polygonBalance)
         totalPolygonBalance.value = Number(polygonBalance) / 10 ** 18
         availableBalance.value = totalPolygonBalance.value.toFixed(4)
-        console.log('totalPolygonBalance', totalPolygonBalance.value)
-        console.log('availableBalance', availableBalance.value)
-
-        const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
+        const stakingInfo = await getTotalStakedAmount(walletAddress.value)
         console.log('stakingInfo', stakingInfo)
+        const rewards = await getRewardsEarned(walletAddress.value)
+
+        console.log('rewards', rewards)
         if (stakingInfo) {
           stakedAmount.value = stakingInfo / 10 ** 18
+          rewardsEarned.value = rewards
         } else {
           stakedAmount.value = 0
         }
       } catch (error) {
-        // handle error
+        console.error('Error refreshing staking info:', error)
       }
     }
 
@@ -440,7 +442,11 @@ export default {
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
-        const hash = await undelegateStake(walletAddress.value, validatorAddress.value)
+        const hash = await undelegateStake(
+          walletAddress.value,
+          validatorAddress.value,
+          unstakeAmount.value
+        )
         transactionHash.value = hash
         unstakingSuccess.value = true
         unstakeAmount.value = 0

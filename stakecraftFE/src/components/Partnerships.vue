@@ -56,7 +56,8 @@ export default {
 }
 
 #partnership {
-  padding-top: 116px;
+  padding-top: 120px;
+  /* padding-inline: 72px; */
 }
 
 #partnership .mainAreas {
@@ -98,6 +99,10 @@ export default {
 
   .partnershipDetails {
     margin: 0 0 27px 0;
+  }
+
+  #partnership {
+    padding-top: 60px;
   }
 
   #partnership .mainAreas {
