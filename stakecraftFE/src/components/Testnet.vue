@@ -41,9 +41,17 @@ import redbellyImg from '../assets/redbelly.png'
 import koiiImg from '../assets/koii.png'
 import supraoraclesImg from '../assets/supraoracles.png'
 import walrusImg from '../assets/walrus.png'
-import hyperlImg from '../assets/hyperliquid.png'
+// import hyperlImg from '../assets/hyperliquid.png'
+// Import new testnet images
+import monadImg from '../assets/monad.png'
+import aztecImg from '../assets/aztec.png'
+import nexusImg from '../assets/nexus.png'
+import taceoImg from '../assets/taceo.png'
+import canopyImg from '../assets/canopy.png'
+import cantonImg from '../assets/canton.png'
 import { ref } from 'vue'
 export default {
+  name: 'TestnetSection',
   components: { Partnerships },
   setup() {
     const networks = [
@@ -71,11 +79,47 @@ export default {
         description:
           'A decentralized storage and data availability protocol designed specifically for large binary files, or "blobs".'
       },
+      // {
+      //   image: hyperlImg,
+      //   title: 'HyperLiquid',
+      //   description:
+      //     'Hyperliquid is a performant L1 optimized from the ground up. The vision is a fully onchain open financial system with user built applications interfacing with performant native components, all without compromising end user experience.'
+      // },
       {
-        image: hyperlImg,
-        title: 'HyperLiquid',
+        image: monadImg,
+        title: 'Monad',
         description:
-          'Hyperliquid is a performant L1 optimized from the ground up. The vision is a fully onchain open financial system with user built applications interfacing with performant native components, all without compromising end user experience.'
+          'Monad is a high-performance Layer 1 blockchain that delivers 10,000 TPS with full EVM compatibility. Built for scalability without compromising decentralization, Monad enables the next generation of DeFi applications.'
+      },
+      {
+        image: aztecImg,
+        title: 'Aztec',
+        description:
+          'Aztec is a privacy-first Layer 2 network built on Ethereum. It enables private DeFi with zero-knowledge proofs, allowing users to transact with complete privacy while maintaining full compatibility with Ethereum.'
+      },
+      {
+        image: nexusImg,
+        title: 'Nexus',
+        description:
+          'Nexus is a decentralized protocol for creating and trading synthetic assets. It provides a comprehensive platform for synthetic asset creation, enabling users to gain exposure to any asset class through blockchain technology.'
+      },
+      {
+        image: taceoImg,
+        title: 'Taceo',
+        description:
+          'Taceo is a next-generation blockchain platform focused on scalability and interoperability. It provides a robust infrastructure for building decentralized applications with enhanced performance and cross-chain capabilities.'
+      },
+      {
+        image: canopyImg,
+        title: 'Canopy',
+        description:
+          'Canopy Network is a decentralized protocol designed for scalable and efficient blockchain infrastructure. It provides innovative solutions for data availability and cross-chain communication, enabling seamless interoperability across different blockchain networks.'
+      },
+      {
+        image: cantonImg,
+        title: 'Canton Network',
+        description:
+          'Canton Network is a privacy-enabled interoperable blockchain network designed for institutional assets. It provides a secure, scalable infrastructure for regulated financial markets with built-in privacy and compliance features.'
       }
     ]
 
@@ -108,12 +152,19 @@ export default {
   padding-bottom: 0;
 }
 
+.titleHeader {
+  font-family: poppins;
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 40px;
+  color: #fff;
+}
+
 .networks {
   background: #111217;
   box-sizing: border-box;
   border: none;
   cursor: pointer;
-  /* margin-bottom: 20px; */
   border-radius: 20px;
   width: 100%;
   padding: 0;
@@ -134,7 +185,6 @@ export default {
   background-clip: content-box, border-box;
   border: 1px solid transparent;
   border-radius: 20px;
-  /* margin-bottom: 24px; */
 }
 
 .networkPresentation {
@@ -144,6 +194,7 @@ export default {
   justify-content: flex-start;
   width: 100%;
   height: 108px;
+  padding: 0;
 }
 
 .description {
@@ -151,6 +202,7 @@ export default {
   font-size: 16px;
   color: #eceaec;
   margin: 0px 18px 20px 18px;
+  line-height: 1.5;
 }
 
 .buttonsWrapper {
@@ -166,6 +218,17 @@ export default {
   width: 60px;
   height: 60px;
   margin: 20px 0 20px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.networkImg img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
 }
 
 .networkName {
@@ -176,20 +239,31 @@ export default {
   font-weight: 700;
   text-align: left;
   margin-left: 14px;
+  flex-shrink: 0;
 }
 
 .add {
   color: #fff;
-  background: #111217;
+  background: transparent;
   border: none;
   font-size: 30px;
   margin-left: auto;
   margin-right: 18px;
   transition: 0.3s linear transform;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
 }
 
 .add.around {
   transform: rotate(45deg);
+}
+
+.add:hover {
+  color: #09bac5;
 }
 
 @media only screen and (max-width: 900px) {
@@ -208,11 +282,30 @@ export default {
   .networks {
     width: auto;
   }
+
+  .titleHeader {
+    font-size: 36px;
+    margin-bottom: 30px;
+  }
 }
 
 @media only screen and (max-width: 450px) {
   .buttonsWrapper {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+
+  .titleHeader {
+    font-size: 28px;
+    margin-bottom: 20px;
+  }
+
+  .networkName {
+    font-size: 18px;
+    width: 120px;
+  }
+
+  .description {
+    font-size: 14px;
   }
 }
 </style>

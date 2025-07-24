@@ -3,7 +3,6 @@
     <div v-if="network" class="modal-overlay" @click.self="closeModal">
       <div class="modal-container" @click.stop>
         <div class="modal-content">
-          <!-- Header -->
           <div class="modal-header">
             <h2 class="modal-title">{{ network.title }}</h2>
             <button @click="closeModal" class="close-button">
@@ -25,12 +24,10 @@
             </button>
           </div>
 
-          <!-- Network Description -->
           <div v-if="!walletConnected" class="network-description">
             <p>{{ network.description }}</p>
           </div>
 
-          <!-- Wallet Warning -->
           <div v-if="walletError" class="wallet-warning">
             <div class="warning-icon">
               <svg
@@ -59,7 +56,6 @@
             </div>
           </div>
 
-          <!-- Wallet Connection -->
           <div v-if="!walletConnected" class="wallet-connection">
             <button
               @click="connectWallet"
@@ -69,7 +65,6 @@
               {{ isConnecting ? 'Connecting...' : 'Connect MetaMask Wallet' }}
             </button>
 
-            <!-- Network Links -->
             <div class="network-links">
               <a
                 v-if="network.explorer"
@@ -90,7 +85,6 @@
             </div>
           </div>
 
-          <!-- Connected Wallet Info -->
           <div v-if="walletConnected">
             <div class="wallet-info-card">
               <div class="wallet-info-row">
@@ -114,7 +108,6 @@
               </div>
             </div>
 
-            <!-- Tab Navigation -->
             <div class="tab-container">
               <button
                 class="tab-button"
@@ -132,7 +125,6 @@
               </button>
             </div>
 
-            <!-- Stake Tab -->
             <div v-if="activeTab === 'stake'" class="tab-content">
               <div class="staking-form">
                 <div class="form-group">
@@ -199,7 +191,6 @@
               </div>
             </div>
 
-            <!-- Unstake Tab -->
             <div v-if="activeTab === 'unstake'" class="tab-content">
               <div class="staking-form">
                 <div class="form-group">
@@ -247,7 +238,6 @@
                   </div>
                 </div>
 
-                <!-- Unstaking Warning -->
                 <div class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
@@ -271,7 +261,6 @@
               </div>
             </div>
 
-            <!-- Network Links -->
             <div class="network-links-bottom">
               <a
                 v-if="network.explorer"
@@ -386,14 +375,11 @@ export default {
       if (!walletAddress.value) return
       try {
         const polygonBalance = await getPolygonBalance(walletAddress.value)
-        console.log('polygonBalance', polygonBalance)
         totalPolygonBalance.value = Number(polygonBalance) / 10 ** 18
         availableBalance.value = totalPolygonBalance.value.toFixed(4)
         const stakingInfo = await getTotalStakedAmount(walletAddress.value)
-        console.log('stakingInfo', stakingInfo)
         const rewards = await getRewardsEarned(walletAddress.value)
 
-        console.log('rewards', rewards)
         if (stakingInfo) {
           stakedAmount.value = stakingInfo / 10 ** 18
           rewardsEarned.value = rewards
@@ -414,16 +400,12 @@ export default {
         unstakingSuccess.value = false
         unstakingError.value = null
 
-        console.log('---handleDelegateTokens---')
-        console.log('walletAddress.value', walletAddress.value)
-        console.log('validatorAddress.value', validatorAddress.value)
-        console.log('stakeAmount.value', stakeAmount.value)
-
         const hash = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
           stakeAmount.value
         )
+
         transactionHash.value = hash
         stakingSuccess.value = true
         stakeAmount.value = 0
@@ -502,7 +484,6 @@ export default {
 </script>
 
 <style scoped>
-/* Modal Animation */
 .modal-fade-enter,
 .modal-fade-leave-to {
   opacity: 0;
@@ -513,7 +494,6 @@ export default {
   transition: opacity 0.3s ease;
 }
 
-/* Modal Layout */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -542,7 +522,6 @@ export default {
   padding: 1.5rem;
 }
 
-/* Header */
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -570,7 +549,6 @@ export default {
   color: #374151;
 }
 
-/* Network Description */
 .network-description {
   text-align: center;
   margin-bottom: 1.5rem;
@@ -581,7 +559,6 @@ export default {
   margin: 0;
 }
 
-/* Wallet Connection */
 .wallet-connection {
   display: flex;
   flex-direction: column;
@@ -589,7 +566,6 @@ export default {
   text-align: center;
 }
 
-/* Network Links */
 .network-links {
   display: flex;
   flex-direction: column;
@@ -614,7 +590,6 @@ export default {
   text-decoration: underline;
 }
 
-/* Buttons */
 .action-buttons {
   display: flex;
   flex-direction: column;
@@ -656,7 +631,6 @@ export default {
   margin-top: 0.5rem;
 }
 
-/* Wallet Info Card */
 .wallet-info-card {
   background-color: #f9fafb;
   border-radius: 0.5rem;
@@ -686,7 +660,6 @@ export default {
   text-decoration: underline;
 }
 
-/* Form Elements */
 .staking-form {
   display: flex;
   flex-direction: column;
@@ -747,7 +720,6 @@ export default {
   color: #6b7280;
 }
 
-/* Info Cards */
 .info-card {
   margin-top: 0.5rem;
   background-color: #f9fafb;
@@ -785,7 +757,6 @@ export default {
   color: #1f2937;
 }
 
-/* Success/Error Messages */
 .success-message {
   color: #059669;
   background-color: #ecfdf5;
@@ -804,7 +775,6 @@ export default {
   font-size: 0.875rem;
 }
 
-/* Wallet Warning */
 .wallet-warning {
   background-color: #fff7ed;
   border: 1px solid #fdba74;
@@ -837,7 +807,6 @@ export default {
   margin: 0 0 0.75rem 0;
 }
 
-/* Remove number input arrows */
 input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -848,7 +817,6 @@ input[type='number'] {
   -moz-appearance: textfield;
 }
 
-/* Tab Navigation */
 .tab-container {
   display: flex;
   background-color: #f3f4f6;
@@ -880,7 +848,6 @@ input[type='number'] {
   background-color: #e5e7eb;
 }
 
-/* Tab Content */
 .tab-content {
   animation: fadeIn 0.3s ease-in-out;
 }
