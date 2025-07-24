@@ -55,30 +55,30 @@ export default {
   components: { Partnerships },
   setup() {
     const networks = [
-      {
-        image: supraoraclesImg,
-        title: 'Supra Oracles',
-        description:
-          'A next-generation cross-chain oracle solution designed to boost up the performance of smart contracts and blockchain apps. Providing a high level of decentralization, scalability, ultrafast and secure transactions'
-      },
-      {
-        image: redbellyImg,
-        title: 'Redbelly',
-        description:
-          'Redbelly - the only fully accountable layer 1 blockchain for Compliant Asset Tokenisation. Native to regulated assets, open, fast, scalable.'
-      },
-      {
-        image: koiiImg,
-        title: 'Koii Network',
-        description:
-          'Koii is a compute-sharing marketplace. Anyone can run a validator node on a personal device, making compute cheaper for everyone.'
-      },
-      {
-        image: walrusImg,
-        title: 'Walrus',
-        description:
-          'A decentralized storage and data availability protocol designed specifically for large binary files, or "blobs".'
-      },
+      // {
+      //   image: supraoraclesImg,
+      //   title: 'Supra Oracles',
+      //   description:
+      //     'A next-generation cross-chain oracle solution designed to boost up the performance of smart contracts and blockchain apps. Providing a high level of decentralization, scalability, ultrafast and secure transactions'
+      // },
+      // {
+      //   image: redbellyImg,
+      //   title: 'Redbelly',
+      //   description:
+      //     'Redbelly - the only fully accountable layer 1 blockchain for Compliant Asset Tokenisation. Native to regulated assets, open, fast, scalable.'
+      // },
+      // {
+      //   image: koiiImg,
+      //   title: 'Koii Network',
+      //   description:
+      //     'Koii is a compute-sharing marketplace. Anyone can run a validator node on a personal device, making compute cheaper for everyone.'
+      // },
+      // {
+      //   image: walrusImg,
+      //   title: 'Walrus',
+      //   description:
+      //     'A decentralized storage and data availability protocol designed specifically for large binary files, or "blobs".'
+      // },
       // {
       //   image: hyperlImg,
       //   title: 'HyperLiquid',
