@@ -1,0 +1,15 @@
+@import './base.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+a {
+  text-decoration: none;
+}
+
+ul,
+li {
+  text-decoration: none;
+  list-style-type: none;
+}
