@@ -157,6 +157,11 @@
       :network="selectedNetwork"
       @close="closeModal"
     />
+    <WalrusStaking
+      v-if="selectedNetwork?.title === 'Walrus'"
+      :network="selectedNetwork"
+      @close="closeModal"
+    />
     <modal
       v-if="
         ![
@@ -183,7 +188,8 @@
           'Covalent',
           'SubQuery',
           'BitsCrunch',
-          'Redbelly'
+          'Redbelly',
+          'Walrus'
         ].includes(selectedNetwork?.title)
       "
       v-show="isModalVisible"
@@ -222,6 +228,7 @@ import CovalentStaking from './stakingViews/CovalentStaking.vue'
 import SubQueryStaking from './stakingViews/SubQueryStaking.vue'
 import BitsCrunchStaking from './stakingViews/BitsCrunchStaking.vue'
 import RedbellyStaking from './stakingViews/RedbellyStaking.vue'
+import WalrusStaking from './stakingViews/WalrusStaking.vue'
 
 export default {
   name: 'MainnetComponent',
@@ -251,7 +258,8 @@ export default {
     CovalentStaking,
     SubQueryStaking,
     BitsCrunchStaking,
-    RedbellyStaking
+    RedbellyStaking,
+    WalrusStaking
   },
   setup() {
     const { fetchMainnet, getMainnetNetworks, loading, error } = useContent()

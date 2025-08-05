@@ -10,6 +10,11 @@ const router = createRouter({
       component: HomeView
     },
     {
+      path: '/health',
+      name: 'health',
+      component: async () => await import('../views/HealthView.vue')
+    },
+    {
       path: '/terms',
       name: 'terms',
       component: async () => await import('../components/termsAndConditions/TermsAndConditions.vue')
