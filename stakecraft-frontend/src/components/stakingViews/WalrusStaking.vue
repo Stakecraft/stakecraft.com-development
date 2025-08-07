@@ -203,12 +203,12 @@
                     </div>
                     <div class="info-row">
                       <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} WAL</span>
+                      <span class="info-value">{{ stakedAmount.toFixed(2) }} WAL</span>
                     </div>
                     <div class="info-row">
                       <span class="info-label">SUI Balance (for gas):</span>
                       <span class="info-value" :class="{ 'low-gas-warning': suiBalance < 1.0 }">
-                        {{ suiBalance.toFixed(4) }} SUI
+                        {{ suiBalance.toFixed(2) }} SUI
                       </span>
                     </div>
                   </div>
@@ -227,7 +227,8 @@
                 <div class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
-                    <strong>Important:</strong> Staked tokens will become active next epoch.
+                    <strong>Important:</strong> Rewards for your stake will begin in epoch 12 and
+                    only while the storage node serves as an active committee member.
                   </div>
                 </div>
 
@@ -295,7 +296,7 @@
                     </div>
                     <div class="info-row">
                       <span class="info-label">Unbonding Period:</span>
-                      <span class="info-value">14 days</span>
+                      <span class="info-value">1-2 epochs (~2-4 weeks)</span>
                     </div>
                   </div>
                 </div>
@@ -304,8 +305,10 @@
                 <div class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
-                    <strong>Important:</strong> Unstaked tokens will be locked for 14 days before
-                    becoming available for withdrawal.
+                    <strong>Important:</strong> Walrus unstaking withdraws entire stake objects.
+                    Each withdrawal will unstake the full amount of an individual stake. There will
+                    be an unbonding period lasting 1 to 2 epochs (~2-4 weeks) before tokens become
+                    available.
                   </div>
                 </div>
 
@@ -337,9 +340,9 @@
               <a href="https://docs.wal.app/" target="_blank" class="link-primary">
                 Documentation
               </a>
-              <a href="https://stake-wal.wal.app/" target="_blank" class="link-primary">
+              <!-- <a href="https://stake-wal.wal.app/" target="_blank" class="link-primary">
                 Official Staking Portal
-              </a>
+              </a> -->
             </div>
           </div>
         </div>
@@ -452,7 +455,7 @@ export default {
       try {
         const walBalance = await getWalBalance(walletAddress.value)
         totalWalBalance.value = walBalance
-        availableBalance.value = Number(walBalance).toFixed(4)
+        availableBalance.value = Number(walBalance).toFixed(2)
 
         // Get SUI balance for gas fees
         const currentSuiBalance = await getSuiBalance(walletAddress.value)
@@ -460,7 +463,7 @@ export default {
 
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
         if (stakingInfo.amount) {
-          stakedAmount.value = Number(stakingInfo.amount) / 10 ** 6
+          stakedAmount.value = Number(stakingInfo.amount) / 1_000_000_000 // Convert MIST to WAL (10^9)
         } else {
           stakedAmount.value = 0.0
         }
@@ -768,7 +771,7 @@ export default {
 }
 
 .delegate-button {
-  margin-top: 1.5rem;
+  margin-top: 1rem;
 }
 
 /* Wallet Info Card */
@@ -1004,7 +1007,7 @@ input[type='number'] {
   border: 1px solid #f59e0b;
   border-radius: 0.5rem;
   padding: 0.75rem;
-  margin: 1rem 0;
+  /* margin: 1rem 0; */
   display: flex;
   gap: 0.75rem;
   align-items: flex-start;
