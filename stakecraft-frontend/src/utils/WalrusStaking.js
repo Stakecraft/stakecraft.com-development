@@ -60,8 +60,6 @@ export const connectWallet = async (walletName = null) => {
     }
 
     connectedWallet = wallet
-    console.log('Connected wallet:', wallet.name, connectResult)
-
     return {
       address: connectResult.accounts[0].address,
       walletName: wallet.name,
@@ -102,7 +100,6 @@ export const getWalBalance = async (walletAddress) => {
       coinType: WAL_COIN_TYPE
     })
 
-    console.log('Coin objects:', coinObjects)
     let totalBalance = 0
     for (const coin of coinObjects.data) {
       totalBalance += parseInt(coin.balance)
@@ -127,8 +124,6 @@ export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) =
     let totalStaked = 0
 
     if (!stakingObjects.data || stakingObjects.data.length === 0) {
-      console.log('No objects found with StructType filter, trying alternative approach...')
-
       try {
         const allObjects = await SUI_CLIENT.getOwnedObjects({
           owner: delegatorAddress,
@@ -140,8 +135,6 @@ export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) =
             obj.data?.type &&
             (obj.data.type.includes('StakedWal') || obj.data.type.includes('staked_wal'))
           ) {
-            console.log('Found potential staking object:', obj)
-
             if (obj.data?.content?.fields) {
               const fields = obj.data.content.fields
               const stakeAmount = parseInt(
@@ -149,7 +142,6 @@ export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) =
               )
               if (stakeAmount > 0) {
                 totalStaked += stakeAmount
-                console.log(`Found stake via fallback: ${stakeAmount}`)
               }
             }
           }
@@ -180,7 +172,6 @@ export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) =
               fields.principal || fields.amount || fields.stake_amount || 0
             )
             totalStaked += stakeAmount
-            console.log(`Found stake: ${stakeAmount} for validator ${validatorAddress}`)
           }
         }
       }
@@ -188,11 +179,42 @@ export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) =
       console.log('No staking objects found')
     }
 
-    console.log('getTotalStakedAmount - Final total staked:', totalStaked)
     return { amount: totalStaked }
   } catch (error) {
     console.error('Error getting total staked amount:', error)
     return { amount: 0 }
+  }
+}
+
+export const getStakedTotalAccounts = async (delegatorAddress) => {
+  const stakingObjects = await SUI_CLIENT.getOwnedObjects({
+    owner: delegatorAddress,
+    filter: {
+      StructType: `${WALRUS_STAKING_PACKAGE}::staked_wal::StakedWal`
+    }
+  })
+
+  if (!stakingObjects.data || stakingObjects.data.length === 0) {
+
+    try {
+      const allObjects = await SUI_CLIENT.getOwnedObjects({
+        owner: delegatorAddress,
+        options: { showContent: true, showType: true }
+      })
+
+      let newObj = []
+      for (const obj of allObjects.data || []) {
+        if (
+          obj.data?.type &&
+          (obj.data.type.includes('StakedWal') || obj.data.type.includes('staked_wal'))
+        ) {
+          newObj.push(obj)
+        }
+      }
+      return newObj
+    } catch (fallbackError) {
+      console.log('Fallback query failed:', fallbackError)
+    }
   }
 }
 
@@ -282,34 +304,25 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
   }
 }
 
-export const undelegateStake = async (delegatorAddress, validatorAddress, unstakeAmount) => {
+export const undelegateStake = async (
+  delegatorAddress,
+  validatorAddress,
+  unstakeAmount,
+  specificStakingObjectId = null
+) => {
   try {
     if (!connectedWallet) {
       throw new Error('Wallet not connected')
     }
 
-    console.log('undelegateStake - delegatorAddress', delegatorAddress)
-    console.log('undelegateStake - validatorAddress', validatorAddress)
-    console.log('undelegateStake - unstakeAmount', unstakeAmount)
-
-    const amountInMist = Math.floor(unstakeAmount * 1_000_000_000)
-    console.log('undelegateStake - amountInMist', amountInMist)
-
-    // Use the correct struct type filter
-    const stakingObjects = await SUI_CLIENT.getOwnedObjects({
-      owner: delegatorAddress,
-      filter: {
-        StructType: `${WALRUS_STAKING_PACKAGE}::staked_wal::StakedWal`
-      }
-    })
-
     let stakingObjectId = null
     let foundStakeAmount = 0
 
-    if (stakingObjects.data && stakingObjects.data.length > 0) {
-      for (const obj of stakingObjects.data) {
+    // If a specific staking object ID is provided, use it directly
+    if (specificStakingObjectId) {
+      try {
         const objData = await SUI_CLIENT.getObject({
-          id: obj.data.objectId,
+          id: specificStakingObjectId,
           options: { showContent: true, showType: true }
         })
 
@@ -318,51 +331,81 @@ export const undelegateStake = async (delegatorAddress, validatorAddress, unstak
           const stakedAmount = parseInt(fields.principal || fields.amount || 0)
 
           if (stakedAmount > 0) {
-            stakingObjectId = obj.data.objectId
+            stakingObjectId = specificStakingObjectId
             foundStakeAmount = stakedAmount
-            console.log(
-              `undelegateStake - selected object: ${stakingObjectId} (full withdrawal: ${stakedAmount} MIST)`
-            )
-            break
+          } else {
+            throw new Error(`Staking object ${specificStakingObjectId} has no stake amount`)
           }
+        } else {
+          throw new Error(`Invalid staking object structure for ${specificStakingObjectId}`)
         }
+      } catch (error) {
+        console.error('Error accessing specific staking object:', error)
+        throw new Error(
+          `Failed to access staking object ${specificStakingObjectId}: ${error.message}`
+        )
       }
-    }
+    } else {
 
-    if (!stakingObjectId) {
-      console.log('undelegateStake - No suitable object found with StructType, trying fallback...')
 
-      try {
-        const allObjects = await SUI_CLIENT.getOwnedObjects({
-          owner: delegatorAddress,
-          options: { showContent: true, showType: true }
-        })
+      const amountInMist = Math.floor(unstakeAmount * 1_000_000_000)
+      console.log('amountInMist', amountInMist)
+      
+      const stakingObjects = await SUI_CLIENT.getOwnedObjects({
+        owner: delegatorAddress,
+        filter: {
+          StructType: `${WALRUS_STAKING_PACKAGE}::staked_wal::StakedWal`
+        }
+      })
 
-        for (const obj of allObjects.data || []) {
-          if (
-            obj.data?.type &&
-            (obj.data.type.includes('StakedWal') || obj.data.type.includes('staked_wal'))
-          ) {
-            console.log('undelegateStake - Found potential staking object via fallback:', obj)
+      if (stakingObjects.data && stakingObjects.data.length > 0) {
+        for (const obj of stakingObjects.data) {
+          const objData = await SUI_CLIENT.getObject({
+            id: obj.data.objectId,
+            options: { showContent: true, showType: true }
+          })
 
-            if (obj.data?.content?.fields) {
-              const fields = obj.data.content.fields
-              const stakeAmount = parseInt(
-                fields.principal || fields.amount || fields.stake_amount || 0
-              )
-              if (stakeAmount > 0) {
-                stakingObjectId = obj.data.objectId
-                foundStakeAmount = stakeAmount
-                console.log(
-                  `undelegateStake - selected fallback object: ${stakingObjectId} (full withdrawal: ${stakeAmount} MIST)`
-                )
-                break
-              }
+          if (objData.data?.content?.fields) {
+            const fields = objData.data.content.fields
+            const stakedAmount = parseInt(fields.principal || fields.amount || 0)
+
+            if (stakedAmount > 0) {
+              stakingObjectId = obj.data.objectId
+              foundStakeAmount = stakedAmount
+              break
             }
           }
         }
-      } catch (fallbackError) {
-        console.log('undelegateStake - Fallback query failed:', fallbackError)
+      }
+
+      if (!stakingObjectId) {
+        try {
+          const allObjects = await SUI_CLIENT.getOwnedObjects({
+            owner: delegatorAddress,
+            options: { showContent: true, showType: true }
+          })
+
+          for (const obj of allObjects.data || []) {
+            if (
+              obj.data?.type &&
+              (obj.data.type.includes('StakedWal') || obj.data.type.includes('staked_wal'))
+            ) {
+              if (obj.data?.content?.fields) {
+                const fields = obj.data.content.fields
+                const stakeAmount = parseInt(
+                  fields.principal || fields.amount || fields.stake_amount || 0
+                )
+                if (stakeAmount > 0) {
+                  stakingObjectId = obj.data.objectId
+                  foundStakeAmount = stakeAmount
+                  break
+                }
+              }
+            }
+          }
+        } catch (fallbackError) {
+          console.log('undelegateStake - Fallback query failed:', fallbackError)
+        }
       }
     }
 
@@ -371,10 +414,6 @@ export const undelegateStake = async (delegatorAddress, validatorAddress, unstak
         `No staking objects found for withdrawal. You need to have staked WAL tokens to unstake.`
       )
     }
-
-    console.log(
-      `undelegateStake - Using staking object: ${stakingObjectId} with ${foundStakeAmount} MIST`
-    )
 
     const tx = new Transaction()
     const pool = tx.object(STAKE_POOL_ID) // Input 0: SharedObject (stake pool)
@@ -412,6 +451,68 @@ export const undelegateStake = async (delegatorAddress, validatorAddress, unstak
   } catch (error) {
     console.error('Error unstaking WAL tokens:', error)
     throw new Error(`Failed to unstake WAL tokens: ${error.message}`)
+  }
+}
+
+// Helper function to withdraw from a specific staking object
+export const withdrawSpecificStake = async (delegatorAddress, stakingObjectId) => {
+  try {
+    if (!connectedWallet) {
+      throw new Error('Wallet not connected')
+    }
+
+    const objData = await SUI_CLIENT.getObject({
+      id: stakingObjectId,
+      options: { showContent: true, showType: true }
+    })
+
+    if (!objData.data?.content?.fields) {
+      throw new Error(`Invalid staking object: ${stakingObjectId}`)
+    }
+
+    const fields = objData.data.content.fields
+    const stakedAmount = parseInt(fields.principal || fields.amount || 0)
+
+    if (stakedAmount <= 0) {
+      throw new Error(`Staking object ${stakingObjectId} has no stake amount`)
+    }
+
+    const tx = new Transaction()
+    const pool = tx.object(STAKE_POOL_ID) // Input 0: SharedObject (stake pool)
+    const stakingObject = tx.object(stakingObjectId) // Input 1: StakedWal object
+    const delegatorAddr = tx.pure.address(delegatorAddress) // Input 2: delegator address
+
+    const withdrawResult = tx.moveCall({
+      target: `${WALRUS_STAKING_PACKAGE}::staking::withdraw_stake`,
+      arguments: [
+        pool, // Input 0
+        stakingObject // Input 1
+      ]
+    })
+
+    tx.transferObjects([withdrawResult], delegatorAddr)
+
+    const account = connectedWallet.accounts.find((acc) => acc.address === delegatorAddress)
+    if (!account) {
+      throw new Error('Account not found in connected wallet')
+    }
+
+    const result = await connectedWallet.features[
+      'sui:signAndExecuteTransaction'
+    ].signAndExecuteTransaction({
+      transaction: tx,
+      account: account,
+      chain: `sui:${SUI_NETWORK}`,
+      options: {
+        showEffects: true,
+        showEvents: true
+      }
+    })
+
+    return result.digest
+  } catch (error) {
+    console.error('Error withdrawing specific stake:', error)
+    throw new Error(`Failed to withdraw specific stake: ${error.message}`)
   }
 }
 

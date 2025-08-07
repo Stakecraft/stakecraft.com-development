@@ -253,50 +253,113 @@
             <!-- Unstaking Tab Content -->
             <div v-if="activeTab === 'unstake'" class="tab-content">
               <div class="staking-form">
-                <!-- Unstaking Amount Input -->
-                <div class="form-group">
-                  <label class="form-label">Amount to Unstake (WAL)</label>
-                  <div class="input-container">
-                    <input
-                      v-model.number="unstakeAmount"
-                      type="number"
-                      :min="0"
-                      :max="stakedAmount"
-                      step="0.01"
-                      class="form-input"
-                      placeholder="Enter amount to unstake"
-                    />
-                    <div class="input-suffix">
-                      <span>WAL</span>
-                    </div>
-                  </div>
-                  <div class="input-hint">
-                    <span>Available to unstake: {{ stakedAmount }} WAL</span>
-                    <button
-                      @click="unstakeAmount = stakedAmount"
-                      class="max-button"
-                      :disabled="stakedAmount <= 0"
-                    >
-                      Max
-                    </button>
-                  </div>
-                </div>
+                <!-- My Staking Accounts Section -->
+                <div class="staking-accounts-section">
+                  <h3 class="section-title">My Staking Accounts</h3>
 
-                <!-- Unstaking Info -->
-                <div class="info-card">
-                  <h3 class="info-card-title">Unstaking Information</h3>
-                  <div class="info-card-content">
-                    <div class="info-row">
-                      <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount }} WAL</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Rewards Earned:</span>
-                      <span class="info-value">{{ rewardsEarned }} WAL</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Unbonding Period:</span>
-                      <span class="info-value">1-2 epochs (~2-4 weeks)</span>
+                  <!-- Loading State -->
+                  <div v-if="isLoadingAccounts" class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>Loading staking accounts...</p>
+                  </div>
+
+                  <!-- No Accounts State -->
+                  <div v-else-if="stakingAccounts.length === 0" class="no-accounts">
+                    <div class="no-accounts-icon">📭</div>
+                    <p>No active staking accounts found</p>
+                    <p class="no-accounts-hint">Stake some WAL to see your accounts here</p>
+                  </div>
+
+                  <!-- Accounts List -->
+                  <div v-else class="accounts-list">
+                    <div
+                      v-for="account in stakingAccounts"
+                      :key="account.address"
+                      class="account-card"
+                      :class="{ expanded: account.expanded }"
+                    >
+                      <!-- Compact Header (always visible) -->
+                      <div class="account-header" @click="toggleAccount(account)">
+                        <div class="account-basic-info">
+                          <div class="account-id">
+                            <span class="account-label">Stake ID:</span>
+                            <span class="account-value">{{
+                              truncateAddress(account.address)
+                            }}</span>
+                          </div>
+                          <div class="account-status">
+                            <span :class="['status-badge', getStatusClass(account)]">
+                              {{ getStatusText(account) }}
+                            </span>
+                          </div>
+                        </div>
+                        <div class="expand-indicator">
+                          <svg
+                            :class="['expand-icon', { rotated: account.expanded }]"
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path d="M6 9l6 6 6-6" />
+                          </svg>
+                        </div>
+                      </div>
+
+                      <!-- Expanded Details (conditionally visible) -->
+                      <div v-if="account.expanded" class="account-expanded-content">
+                        <div class="account-full-info">
+                          <div class="account-validator">
+                            <span class="label">Validator:</span>
+                            <span class="value">{{ truncateAddress(account.voterAddress) }}</span>
+                            <span class="tooltip-container">
+                              <span class="tooltip">{{ account.voterAddress }}</span>
+                            </span>
+                          </div>
+                          <div class="account-validator">
+                            <span class="label">Stake ID:</span>
+                            <span class="value">{{ truncateAddress(account.address) }}</span>
+                            <span class="tooltip-container">
+                              <span class="tooltip">{{ account.address }}</span>
+                            </span>
+                          </div>
+                        </div>
+
+                        <div class="account-details">
+                          <div class="detail-row">
+                            <span class="detail-label">Staked Amount:</span>
+                            <span class="detail-value"
+                              >{{ account.delegatedAmount.toFixed(4) }} WAL</span
+                            >
+                          </div>
+                          <div class="detail-row">
+                            <span class="detail-label">Active Amount:</span>
+                            <span class="detail-value"
+                              >{{ account.activeAmount.toFixed(4) }} WAL</span
+                            >
+                          </div>
+                        </div>
+
+                        <div class="account-actions">
+                          <button
+                            v-if="account.isActive"
+                            @click="withdrawAccount(account.address)"
+                            :disabled="isWithdrawing"
+                            class="action-button withdraw-button"
+                            :class="{ 'button-disabled': isWithdrawing }"
+                          >
+                            <span v-if="isWithdrawing && withdrawingAccount === account.address">
+                              Withdrawing...
+                            </span>
+                            <span v-else>Withdraw</span>
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -319,16 +382,6 @@
                 <div v-if="unstakingError" class="error-message">
                   {{ unstakingError }}
                 </div>
-
-                <!-- Unstake Action Button -->
-                <button
-                  @click="undelegateStake"
-                  :disabled="!isValidUnstake || isProcessing"
-                  class="primary-button full-width delegate-button unstake-button"
-                  :class="{ 'button-disabled': !isValidUnstake || isProcessing }"
-                >
-                  {{ isProcessing ? 'Processing...' : 'Undelegate WAL' }}
-                </button>
               </div>
             </div>
 
@@ -357,11 +410,13 @@ import {
   connectWallet,
   delegateTokens,
   undelegateStake,
+  withdrawSpecificStake,
   getTotalStakedAmount,
   getWalBalance,
   getSuiBalance,
   getStakingInfo,
-  getStorageNodeStatus
+  getStorageNodeStatus,
+  getStakedTotalAccounts
 } from '../../utils/WalrusStaking'
 
 export default {
@@ -403,19 +458,29 @@ export default {
     const networkParticipation = ref(0)
     const nodeUptime = ref(99.8)
 
+    // Staking accounts management
+    const stakingAccounts = ref([])
+    const isLoadingAccounts = ref(false)
+    const isWithdrawing = ref(false)
+    const withdrawingAccount = ref('')
+
     onMounted(() => {
       if (props.network?.validator) {
         validatorAddress.value = props.network.validator
       }
     })
 
-    // Add watch on activeTab to clear messages
-    watch(activeTab, () => {
+    // Add watch on activeTab to clear messages and load accounts
+    watch(activeTab, async (newTab) => {
       stakingSuccess.value = false
       stakingError.value = null
       unstakingSuccess.value = false
       unstakingError.value = null
       transactionHash.value = ''
+
+      if (newTab === 'unstake' && walletConnected.value) {
+        await loadStakingAccounts()
+      }
     })
 
     const isValidStake = computed(() => {
@@ -441,7 +506,8 @@ export default {
         walletAddress.value = result.address
         walletConnected.value = true
         isConnecting.value = false
-        refreshStakingInfo()
+        await refreshStakingInfo()
+        await loadStakingAccounts()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         walletError.value = true
@@ -536,6 +602,102 @@ export default {
       }
     }
 
+    const loadStakingAccounts = async () => {
+      if (!walletAddress.value) return
+
+      try {
+        isLoadingAccounts.value = true
+        const accounts = await getStakedTotalAccounts(walletAddress.value)
+
+        // Handle the array of staking objects returned from getStakedTotalAccounts
+        if (accounts && Array.isArray(accounts)) {
+          stakingAccounts.value = accounts.map((account) => {
+            // Extract data from the account object structure
+            const accountData = account.data?.content?.fields || account.data?.fields || {}
+            const principal = parseInt(accountData.principal || 0)
+            const objectId = account.data?.objectId || accountData.id?.id || accountData.objectId
+
+            return {
+              address: objectId,
+              delegatedAmount: principal / 1_000_000_000, // Convert MIST to WAL
+              voterAddress: validatorAddress.value,
+              isActive: true,
+              activeAmount: principal / 1_000_000_000, // Convert MIST to WAL
+              inactiveAmount: 0,
+              state: 'active',
+              expanded: false,
+              // Store the original object for withdrawal
+              originalObject: account
+            }
+          })
+        } else {
+          stakingAccounts.value = []
+        }
+      } catch (error) {
+        console.error('Failed to load staking accounts:', error)
+        stakingAccounts.value = []
+      } finally {
+        isLoadingAccounts.value = false
+      }
+    }
+
+    const toggleAccount = (account) => {
+      account.expanded = !account.expanded
+    }
+
+    const withdrawAccount = async (accountAddress) => {
+      try {
+        isWithdrawing.value = true
+        withdrawingAccount.value = accountAddress
+
+        // Clear previous messages
+        unstakingSuccess.value = false
+        unstakingError.value = null
+
+        // Find the account object to get the staking amount
+        const account = stakingAccounts.value.find((acc) => acc.address === accountAddress)
+        if (!account) {
+          throw new Error('Account not found')
+        }
+
+        // Use the new withdrawSpecificStake function for cleaner implementation
+        const hash = await withdrawSpecificStake(
+          walletAddress.value,
+          account.address // Pass the specific staking object ID
+        )
+
+        transactionHash.value = hash
+        unstakingSuccess.value = true
+        unstakingError.value = null
+
+        // Reload accounts and refresh info
+        await loadStakingAccounts()
+        await refreshStakingInfo()
+      } catch (error) {
+        console.error('Failed to withdraw account:', error)
+        unstakingError.value = error.message || 'Failed to withdraw from account'
+        unstakingSuccess.value = false
+        transactionHash.value = null
+      } finally {
+        isWithdrawing.value = false
+        withdrawingAccount.value = ''
+      }
+    }
+
+    const getStatusClass = (account) => {
+      if (account.isActive) {
+        return 'active'
+      }
+      return ''
+    }
+
+    const getStatusText = (account) => {
+      if (account.isActive) {
+        return 'Active'
+      }
+      return 'Unknown'
+    }
+
     const closeModal = () => {
       emit('close')
     }
@@ -565,6 +727,7 @@ export default {
       connectWallet: handleConnectWallet,
       delegateTokens: handleDelegateTokens,
       undelegateStake: handleUndelegateStake,
+      withdrawSpecificStake,
       truncateAddress,
       walletError,
       isConnecting,
@@ -580,7 +743,17 @@ export default {
       storageCapacity,
       storedData,
       networkParticipation,
-      nodeUptime
+      nodeUptime,
+      // Staking accounts management
+      stakingAccounts,
+      isLoadingAccounts,
+      isWithdrawing,
+      withdrawingAccount,
+      loadStakingAccounts,
+      toggleAccount,
+      withdrawAccount,
+      getStatusClass,
+      getStatusText
     }
   }
 }
@@ -1104,5 +1277,265 @@ input[type='number'] {
 
 .gas-warning .warning-text {
   color: #dc2626 !important;
+}
+
+/* Staking Accounts Section */
+.staking-accounts-section {
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.loading-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.no-accounts {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.no-accounts-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.no-accounts-hint {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin-top: 0.5rem;
+}
+
+.accounts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.account-card {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.account-card:hover {
+  border-color: #6366f1;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+}
+
+.account-card.expanded {
+  background-color: #ffffff;
+  border-color: #6366f1;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+.account-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+  padding: 0.25rem 0;
+}
+
+.account-basic-info {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.account-id {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.account-id .account-label {
+  color: #6b7280;
+  font-weight: 500;
+  min-width: 60px;
+}
+
+.account-id .account-value {
+  color: #1f2937;
+  font-family: monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.account-status {
+  flex-shrink: 0;
+}
+
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.status-badge.active {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.expand-indicator {
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+  color: #6b7280;
+}
+
+.expand-icon {
+  transition: transform 0.3s ease;
+}
+
+.expand-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.account-expanded-content {
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 1rem;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.account-full-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.account-full-info .label {
+  color: #6b7280;
+  font-weight: 500;
+  min-width: 60px;
+}
+
+.account-full-info .value {
+  color: #1f2937;
+  font-family: monospace;
+  font-size: 0.75rem;
+}
+
+.account-details {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #f8fafc;
+  border-radius: 0.375rem;
+  border: 1px solid #e2e8f0;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.detail-value {
+  font-weight: 600;
+  color: #1f2937;
+  font-family: monospace;
+}
+
+.account-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.action-button {
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.action-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+.action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.withdraw-button {
+  background-color: #059669;
+  color: white;
+}
+
+.withdraw-button:hover:not(:disabled) {
+  background-color: #047857;
+}
+
+.button-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>
