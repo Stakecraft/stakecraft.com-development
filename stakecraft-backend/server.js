@@ -34,6 +34,7 @@ app.use(
     origin:
       process.env.FRONTEND_URL ||
       "http://localhost:3000" ||
+      "http://localhost:5173" ||
       "https://103.179.45.100",
     credentials: true,
   })
