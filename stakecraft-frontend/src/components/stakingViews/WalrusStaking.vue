@@ -28,20 +28,6 @@
           <!-- Network Description -->
           <div v-if="!walletConnected" class="network-description">
             <p>{{ network.description }}</p>
-            <!-- <div class="walrus-features">
-              <div class="feature-item">
-                <span class="feature-icon">🗄️</span>
-                <span>Decentralized Storage</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">⚡</span>
-                <span>High Performance</span>
-              </div>
-              <div class="feature-item">
-                <span class="feature-icon">🔒</span>
-                <span>Byzantine Fault Tolerance</span>
-              </div>
-            </div> -->
           </div>
 
           <!-- Wallet Warning -->
@@ -88,7 +74,7 @@
             <div class="network-links">
               <a
                 v-if="network.explorer"
-                :href="network.explorer[0]"
+                :href="network.explorer"
                 target="_blank"
                 class="link-primary"
               >

@@ -13,12 +13,11 @@
       </div>
     </div>
 
-    <!-- LetsExchange Widget Integration -->
     <link rel="stylesheet" type="text/css" href="https://letsexchange.io/widget_lets.css" />
     <div
       class="lets-widget"
       id="lets_widget_ugOBzESJhm3ITbbQ"
-      style="max-width: 480px; height: 480px; margin: 40px auto"
+      style="max-width: 600px; height: 600px"
     >
       <iframe
         src="https://letsexchange.io/v2/widget?affiliate_id=ugOBzESJhm3ITbbQ&is_iframe=true"
@@ -28,6 +27,23 @@
         allow="clipboard-read; clipboard-write"
       ></iframe>
     </div>
+    <!-- <script src="https://letsexchange.io/init_widget.js"></script> -->
+
+    <!-- LetsExchange Widget Integration -->
+    <!-- <link rel="stylesheet" type="text/css" href="https://letsexchange.io/widget_lets.css" />
+    <div
+      class="lets-widget"
+      id="lets_widget_ugOBzESJhm3ITbbQ"
+      style="max-width: 510px; height: 600px; margin: 40px auto"
+    >
+      <iframe
+        src="https://letsexchange.io/v2/widget?affiliate_id=ugOBzESJhm3ITbbQ&is_iframe=true"
+        width="100%"
+        height="100%"
+        frameBorder="0"
+        allow="clipboard-read; clipboard-write"
+      ></iframe> -->
+    <!-- </div> -->
   </div>
 </template>
 
