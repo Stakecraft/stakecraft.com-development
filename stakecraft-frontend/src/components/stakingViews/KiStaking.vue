@@ -73,7 +73,7 @@
             <div class="network-links">
               <a
                 v-if="network.explorer"
-                :href="network.explorer[0]"
+                :href="network.explorer"
                 target="_blank"
                 class="link-primary"
               >
@@ -191,7 +191,7 @@
             <div class="network-links-bottom">
               <a
                 v-if="network.explorer"
-                :href="network.explorer[0]"
+                :href="network.explorer"
                 target="_blank"
                 class="link-primary"
               >
@@ -288,7 +288,6 @@ export default {
 
         rewardsEarned.value = 0
         lastRewardTime.value = null
-       
       } catch (error) {
         console.error('Failed to refresh staking info:', error)
       }
@@ -712,4 +711,4 @@ input[type='number']::-webkit-outer-spin-button {
 input[type='number'] {
   -moz-appearance: textfield;
 }
-</style> 
+</style>

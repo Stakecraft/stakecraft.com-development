@@ -73,7 +73,7 @@
             <div class="network-links">
               <a
                 v-if="network.explorer"
-                :href="network.explorer[0]"
+                :href="network.explorer"
                 target="_blank"
                 class="link-primary"
               >
@@ -116,14 +116,14 @@
 
             <!-- Tab Navigation -->
             <div class="tab-container">
-              <button 
+              <button
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'stake' }"
                 @click="activeTab = 'stake'"
               >
                 Stake
               </button>
-              <button 
+              <button
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'unstake' }"
                 @click="activeTab = 'unstake'"
@@ -153,7 +153,7 @@
                   </div>
                   <div class="input-hint">
                     <span>Minimum: {{ minimumStake }} BLD</span>
-                    <button 
+                    <button
                       @click="stakeAmount = Number(totalBldBalance)"
                       class="max-button"
                       :disabled="Number(totalBldBalance) <= 0"
@@ -191,9 +191,7 @@
                 </div>
 
                 <!-- Success/Error Messages for Staking -->
-                <div v-if="stakingSuccess" class="success-message">
-                  Successfully delegated !
-                </div>
+                <div v-if="stakingSuccess" class="success-message">Successfully delegated !</div>
                 <div v-if="stakingError" class="error-message">
                   {{ stakingError }}
                 </div>
@@ -232,7 +230,7 @@
                   </div>
                   <div class="input-hint">
                     <span>Available to unstake: {{ stakedAmount }} BLD</span>
-                    <button 
+                    <button
                       @click="unstakeAmount = stakedAmount"
                       class="max-button"
                       :disabled="stakedAmount <= 0"
@@ -265,7 +263,8 @@
                 <div class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
-                    <strong>Important:</strong> Unstaked tokens will be locked for 21 days before becoming available for withdrawal.
+                    <strong>Important:</strong> Unstaked tokens will be locked for 21 days before
+                    becoming available for withdrawal.
                   </div>
                 </div>
 
@@ -293,7 +292,7 @@
             <div class="network-links-bottom">
               <a
                 v-if="network.explorer"
-                :href="network.explorer[0]"
+                :href="network.explorer"
                 target="_blank"
                 class="link-primary"
               >
@@ -374,7 +373,12 @@ export default {
 
     const isValidStake = computed(() => {
       const amount = parseFloat(stakeAmount.value)
-      return !isNaN(amount) && amount >= minimumStake && validatorAddress.value && amount <= Number(totalBldBalance.value)
+      return (
+        !isNaN(amount) &&
+        amount >= minimumStake &&
+        validatorAddress.value &&
+        amount <= Number(totalBldBalance.value)
+      )
     })
 
     const isValidUnstake = computed(() => {
@@ -428,7 +432,7 @@ export default {
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
-        
+
         const hash = await delegateTokens(
           walletAddress.value,
           validatorAddress.value,
@@ -453,7 +457,7 @@ export default {
         stakingError.value = null
         unstakingSuccess.value = false
         unstakingError.value = null
-        
+
         const hash = await undelegateStake(
           walletAddress.value,
           validatorAddress.value,
@@ -975,7 +979,9 @@ input[type='number'] {
   z-index: 10;
   margin-bottom: 0.5rem;
   opacity: 0;
-  transition: opacity 0.2s, visibility 0.2s;
+  transition:
+    opacity 0.2s,
+    visibility 0.2s;
 }
 
 .tooltip::after {

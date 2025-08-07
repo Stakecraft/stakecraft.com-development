@@ -73,7 +73,7 @@
             <div class="network-links">
               <a
                 v-if="network.explorer"
-                :href="network.explorer[0]"
+                :href="network.explorer"
                 target="_blank"
                 class="link-primary"
               >
@@ -116,7 +116,6 @@
 
             <!-- Tab Navigation -->
             <div class="tab-container">
-
               <button
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'stake' }"
@@ -319,7 +318,7 @@
             <div class="network-links-bottom">
               <a
                 v-if="network.explorer"
-                :href="network.explorer[0]"
+                :href="network.explorer"
                 target="_blank"
                 class="link-primary"
               >

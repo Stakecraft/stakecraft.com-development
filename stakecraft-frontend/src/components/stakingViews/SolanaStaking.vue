@@ -74,7 +74,7 @@
             <div class="network-links">
               <a
                 v-if="network.explorer"
-                :href="network.explorer[0]"
+                :href="network.explorer"
                 target="_blank"
                 class="link-primary"
               >
@@ -381,7 +381,7 @@
             <div class="network-links-bottom">
               <a
                 v-if="network.explorer"
-                :href="network.explorer[0]"
+                :href="network.explorer"
                 target="_blank"
                 class="link-primary"
               >
@@ -1190,7 +1190,6 @@ export default {
   font-weight: 500;
   color: #1f2937;
 }
-
 
 /* Warning Card */
 .warning-card {
