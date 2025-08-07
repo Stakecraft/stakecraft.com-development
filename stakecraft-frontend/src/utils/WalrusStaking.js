@@ -1,32 +1,23 @@
-// Sui SDK imports
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client'
 import { Transaction } from '@mysten/sui/transactions'
 import { getWallets } from '@mysten/wallet-standard'
 
-// Walrus operates on Sui blockchain
-const SUI_NETWORK = 'mainnet' // or 'testnet' for testing
+const SUI_NETWORK = 'mainnet'
 const SUI_CLIENT = new SuiClient({ url: getFullnodeUrl(SUI_NETWORK) })
+const WAL_COIN_TYPE = '0x356a26eb9e012a68958082340d4c4116e7f55615cf27affcff209cf0ae544f59::wal::WAL' // Actual Walrus token type
+const STAKE_POOL_ID = '0x10b9d30c28448939ce6c4d6c6e0ffce4a7f8a4ada8248bdad09ef8b70e4a3904'
+const WALRUS_STAKING_PACKAGE = '0xfa65cb2d62f4d39e60346fb7d501c12538ca2bbc646eaa37ece2aec5f897814e'
+const WALRUS_STORAGE_PACKAGE = null
 
-// Walrus-specific constants on Sui
-// Note: These addresses need to be updated with the actual deployed contract addresses
-// Check https://docs.wal.app/ for the latest mainnet contract addresses
-const WAL_COIN_TYPE = '0x2::sui::SUI' // Placeholder - Replace with actual WAL token type
-const WALRUS_STAKING_PACKAGE = '0x2::walrus_staking' // Placeholder - Replace with actual Walrus staking package
-const WALRUS_STORAGE_PACKAGE = '0x2::walrus_storage' // Placeholder - Replace with actual storage package
-
-// Walrus mainnet configuration
 const WALRUS_CONFIG = {
-  // These values should be obtained from the official Walrus documentation
   epochDurationMs: 24 * 60 * 60 * 1000, // 24 hours
   unbondingPeriodEpochs: 1, // 1 epoch
   minStakeAmount: 1000000000, // 1 WAL in MIST
   storageRatePerWalPerGb: 10 // 10 GB storage per 1 WAL staked
 }
 
-// Global wallet reference for connected wallet
 let connectedWallet = null
 
-// Get available wallets
 export const getAvailableWallets = () => {
   try {
     return getWallets().get()
@@ -36,7 +27,6 @@ export const getAvailableWallets = () => {
   }
 }
 
-// Connect wallet using Sui Wallet Standard
 export const connectWallet = async (walletName = null) => {
   try {
     const availableWallets = getAvailableWallets()
@@ -47,7 +37,6 @@ export const connectWallet = async (walletName = null) => {
       )
     }
 
-    // Find the specific wallet or use the first available one
     let wallet
     if (walletName) {
       wallet = availableWallets.find((w) => w.name.toLowerCase().includes(walletName.toLowerCase()))
@@ -73,7 +62,6 @@ export const connectWallet = async (walletName = null) => {
     connectedWallet = wallet
     console.log('Connected wallet:', wallet.name, connectResult)
 
-    // Return connection info
     return {
       address: connectResult.accounts[0].address,
       walletName: wallet.name,
@@ -85,7 +73,6 @@ export const connectWallet = async (walletName = null) => {
   }
 }
 
-// Disconnect wallet
 export const disconnectWallet = async () => {
   try {
     if (connectedWallet && connectedWallet.features['standard:disconnect']) {
@@ -95,36 +82,32 @@ export const disconnectWallet = async () => {
     return true
   } catch (error) {
     console.error('Error disconnecting wallet:', error)
-    connectedWallet = null // Reset anyway
+    connectedWallet = null
     return false
   }
 }
 
-// Check if wallet is connected
 export const isWalletConnected = () => {
   return connectedWallet !== null
 }
 
-// Get WAL balance for a wallet address on Sui
 export const getWalBalance = async (walletAddress) => {
   try {
     if (!walletAddress) {
       throw new Error('Wallet address is required')
     }
 
-    // Get all coin objects owned by the address
     const coinObjects = await SUI_CLIENT.getCoins({
       owner: walletAddress,
       coinType: WAL_COIN_TYPE
     })
 
-    // Calculate total WAL balance
+    console.log('Coin objects:', coinObjects)
     let totalBalance = 0
     for (const coin of coinObjects.data) {
       totalBalance += parseInt(coin.balance)
     }
 
-    // Convert from MIST to WAL (1 WAL = 1,000,000,000 MIST)
     return totalBalance / 1_000_000_000
   } catch (error) {
     console.error('Error getting WAL balance:', error)
@@ -132,14 +115,17 @@ export const getWalBalance = async (walletAddress) => {
   }
 }
 
-// Get staked amount from Walrus storage pool on Sui
 export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) => {
   try {
     if (!delegatorAddress || !validatorAddress) {
       return { amount: 0 }
     }
 
-    // Get staking objects for the delegator
+    if (!WALRUS_STAKING_PACKAGE) {
+      console.warn('Walrus staking package not configured - skipping staking query')
+      return { amount: 0 }
+    }
+
     const stakingObjects = await SUI_CLIENT.getOwnedObjects({
       owner: delegatorAddress,
       filter: {
@@ -147,7 +133,6 @@ export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) =
       }
     })
 
-    // Find staking records for the specific validator
     let totalStaked = 0
     for (const obj of stakingObjects.data) {
       const objData = await SUI_CLIENT.getObject({
@@ -155,7 +140,6 @@ export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) =
         options: { showContent: true }
       })
 
-      // Check if this staking object is for our validator
       if (objData.data?.content?.fields?.validator === validatorAddress) {
         totalStaked += parseInt(objData.data.content.fields.amount || 0)
       }
@@ -168,90 +152,105 @@ export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) =
   }
 }
 
-// Stake WAL tokens on Walrus storage network via Sui
+export const getSuiBalance = async (walletAddress) => {
+  try {
+    if (!walletAddress) {
+      throw new Error('Wallet address is required')
+    }
+
+    const suiCoins = await SUI_CLIENT.getCoins({
+      owner: walletAddress,
+      coinType: '0x2::sui::SUI'
+    })
+
+    let totalBalance = 0
+    for (const coin of suiCoins.data) {
+      totalBalance += parseInt(coin.balance)
+    }
+
+    return totalBalance / 1_000_000_000 // Convert MIST to SUI
+  } catch (error) {
+    console.error('Error getting SUI balance:', error)
+    return 0
+  }
+}
+
 export const delegateTokens = async (delegatorAddress, validatorAddress, amount) => {
   try {
-    if (!connectedWallet) {
-      throw new Error('Wallet not connected')
+    // Check SUI balance for gas fees first
+    const suiBalance = await getSuiBalance(delegatorAddress)
+    const requiredGasInSui = 1.0 // 1 SUI should be enough for gas
+
+    if (suiBalance < requiredGasInSui) {
+      throw new Error(
+        `Insufficient SUI balance for gas fees. You have ${suiBalance.toFixed(4)} SUI but need at least ${requiredGasInSui} SUI. ` +
+          `Please add SUI tokens to your wallet to pay for transaction fees.`
+      )
     }
 
-    // Convert WAL amount to MIST (smallest unit)
     const amountInMist = Math.floor(amount * 1_000_000_000)
-
-    // Validate minimum stake amount
-    if (amountInMist < WALRUS_CONFIG.minStakeAmount) {
-      throw new Error(`Minimum stake amount is ${WALRUS_CONFIG.minStakeAmount / 1_000_000_000} WAL`)
-    }
-
-    // Create transaction block
     const tx = new Transaction()
 
-    // Get WAL coins to stake
+    // Get WAL coins
     const walCoins = await SUI_CLIENT.getCoins({
       owner: delegatorAddress,
       coinType: WAL_COIN_TYPE
     })
 
-    if (walCoins.data.length === 0) {
+    console.log('walCoins', walCoins)
+
+    if (!walCoins.data || walCoins.data.length === 0) {
       throw new Error('No WAL tokens found in wallet')
     }
 
-    // Merge coins if necessary and select coins for staking
-    let coinIds = []
-    let totalAmount = 0
+    // Create inputs in the correct order to match successful transaction
+    const pool = tx.object(STAKE_POOL_ID) // Input 0: SharedObject (mutable)
+    const validatorId = tx.pure.id(validatorAddress) // Input 1: Pure ID
+    const delegatorAddr = tx.pure.address(delegatorAddress) // Input 2: Pure address
+    const coinToStake = tx.object(walCoins.data[0].coinObjectId) // Input 3: Coin object
+    const stakeAmount = tx.pure.u64(amountInMist) // Input 4: Pure u64
 
-    for (const coin of walCoins.data) {
-      coinIds.push(coin.coinObjectId)
-      totalAmount += parseInt(coin.balance)
-      if (totalAmount >= amountInMist) break
-    }
+    console.log('Transaction inputs created')
 
-    if (totalAmount < amountInMist) {
-      throw new Error('Insufficient WAL balance for staking')
-    }
+    // Split the coin (this creates NestedResult[0,0])
+    const [stakingCoin] = tx.splitCoins(coinToStake, [stakeAmount])
 
-    // Merge coins if we have multiple
-    let coinToStake
-    if (coinIds.length > 1) {
-      coinToStake = tx.mergeCoins(
-        tx.object(coinIds[0]),
-        coinIds.slice(1).map((id) => tx.object(id))
-      )
-    } else {
-      coinToStake = tx.object(coinIds[0])
-    }
+    console.log('stakingCoin split completed')
 
-    // Split the exact amount needed
-    const [stakingCoin] = tx.splitCoins(coinToStake, [tx.pure(amountInMist)])
-
-    // Call Walrus staking function
-    tx.moveCall({
-      target: `${WALRUS_STAKING_PACKAGE}::staking::stake_wal`,
-      arguments: [stakingCoin, tx.pure(validatorAddress)]
+    // MoveCall with correct arguments: [pool, splitCoin, validatorId]
+    const stakeResult = tx.moveCall({
+      target: `${WALRUS_STAKING_PACKAGE}::staking::stake_with_pool`,
+      arguments: [
+        pool, // Input 0
+        stakingCoin, // NestedResult[0,0]
+        validatorId // Input 1
+      ]
     })
 
-    // Find the connected account
-    const account = connectedWallet.accounts.find((acc) => acc.address === delegatorAddress)
-    if (!account) {
-      throw new Error('Account not found in connected wallet')
-    }
+    // Transfer the stake result object to the delegator
+    tx.transferObjects([stakeResult], delegatorAddr)
 
-    // Sign and execute transaction using Wallet Standard
-    const result = await connectedWallet.features[
-      'sui:signAndExecuteTransaction'
-    ].signAndExecuteTransaction({
-      transaction: tx,
+    console.log('Transaction structure completed')
+
+    tx.setGasBudget(1_000_000_000n)
+
+    const account = connectedWallet.accounts.find((acc) => acc.address === delegatorAddress)
+    console.log('account', account)
+
+    console.log('tx', tx)
+    const signer = connectedWallet.features['sui:signAndExecuteTransaction']
+
+    const result = await signer.signAndExecuteTransaction({
       account: account,
+      chain: 'sui:mainnet',
+      transaction: tx,
       options: {
         showEffects: true,
         showEvents: true
       }
     })
 
-    if (result.effects?.status?.status !== 'success') {
-      throw new Error(`Transaction failed: ${result.effects?.status?.error}`)
-    }
-
+    console.log('result', result)
     return result.digest
   } catch (error) {
     console.error('Error staking WAL tokens:', error)
@@ -259,17 +258,13 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
   }
 }
 
-// Unstake WAL tokens from Walrus storage network
 export const undelegateStake = async (delegatorAddress, validatorAddress, unstakeAmount) => {
   try {
     if (!connectedWallet) {
       throw new Error('Wallet not connected')
     }
 
-    // Convert WAL amount to MIST (smallest unit)
     const amountInMist = Math.floor(unstakeAmount * 1_000_000_000)
-
-    // Find staking objects for this validator
     const stakingObjects = await SUI_CLIENT.getOwnedObjects({
       owner: delegatorAddress,
       filter: {
@@ -297,27 +292,24 @@ export const undelegateStake = async (delegatorAddress, validatorAddress, unstak
       throw new Error('No suitable staking object found for unstaking')
     }
 
-    // Create transaction block
     const tx = new Transaction()
 
-    // Call Walrus unstaking function
     tx.moveCall({
-      target: `${WALRUS_STAKING_PACKAGE}::staking::unstake_wal`,
-      arguments: [tx.object(stakingObjectId), tx.pure(amountInMist)]
+      target: `${WALRUS_STAKING_PACKAGE}::staking::unstake`,
+      arguments: [tx.object(stakingObjectId), tx.pure.u64(amountInMist)]
     })
 
-    // Find the connected account
     const account = connectedWallet.accounts.find((acc) => acc.address === delegatorAddress)
     if (!account) {
       throw new Error('Account not found in connected wallet')
     }
 
-    // Sign and execute transaction using Wallet Standard
     const result = await connectedWallet.features[
       'sui:signAndExecuteTransaction'
     ].signAndExecuteTransaction({
       transaction: tx,
       account: account,
+      chain: `sui:${SUI_NETWORK}`,
       options: {
         showEffects: true,
         showEvents: true
@@ -335,14 +327,24 @@ export const undelegateStake = async (delegatorAddress, validatorAddress, unstak
   }
 }
 
-// Get Walrus staking information
 export const getStakingInfo = async (address) => {
   try {
     if (!address) {
       throw new Error('Wallet address is required')
     }
 
-    // Get all staking objects for this address
+    if (!WALRUS_STAKING_PACKAGE) {
+      console.warn('Walrus staking package not configured - returning default values')
+      return {
+        stakedAmount: 0,
+        rewardsEarned: 0,
+        lastRewardTime: null,
+        storageCapacity: 0,
+        storedData: 0,
+        networkParticipation: 0
+      }
+    }
+
     const stakingObjects = await SUI_CLIENT.getOwnedObjects({
       owner: address,
       filter: {
@@ -370,7 +372,6 @@ export const getStakingInfo = async (address) => {
       }
     }
 
-    // Calculate storage capacity based on staked amount
     const walAmount = totalStaked / 1_000_000_000
     const storageCapacity = Math.round(walAmount * WALRUS_CONFIG.storageRatePerWalPerGb)
 
@@ -400,6 +401,18 @@ export const getStorageNodeStatus = async (address) => {
   try {
     if (!address) {
       throw new Error('Wallet address is required')
+    }
+
+    // Note: Storage node functionality temporarily disabled until proper Walrus SDK integration
+    if (!WALRUS_STAKING_PACKAGE) {
+      console.warn('Walrus staking package not configured - returning default values')
+      return {
+        isActiveNode: false,
+        storageCapacity: 0,
+        replicationFactor: 3,
+        uptime: 99.8,
+        commission: 5
+      }
     }
 
     // Query storage node information from Sui
@@ -446,17 +459,22 @@ export const getStorageNodeStatus = async (address) => {
   }
 }
 
-// Purchase Walrus storage space
 export const purchaseStorageSpace = async (walletAddress, spaceAmount, duration) => {
   try {
     if (!connectedWallet) {
       throw new Error('Wallet not connected')
     }
 
-    // Create transaction block
+    if (!WALRUS_STORAGE_PACKAGE) {
+      throw new Error(
+        'Walrus storage purchase is not yet fully integrated. ' +
+          'Please use the official Walrus documentation at https://docs.wal.app/ ' +
+          'to learn about storage usage.'
+      )
+    }
+
     const tx = new Transaction()
 
-    // Get WAL coins for payment
     const walCoins = await SUI_CLIENT.getCoins({
       owner: walletAddress,
       coinType: WAL_COIN_TYPE
@@ -466,10 +484,8 @@ export const purchaseStorageSpace = async (walletAddress, spaceAmount, duration)
       throw new Error('No WAL tokens found for storage purchase')
     }
 
-    // Calculate storage cost (example: 0.1 WAL per GB per month)
     const storageCost = Math.floor(spaceAmount * duration * 0.1 * 1_000_000_000)
 
-    // Merge and split coins for payment
     let paymentCoin
     if (walCoins.data.length > 1) {
       const coinIds = walCoins.data.map((coin) => coin.coinObjectId)
@@ -481,26 +497,24 @@ export const purchaseStorageSpace = async (walletAddress, spaceAmount, duration)
       paymentCoin = tx.object(walCoins.data[0].coinObjectId)
     }
 
-    const [payment] = tx.splitCoins(paymentCoin, [tx.pure(storageCost)])
+    const [payment] = tx.splitCoins(paymentCoin, [tx.pure(storageCost, 'u64')])
 
-    // Call Walrus storage purchase function
     tx.moveCall({
       target: `${WALRUS_STORAGE_PACKAGE}::storage::purchase_space`,
-      arguments: [payment, tx.pure(spaceAmount), tx.pure(duration)]
+      arguments: [payment, tx.pure(spaceAmount, 'u64'), tx.pure(duration, 'u64')]
     })
 
-    // Find the connected account
     const account = connectedWallet.accounts.find((acc) => acc.address === walletAddress)
     if (!account) {
       throw new Error('Account not found in connected wallet')
     }
 
-    // Sign and execute transaction using Wallet Standard
     const result = await connectedWallet.features[
       'sui:signAndExecuteTransaction'
     ].signAndExecuteTransaction({
       transaction: tx,
       account: account,
+      chain: `sui:${SUI_NETWORK}`, // Add the required chain identifier
       options: {
         showEffects: true,
         showEvents: true

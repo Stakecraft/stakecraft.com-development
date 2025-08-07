@@ -205,6 +205,21 @@
                       <span class="info-label">Currently Staked:</span>
                       <span class="info-value">{{ stakedAmount }} WAL</span>
                     </div>
+                    <div class="info-row">
+                      <span class="info-label">SUI Balance (for gas):</span>
+                      <span class="info-value" :class="{ 'low-gas-warning': suiBalance < 1.0 }">
+                        {{ suiBalance.toFixed(4) }} SUI
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Gas Warning -->
+                <div v-if="suiBalance < 1.0" class="warning-card gas-warning">
+                  <div class="warning-icon-small">⛽</div>
+                  <div class="warning-text">
+                    <strong>Insufficient SUI for gas fees:</strong> You need at least 1.0 SUI to pay
+                    for transaction fees. Please add SUI tokens to your wallet.
                   </div>
                 </div>
 
@@ -341,6 +356,7 @@ import {
   undelegateStake,
   getTotalStakedAmount,
   getWalBalance,
+  getSuiBalance,
   getStakingInfo,
   getStorageNodeStatus
 } from '../../utils/WalrusStaking'
@@ -376,6 +392,7 @@ export default {
     const availableBalance = ref(0)
     const activeTab = ref('stake')
     const totalWalBalance = ref(0)
+    const suiBalance = ref(0)
 
     // Walrus-specific data
     const storageCapacity = ref(0)
@@ -384,8 +401,8 @@ export default {
     const nodeUptime = ref(99.8)
 
     onMounted(() => {
-      if (props.network?.validator?.[0]) {
-        validatorAddress.value = props.network.validator[0]
+      if (props.network?.validator) {
+        validatorAddress.value = props.network.validator
       }
     })
 
@@ -404,7 +421,8 @@ export default {
         !isNaN(amount) &&
         amount >= minimumStake &&
         validatorAddress.value &&
-        amount <= Number(totalWalBalance.value)
+        amount <= Number(totalWalBalance.value) &&
+        suiBalance.value >= 1.0 // Ensure sufficient SUI for gas
       )
     })
 
@@ -435,6 +453,10 @@ export default {
         const walBalance = await getWalBalance(walletAddress.value)
         totalWalBalance.value = walBalance
         availableBalance.value = Number(walBalance).toFixed(4)
+
+        // Get SUI balance for gas fees
+        const currentSuiBalance = await getSuiBalance(walletAddress.value)
+        suiBalance.value = currentSuiBalance
 
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
         if (stakingInfo.amount) {
@@ -550,6 +572,7 @@ export default {
       availableBalance,
       activeTab,
       totalWalBalance,
+      suiBalance,
       // Walrus-specific returns
       storageCapacity,
       storedData,
@@ -1063,5 +1086,20 @@ input[type='number'] {
 .tooltip-container:hover .tooltip {
   visibility: visible;
   opacity: 1;
+}
+
+/* Gas warning styles */
+.low-gas-warning {
+  color: #dc2626 !important;
+  font-weight: 600;
+}
+
+.gas-warning {
+  background-color: #fef2f2 !important;
+  border-color: #dc2626 !important;
+}
+
+.gas-warning .warning-text {
+  color: #dc2626 !important;
 }
 </style>
