@@ -10,7 +10,9 @@
     "test": "jest",
     "seed": "node scripts/seed-data.js",
     "seed:users": "node scripts/seed-users.js",
-    "seed:all": "npm run seed && npm run seed:users",
+    "seed:menu": "node scripts/seed-menu.js",
+    "seed:all": "npm run seed && npm run seed:users && npm run seed:menu",
+    "fix:orders": "node scripts/fix-duplicate-orders.js",
     "test:api": "node scripts/test-api.js"
   },
   "dependencies": {

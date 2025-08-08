@@ -12,7 +12,7 @@ import rateLimit from "express-rate-limit";
 import { connectDB } from "./config/database.js";
 // import healthRoutes from "./routes/health.js";
 // import adminRoutes from "./routes/admin.js";
-// import contentRoutes from "./routes/content.js";
+import contentRoutes from "./routes/content.js";
 // import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 // import mainRouter from "./routes/main.js";
@@ -59,6 +59,7 @@ app.use(compression());
 app.use(morgan("combined"));
 
 // Health endpoint (no rate limiting for monitoring)
+// app.get("/api/health", (req, res) => {
 app.get("/health", (req, res) => {
   res.status(200).json({
     status: "OK",
@@ -72,7 +73,7 @@ app.get("/health", (req, res) => {
 // app.use("/api/health", healthRoutes);
 // app.use("/api/auth", authRoutes);
 // app.use("/api/admin", adminRoutes);
-// app.use("/api/content", contentRoutes);
+app.use("/api/content", contentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/mainnet", mainnetRouter);
 app.use("/api/testnet", testnetRouter);

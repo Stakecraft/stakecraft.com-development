@@ -12,6 +12,10 @@ const testnetSchema = new mongoose.Schema({
   image: {
     type: String,
   },
+  order: {
+    type: Number,
+    default: 0,
+  },
 });
 
 // Index for efficient queries

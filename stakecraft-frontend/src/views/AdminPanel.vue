@@ -65,19 +65,35 @@
                 <tr>
                   <th>Name</th>
                   <th>URL</th>
+                  <th>Section</th>
+                  <th>Order</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="menu in menuData" :key="menu.id" class="table-row">
-                  <td class="table-cell font-medium">{{ menu.name }}</td>
-                  <td class="table-cell">{{ menu.url }}</td>
+                <tr v-for="menu in menuData" :key="menu._id" class="table-row">
+                  <td class="table-cell font-medium">{{ menu.title }}</td>
+                  <td class="table-cell">
+                    <span class="url-text">{{ menu.link }}</span>
+                    <span v-if="menu.metadata?.isExternal === 'true'" class="external-badge"
+                      >External</span
+                    >
+                  </td>
+                  <td class="table-cell">
+                    <span class="section-badge" :class="menu.metadata?.menuSection || 'center'">
+                      {{
+                        (menu.metadata?.menuSection || 'center').charAt(0).toUpperCase() +
+                        (menu.metadata?.menuSection || 'center').slice(1)
+                      }}
+                    </span>
+                  </td>
+                  <td class="table-cell">{{ menu.order || 0 }}</td>
                   <td class="table-cell">
                     <span
-                      :class="['status-badge', menu.active ? 'status-active' : 'status-inactive']"
+                      :class="['status-badge', menu.isActive ? 'status-active' : 'status-inactive']"
                     >
-                      {{ menu.active ? 'Active' : 'Inactive' }}
+                      {{ menu.isActive ? 'Active' : 'Inactive' }}
                     </span>
                   </td>
                   <td class="table-cell">
@@ -85,7 +101,7 @@
                       <button @click="editMenuItem(menu)" class="action-btn edit-btn">
                         <Edit class="action-icon" />
                       </button>
-                      <button @click="deleteMenuItem(menu.id)" class="action-btn delete-btn">
+                      <button @click="deleteMenuItem(menu._id)" class="action-btn delete-btn">
                         <Trash2 class="action-icon" />
                       </button>
                     </div>
@@ -100,10 +116,16 @@
         <div v-if="activeSection === 'mainnet'" class="section">
           <div class="section-header">
             <h3 class="section-title">Mainnet Cards</h3>
-            <button @click="showMainnetModal = true" class="btn btn-primary">
-              <Plus class="btn-icon" />
-              Add Mainnet Card
-            </button>
+            <div class="section-actions">
+              <button @click="showMainnetModal = true" class="btn btn-primary">
+                <Plus class="btn-icon" />
+                Add Mainnet Card
+              </button>
+              <button @click="showMainnetPositionManager = true" class="btn btn-secondary">
+                <Move class="btn-icon" />
+                Manage Positions
+              </button>
+            </div>
           </div>
 
           <div v-if="loading.mainnet" class="loading-container">
@@ -118,6 +140,7 @@
                   <th>Network</th>
                   <th>Title</th>
                   <th>Description</th>
+                  <th>Order</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -140,6 +163,7 @@
                   </td>
                   <td class="table-cell font-medium">{{ card.title }}</td>
                   <td class="table-cell">{{ card.description.slice(0, 70) }}...</td>
+                  <td class="table-cell">{{ card.order || 0 }}</td>
                   <td class="table-cell">
                     <div class="action-buttons">
                       <button @click="editMainnetCard(card)" class="action-btn edit-btn">
@@ -159,10 +183,16 @@
         <div v-if="activeSection === 'testnet'" class="section">
           <div class="section-header">
             <h3 class="section-title">Testnet Cards</h3>
-            <button @click="showTestnetModal = true" class="btn btn-primary">
-              <Plus class="btn-icon" />
-              Add Testnet Card
-            </button>
+            <div class="section-actions">
+              <button @click="showTestnetModal = true" class="btn btn-primary">
+                <Plus class="btn-icon" />
+                Add Testnet Card
+              </button>
+              <button @click="showTestnetPositionManager = true" class="btn btn-secondary">
+                <Move class="btn-icon" />
+                Manage Positions
+              </button>
+            </div>
           </div>
 
           <div v-if="loading.testnet" class="loading-container">
@@ -177,6 +207,7 @@
                   <th>Network</th>
                   <th>Title</th>
                   <th>Description</th>
+                  <th>Order</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -197,6 +228,7 @@
                   </td>
                   <td class="table-cell font-medium">{{ card.title }}</td>
                   <td class="table-cell">{{ card.description }}</td>
+                  <td class="table-cell">{{ card.order || 0 }}</td>
                   <td class="table-cell">
                     <div class="action-buttons">
                       <button @click="editTestnetCard(card)" class="action-btn edit-btn">
@@ -395,6 +427,145 @@
       @close="closeAboutModal"
       @save="saveAboutContent"
     />
+
+    <MenuModal
+      ref="menuModalRef"
+      :show="showMenuModal"
+      :editing="!!editingMenu"
+      :menuItem="editingMenu || {}"
+      :existingMenuItems="menuData"
+      @close="closeMenuModal"
+      @save="saveMenuItem"
+    />
+
+    <!-- Position Manager Modals -->
+    <div
+      v-if="showMainnetPositionManager"
+      class="modal-overlay"
+      @click="closeMainnetPositionManager"
+    >
+      <div class="modal-container" @click.stop>
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title">Manage Mainnet Card Positions</h3>
+            <button @click="closeMainnetPositionManager" class="close-button">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="position-instructions">
+              <p>
+                Drag and drop cards to reorder them. The new order will be reflected on the main
+                page.
+              </p>
+            </div>
+            <div class="cards-list">
+              <div
+                v-for="(card, index) in mainnetCards"
+                :key="card._id"
+                class="card-item"
+                :class="{ dragging: draggedCard === card._id }"
+                draggable="true"
+                @dragstart="startDrag($event, card._id)"
+                @dragover.prevent
+                @drop="dropCard($event, card._id)"
+                @dragenter.prevent
+              >
+                <div class="card-handle">⋮⋮</div>
+                <div class="card-content">
+                  <img v-if="card.image" :src="card.image" :alt="card.title" class="card-image" />
+                  <div v-else class="card-image-placeholder">🖼️</div>
+                  <div class="card-info">
+                    <h4 class="card-title">{{ card.title }}</h4>
+                    <p class="card-description">{{ card.description.slice(0, 100) }}...</p>
+                  </div>
+                </div>
+                <div class="card-position">{{ index + 1 }}</div>
+              </div>
+            </div>
+            <div class="modal-actions">
+              <button
+                @click="saveMainnetPositions"
+                class="btn btn-primary"
+                :disabled="savingPositions"
+              >
+                <span v-if="savingPositions" class="loading-spinner-small"></span>
+                {{ savingPositions ? 'Saving...' : 'Save Positions' }}
+              </button>
+              <button
+                @click="closeMainnetPositionManager"
+                class="btn btn-secondary"
+                :disabled="savingPositions"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-if="showTestnetPositionManager"
+      class="modal-overlay"
+      @click="closeTestnetPositionManager"
+    >
+      <div class="modal-container" @click.stop>
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title">Manage Testnet Card Positions</h3>
+            <button @click="closeTestnetPositionManager" class="close-button">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="position-instructions">
+              <p>
+                Drag and drop cards to reorder them. The new order will be reflected on the main
+                page.
+              </p>
+            </div>
+            <div class="cards-list">
+              <div
+                v-for="(card, index) in testnetCards"
+                :key="card._id"
+                class="card-item"
+                :class="{ dragging: draggedCard === card._id }"
+                draggable="true"
+                @dragstart="startDrag($event, card._id)"
+                @dragover.prevent
+                @drop="dropCard($event, card._id)"
+                @dragenter.prevent
+              >
+                <div class="card-handle">⋮⋮</div>
+                <div class="card-content">
+                  <img v-if="card.image" :src="card.image" :alt="card.title" class="card-image" />
+                  <div v-else class="card-image-placeholder">🖼️</div>
+                  <div class="card-info">
+                    <h4 class="card-title">{{ card.title }}</h4>
+                    <p class="card-description">{{ card.description.slice(0, 100) }}...</p>
+                  </div>
+                </div>
+                <div class="card-position">{{ index + 1 }}</div>
+              </div>
+            </div>
+            <div class="modal-actions">
+              <button
+                @click="saveTestnetPositions"
+                class="btn btn-primary"
+                :disabled="savingPositions"
+              >
+                <span v-if="savingPositions" class="loading-spinner-small"></span>
+                {{ savingPositions ? 'Saving...' : 'Save Positions' }}
+              </button>
+              <button
+                @click="closeTestnetPositionManager"
+                class="btn btn-secondary"
+                :disabled="savingPositions"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -412,7 +583,8 @@ import {
   Globe,
   Network,
   FileText,
-  User
+  User,
+  Move
 } from 'lucide-vue-next'
 
 // Import modal components
@@ -454,8 +626,11 @@ const showTestnetModal = ref(false)
 const showPartnershipModal = ref(false)
 const showTeamModal = ref(false)
 const showAboutModal = ref(false)
+const showMainnetPositionManager = ref(false)
+const showTestnetPositionManager = ref(false)
 // Editing states
 const editingMenu = ref(null)
+const menuModalRef = ref(null)
 const editingMainnet = ref(null)
 const editingTestnet = ref(null)
 const editingPartnership = ref(null)
@@ -504,10 +679,17 @@ const loadAllData = async () => {
 const loadMenuData = async () => {
   loading.value.menu = true
   try {
-    const data = await menuService.getAll()
-    menuData.value = data
+    const response = await menuService.getAll()
+    menuData.value = response.data || []
   } catch (error) {
     console.error('Failed to load menu data:', error)
+    // If we get a 404, it means no menu items exist yet, which is fine
+    if (error.message.includes('404')) {
+      menuData.value = []
+    } else {
+      menuData.value = []
+      alert('Failed to load menu items. Please check if the backend server is running.')
+    }
   } finally {
     loading.value.menu = false
   }
@@ -601,20 +783,30 @@ const saveMenuItem = async (itemData) => {
   try {
     if (editingMenu.value) {
       // Update existing menu item
-      await menuService.update(editingMenu.value.id, itemData)
-      const index = menuData.value.findIndex((m) => m.id === editingMenu.value.id)
+      const updatedItem = await menuService.update(editingMenu.value._id, itemData)
+      const index = menuData.value.findIndex((m) => m._id === editingMenu.value._id)
       if (index !== -1) {
-        menuData.value[index] = { ...editingMenu.value, ...itemData }
+        menuData.value[index] = updatedItem.data || { ...editingMenu.value, ...itemData }
       }
     } else {
       // Create new menu item
       const newItem = await menuService.create(itemData)
-      menuData.value.push(newItem)
+      menuData.value.push(newItem.data || newItem)
     }
     closeMenuModal()
+    await loadMenuData() // Refresh the data to ensure consistency
   } catch (error) {
     console.error('Failed to save menu item:', error)
-    alert('Failed to save menu item. Please try again.')
+
+    // Reset submission state to re-enable the button
+    menuModalRef.value?.resetSubmissionState()
+
+    // Check for order validation error
+    if (error.message.includes('Order') && error.message.includes('already taken')) {
+      alert(`Error: ${error.message}`)
+    } else {
+      alert('Failed to save menu item. Please try again.')
+    }
   }
 }
 
@@ -622,7 +814,7 @@ const deleteMenuItem = async (id) => {
   if (confirm('Are you sure you want to delete this menu item?')) {
     try {
       await menuService.delete(id)
-      menuData.value = menuData.value.filter((m) => m.id !== id)
+      menuData.value = menuData.value.filter((m) => m._id !== id)
     } catch (error) {
       console.error('Failed to delete menu item:', error)
       alert('Failed to delete menu item. Please try again.')
@@ -880,6 +1072,97 @@ const handleImageError = (event) => {
 
 const handleImageLoad = (event) => {
   console.log('Image loaded successfully:', event.target.src)
+}
+
+// Position Management Methods
+const closeMainnetPositionManager = () => {
+  showMainnetPositionManager.value = false
+}
+
+const closeTestnetPositionManager = () => {
+  showTestnetPositionManager.value = false
+}
+
+const savingPositions = ref(false)
+
+const saveMainnetPositions = async () => {
+  try {
+    savingPositions.value = true
+    const positions = mainnetCards.value.map((card, index) => ({
+      id: card._id,
+      order: index + 1
+    }))
+    await mainnetService.updatePositions(positions)
+    await loadMainnetData() // Refresh the data
+    alert('Mainnet positions saved successfully!')
+    closeMainnetPositionManager()
+  } catch (error) {
+    console.error('Failed to save mainnet positions:', error)
+    alert('Failed to save positions. Please try again.')
+  } finally {
+    savingPositions.value = false
+  }
+}
+
+const saveTestnetPositions = async () => {
+  try {
+    savingPositions.value = true
+    const positions = testnetCards.value.map((card, index) => ({
+      id: card._id,
+      order: index + 1
+    }))
+    await testnetService.updatePositions(positions)
+    await loadTestnetData() // Refresh the data
+    alert('Testnet positions saved successfully!')
+    closeTestnetPositionManager()
+  } catch (error) {
+    console.error('Failed to save testnet positions:', error)
+    alert('Failed to save positions. Please try again.')
+  } finally {
+    savingPositions.value = false
+  }
+}
+
+// Drag and drop functionality
+const draggedCard = ref(null)
+
+const startDrag = (event, cardId) => {
+  draggedCard.value = cardId
+  event.dataTransfer.effectAllowed = 'move'
+}
+
+const dropCard = (event, targetCardId) => {
+  event.preventDefault()
+
+  if (!draggedCard.value || draggedCard.value === targetCardId) {
+    draggedCard.value = null
+    return
+  }
+
+  // Get the current section (mainnet or testnet)
+  const currentCards = activeSection.value === 'mainnet' ? mainnetCards.value : testnetCards.value
+
+  // Find the dragged and target cards
+  const draggedIndex = currentCards.findIndex((card) => card._id === draggedCard.value)
+  const targetIndex = currentCards.findIndex((card) => card._id === targetCardId)
+
+  if (draggedIndex === -1 || targetIndex === -1) {
+    draggedCard.value = null
+    return
+  }
+
+  // Remove dragged card from its current position
+  const [draggedItem] = currentCards.splice(draggedIndex, 1)
+
+  // Insert dragged card at target position
+  currentCards.splice(targetIndex, 0, draggedItem)
+
+  // Update order numbers
+  currentCards.forEach((card, index) => {
+    card.order = index + 1
+  })
+
+  draggedCard.value = null
 }
 </script>
 
@@ -1233,6 +1516,41 @@ const handleImageLoad = (event) => {
   color: #991b1b;
 }
 
+.url-text {
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  color: #374151;
+  word-break: break-all;
+}
+
+.external-badge {
+  background-color: #f0f9ff;
+  color: #0369a1;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 0.5rem;
+}
+
+.section-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.section-badge.center {
+  background-color: #f0f9ff;
+  color: #0369a1;
+}
+
+.section-badge.right {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
 .action-buttons {
   display: flex;
   gap: 0.5rem;
@@ -1502,6 +1820,11 @@ const handleImageLoad = (event) => {
     gap: 1rem;
   }
 
+  .section-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
   .cards-grid {
     grid-template-columns: 1fr;
   }
@@ -1520,6 +1843,30 @@ const handleImageLoad = (event) => {
 
   .data-table {
     min-width: 600px;
+  }
+
+  .modal-container {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .card-item {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .card-content {
+    gap: 0.75rem;
+  }
+
+  .card-image {
+    width: 40px;
+    height: 40px;
+  }
+
+  .card-image-placeholder {
+    width: 40px;
+    height: 40px;
   }
 }
 
@@ -1555,9 +1902,294 @@ const handleImageLoad = (event) => {
   }
 }
 
+.loading-spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ffffff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
 .loading-container p {
   color: #6b7280;
   font-size: 0.875rem;
   margin: 0;
+}
+
+/* Position Manager Styles */
+.section-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  width: 90%;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f9fafb;
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: color 0.2s;
+}
+
+.close-button:hover {
+  color: #374151;
+}
+
+.modal-body {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  padding: 2rem;
+  min-height: 0;
+  max-height: calc(80vh - 140px);
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.position-instructions {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 0.5rem;
+  flex-shrink: 0;
+}
+
+.position-instructions p {
+  margin: 0;
+  color: #0369a1;
+  font-size: 0.875rem;
+}
+
+.cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  min-height: 200px;
+  overflow-y: auto;
+  max-height: calc(80vh - 300px);
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.cards-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cards-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.cards-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.cards-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.card-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  cursor: grab;
+  transition: all 0.2s;
+  min-height: 80px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card-item:hover {
+  border-color: #6366f1;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+  transform: translateY(-1px);
+}
+
+.card-item:active {
+  cursor: grabbing;
+}
+
+.card-item.dragging {
+  opacity: 0.5;
+  transform: rotate(2deg);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.card-item.drag-over {
+  border-color: #6366f1;
+  background-color: #f0f9ff;
+  transform: scale(1.02);
+}
+
+.card-handle {
+  color: #9ca3af;
+  cursor: grab;
+  padding: 0.5rem;
+  font-size: 1.2rem;
+  user-select: none;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.card-handle:hover {
+  color: #6366f1;
+  background-color: #f3f4f6;
+}
+
+.card-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.card-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 0.375rem;
+  object-fit: cover;
+}
+
+.card-image-placeholder {
+  width: 48px;
+  height: 48px;
+  background: #f3f4f6;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  font-size: 1.5rem;
+}
+
+.card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 0.25rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-position {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: #6366f1;
+  color: white;
+  border-radius: 50%;
+  font-weight: 600;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  flex-shrink: 0;
 }
 </style>

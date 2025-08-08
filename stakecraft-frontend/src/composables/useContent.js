@@ -141,11 +141,13 @@ export function useContent() {
 
   // Get mainnet networks
   const getMainnetNetworks = computed(() => {
-    return mainnet.value
+    if (!mainnet.value || !Array.isArray(mainnet.value)) return []
+    return [...mainnet.value].sort((a, b) => (a.order || 0) - (b.order || 0))
   })
 
   const getTestnetNetworks = computed(() => {
-    return testnet.value
+    if (!testnet.value || !Array.isArray(testnet.value)) return []
+    return [...testnet.value].sort((a, b) => (a.order || 0) - (b.order || 0))
   })
 
   const getPartnerships = computed(() => {

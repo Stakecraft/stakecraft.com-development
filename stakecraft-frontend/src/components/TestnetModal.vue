@@ -82,6 +82,19 @@
             <textarea v-model="form.description" class="form-textarea" rows="3" required></textarea>
           </div>
 
+          <div class="form-group">
+            <label class="form-label">Order</label>
+            <input
+              v-model.number="form.order"
+              type="number"
+              min="0"
+              class="form-input"
+              placeholder="Enter display order (0 = first)"
+            />
+            <div class="form-hint">Lower numbers appear first in the list</div>
+            <div v-if="orderError" class="form-error">{{ orderError }}</div>
+          </div>
+
           <div class="modal-actions">
             <button
               type="button"
@@ -124,13 +137,15 @@ const props = defineProps({
 const emit = defineEmits(['close', 'save'])
 const { uploading, uploadError, uploadToIPFS } = useIPFS()
 const fileInput = ref(null)
+const orderError = ref('')
 const imagePreview = ref(null)
 const selectedFile = ref(null)
 
 const form = reactive({
   image: '',
   title: '',
-  description: ''
+  description: '',
+  order: 0
 })
 
 watch(
@@ -140,16 +155,28 @@ watch(
       form.image = newCard.image || ''
       form.title = newCard.title || ''
       form.description = newCard.description || ''
+      form.order = newCard.order || 0
       imagePreview.value = newCard.image || null
     } else {
       form.image = ''
       form.title = ''
       form.description = ''
+      form.order = 0
       imagePreview.value = null
       selectedFile.value = null
     }
+    // Clear errors when form resets
+    orderError.value = ''
   },
   { immediate: true }
+)
+
+// Clear order error when order changes
+watch(
+  () => form.order,
+  () => {
+    orderError.value = ''
+  }
 )
 
 const closeModal = () => {
@@ -246,33 +273,34 @@ const saveCard = () => {
 /* Modal Styles */
 .modal-overlay {
   position: fixed;
-  inset: 0;
-  z-index: 1000;
-  overflow-y: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  background-color: rgba(0, 0, 0, 0.6);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
 }
 
 .modal {
   background: white;
-  border-radius: 0.75rem;
+  border-radius: 16px;
   box-shadow:
-    0 25px 50px -12px rgba(0, 0, 0, 0.25),
-    0 0 0 1px rgba(255, 255, 255, 0.1);
-  max-width: 28rem;
-  width: 100%;
-  z-index: 1001;
-  position: relative;
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.1);
-  animation: modalSlideIn 0.3s ease-out;
 }
 
 .modal-large {
-  max-width: 45rem;
+  max-width: 600px;
 }
 
 @keyframes modalSlideIn {
@@ -287,88 +315,66 @@ const saveCard = () => {
 }
 
 .modal-content {
+  width: 92%;
   padding: 2rem;
+  border-radius: 16px;
+  background: white;
+  overflow-y: auto;
+  max-height: calc(90vh - 4px);
 }
 
 .modal-title {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  margin: 0 0 1.5rem 0;
   color: #1f2937;
-  border-bottom: 2px solid #f3f4f6;
-  padding-bottom: 1rem;
+  margin: 0 0 1.5rem 0;
+  padding-top: 0.5rem;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  background: white;
 }
 
 .modal-form {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
 }
 
 .form-label {
-  display: block;
   font-size: 0.875rem;
   font-weight: 600;
   color: #374151;
-  margin-bottom: 0.5rem;
 }
 
-.form-input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 0.5rem;
+.form-input,
+.form-textarea {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
   font-size: 0.875rem;
-  background-color: #ffffff;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  color: #1f2937;
+  background-color: white;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
-.form-input:hover {
-  border-color: #d1d5db;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
-}
-
-.form-input:focus {
+.form-input:focus,
+.form-textarea:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow:
-    0 0 0 3px rgba(59, 130, 246, 0.1),
-    0 2px 4px 0 rgba(0, 0, 0, 0.1);
-  background-color: #ffffff;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .form-textarea {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-family: inherit;
   resize: vertical;
   min-height: 100px;
-  background-color: #ffffff;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-}
-
-.form-textarea:hover {
-  border-color: #d1d5db;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
-}
-
-.form-textarea:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow:
-    0 0 0 3px rgba(59, 130, 246, 0.1),
-    0 2px 4px 0 rgba(0, 0, 0, 0.1);
-  background-color: #ffffff;
 }
 
 /* Image Upload Styles */
@@ -547,48 +553,100 @@ const saveCard = () => {
   }
 }
 
+.form-hint {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.form-error {
+  font-size: 0.75rem;
+  color: #dc2626;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  margin-top: 2rem;
+  margin-top: 1rem;
   padding-top: 1.5rem;
-  border-top: 2px solid #f3f4f6;
+  border-top: 1px solid #e5e7eb;
+  background: white;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
 }
 
-.modal-actions .btn {
+.btn {
   padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  border-radius: 0.5rem;
-  transition: all 0.2s ease;
-  min-width: 100px;
-  border: none;
+  border-radius: 0.375rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  font-size: 0.875rem;
 }
 
-.modal-actions .btn-secondary {
-  background-color: #f9fafb;
-  color: #374151;
-  border: 2px solid #e5e7eb;
-}
-
-.modal-actions .btn-secondary:hover {
-  background-color: #f3f4f6;
-  border-color: #d1d5db;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.modal-actions .btn-primary {
-  background-color: #3b82f6;
+.btn-primary {
+  background: #6366f1;
   color: white;
-  border: 2px solid #3b82f6;
 }
 
-.modal-actions .btn-primary:hover {
-  background-color: #2563eb;
-  border-color: #2563eb;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+.btn-primary:hover {
+  background: #4f46e5;
+}
+
+.btn-primary:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #4b5563;
+}
+
+@media (max-width: 768px) {
+  .modal {
+    width: 95%;
+    margin: 0.5rem;
+    border-radius: 12px;
+    max-height: 95vh;
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+    border-radius: 12px;
+    max-height: calc(95vh - 4px);
+  }
+
+  .modal-title {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
 }
 </style>

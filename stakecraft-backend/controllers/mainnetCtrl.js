@@ -1,30 +1,60 @@
 import Mainnet from "../models/Mainnet.js";
 
 export const createMainnetList = async (req, res) => {
-  const { title, description, image, validator, howToStake, explorer } =
-    req.body;
+  try {
+    const {
+      title,
+      description,
+      image,
+      validator,
+      howToStake,
+      explorer,
+      order,
+    } = req.body;
 
-  const mainnetData = {
-    title,
-    description,
-    image,
-    validator,
-    howToStake,
-    explorer,
-  };
+    // Check for duplicate order
+    if (order !== undefined && order !== null) {
+      const existingWithOrder = await Mainnet.findOne({ order: order });
 
-  const mainnet = new Mainnet(mainnetData);
-  await mainnet.save();
+      if (existingWithOrder) {
+        return res.status(400).json({
+          success: false,
+          msg: `Order ${order} is already taken. Please choose a different order number.`,
+          error: "DUPLICATE_ORDER",
+        });
+      }
+    }
 
-  res.status(201).json({
-    success: true,
-    msg: "Mainnet Created Successfully!",
-    data: mainnet,
-  });
+    const mainnetData = {
+      title,
+      description,
+      image,
+      validator,
+      howToStake,
+      explorer,
+      order: order || 0,
+    };
+
+    const mainnet = new Mainnet(mainnetData);
+    await mainnet.save();
+
+    res.status(201).json({
+      success: true,
+      msg: "Mainnet Created Successfully!",
+      data: mainnet,
+    });
+  } catch (error) {
+    console.error("Create mainnet error:", error);
+    res.status(500).json({
+      success: false,
+      msg: "Failed to create mainnet",
+      error: error.message,
+    });
+  }
 };
 
 export const getMainnetList = async (req, res) => {
-  const mainnet = await Mainnet.find({});
+  const mainnet = await Mainnet.find({}).sort({ order: 1 });
   res.status(200).json({
     success: true,
     msg: "Mainnet Fetched Successfully!",
@@ -35,8 +65,42 @@ export const getMainnetList = async (req, res) => {
 export const updateMainnetList = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, image, validator, howToStake, explorer } =
-      req.body;
+    const {
+      title,
+      description,
+      image,
+      validator,
+      howToStake,
+      explorer,
+      order,
+    } = req.body;
+
+    // Check for duplicate order (only if order is being changed)
+    if (order !== undefined && order !== null) {
+      const currentMainnet = await Mainnet.findById(id);
+
+      if (!currentMainnet) {
+        return res.status(404).json({
+          success: false,
+          msg: "Mainnet not found",
+        });
+      }
+
+      if (order !== currentMainnet.order) {
+        const existingWithOrder = await Mainnet.findOne({
+          order: order,
+          _id: { $ne: id }, // Exclude current item
+        });
+
+        if (existingWithOrder) {
+          return res.status(400).json({
+            success: false,
+            msg: `Order ${order} is already taken. Please choose a different order number.`,
+            error: "DUPLICATE_ORDER",
+          });
+        }
+      }
+    }
 
     const updateData = {
       title,
@@ -45,6 +109,7 @@ export const updateMainnetList = async (req, res) => {
       validator,
       howToStake,
       explorer,
+      order,
     };
 
     const updatedMainnet = await Mainnet.findByIdAndUpdate(id, updateData, {
@@ -95,6 +160,42 @@ export const deleteMainnetList = async (req, res) => {
     res.status(500).json({
       success: false,
       msg: "Failed to delete mainnet",
+      error: error.message,
+    });
+  }
+};
+
+export const updateMainnetPositions = async (req, res) => {
+  try {
+    const { positions } = req.body; // Array of { id, order } objects
+
+    if (!Array.isArray(positions)) {
+      return res.status(400).json({
+        success: false,
+        msg: "Positions must be an array",
+      });
+    }
+
+    // Update each card's position
+    const updatePromises = positions.map(({ id, order }) =>
+      Mainnet.findByIdAndUpdate(id, { order }, { new: true })
+    );
+
+    await Promise.all(updatePromises);
+
+    // Fetch updated list
+    const updatedMainnet = await Mainnet.find({}).sort({ order: 1 });
+
+    res.status(200).json({
+      success: true,
+      msg: "Mainnet positions updated successfully!",
+      data: updatedMainnet,
+    });
+  } catch (error) {
+    console.error("Update mainnet positions error:", error);
+    res.status(500).json({
+      success: false,
+      msg: "Failed to update mainnet positions",
       error: error.message,
     });
   }
