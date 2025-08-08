@@ -65,7 +65,7 @@ export default {
       this.error = null
 
       try {
-        const response = await fetch('/api/health')
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/health`)
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`)
         }

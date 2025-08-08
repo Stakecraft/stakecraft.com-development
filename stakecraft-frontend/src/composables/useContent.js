@@ -65,7 +65,6 @@ export function useContent() {
       error.value.mainnet = null
       const response = await axios.get(`${API_BASE_URL}/mainnet/`)
       mainnet.value = processContentWithIPFS(response.data?.data || response.data)
-      console.log('getmainnet', mainnet.value)
     } catch (err) {
       error.value.mainnet = err.message
       console.error('Error fetching mainnet:', err)
@@ -80,7 +79,6 @@ export function useContent() {
       error.value.testnet = null
       const response = await axios.get(`${API_BASE_URL}/testnet/`)
       testnet.value = processContentWithIPFS(response.data?.data || response.data)
-      console.log('gettestnet', testnet.value)
     } catch (err) {
       error.value.testnet = err.message
       console.error('Error fetching testnet:', err)
@@ -95,7 +93,6 @@ export function useContent() {
       error.value.partnerships = null
       const response = await axios.get(`${API_BASE_URL}/partnership/`)
       partnerships.value = processContentWithIPFS(response.data?.data || response.data)
-      console.log('getpartnerships', partnerships.value)
     } catch (err) {
       error.value.partnerships = err.message
       console.error('Error fetching partnerships:', err)
@@ -110,7 +107,6 @@ export function useContent() {
       error.value.about = null
       const response = await axios.get(`${API_BASE_URL}/about/`)
       about.value = processContentWithIPFS(response.data?.data || response.data)
-      console.log('getabout', about.value)
     } catch (err) {
       error.value.about = err.message
       console.error('Error fetching about:', err)
@@ -125,7 +121,6 @@ export function useContent() {
       error.value.team = null
       const response = await axios.get(`${API_BASE_URL}/team/`)
       team.value = processContentWithIPFS(response.data?.data || response.data)
-      console.log('getteam', team.value)
     } catch (err) {
       error.value.team = err.message
       console.error('Error fetching team:', err)
@@ -134,18 +129,15 @@ export function useContent() {
     }
   }
 
-  // // Get content by type
-  // const getContentByType = computed(() => {
-  //   return content
-  // })
-
   // Get mainnet networks
   const getMainnetNetworks = computed(() => {
-    return mainnet.value
+    if (!mainnet.value || !Array.isArray(mainnet.value)) return []
+    return [...mainnet.value].sort((a, b) => (a.order || 0) - (b.order || 0))
   })
 
   const getTestnetNetworks = computed(() => {
-    return testnet.value
+    if (!testnet.value || !Array.isArray(testnet.value)) return []
+    return [...testnet.value].sort((a, b) => (a.order || 0) - (b.order || 0))
   })
 
   const getPartnerships = computed(() => {
@@ -174,20 +166,17 @@ export function useContent() {
     menu,
     loading,
     error,
-    // fetchContent,
     fetchMainnet,
     fetchTestnet,
     fetchPartnerships,
     fetchAbout,
     fetchTeam,
-    // getContentByType,
     getMainnetNetworks,
     getTestnetNetworks,
     getPartnerships,
     getAboutContent,
     getTeamMembers,
     getMenuItems,
-    // IPFS utilities
     getIPFSURL,
     processContentWithIPFS
   }

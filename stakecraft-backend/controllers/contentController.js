@@ -156,6 +156,23 @@ export const createContent = async (req, res) => {
       };
     }
 
+    // Check for duplicate order within the same type
+    if (order !== undefined && order !== null) {
+      const existingWithOrder = await Content.findOne({
+        type,
+        order: order,
+        isActive: true,
+      });
+
+      if (existingWithOrder) {
+        return res.status(400).json({
+          success: false,
+          message: `Order ${order} is already taken for ${type} items. Please choose a different order number.`,
+          error: "DUPLICATE_ORDER",
+        });
+      }
+    }
+
     // Create content object
     const contentData = {
       type,
@@ -238,6 +255,24 @@ export const updateContent = async (req, res) => {
         alt: req.body.imageAlt || title,
         filename: req.file.filename,
       };
+    }
+
+    // Check for duplicate order within the same type (only if order is being changed)
+    if (order !== undefined && order !== content.order) {
+      const existingWithOrder = await Content.findOne({
+        type: content.type,
+        order: order,
+        isActive: true,
+        _id: { $ne: content._id }, // Exclude current item
+      });
+
+      if (existingWithOrder) {
+        return res.status(400).json({
+          success: false,
+          message: `Order ${order} is already taken for ${content.type} items. Please choose a different order number.`,
+          error: "DUPLICATE_ORDER",
+        });
+      }
     }
 
     // Update fields
@@ -441,7 +476,19 @@ export const validateContentCreation = [
     .trim()
     .isLength({ max: 2000 })
     .withMessage("Description must be less than 2000 characters"),
-  body("link").optional().isURL().withMessage("Link must be a valid URL"),
+  body("link")
+    .optional()
+    .custom((value) => {
+      // Allow relative URLs (starting with /) or valid URLs
+      if (
+        value.startsWith("/") ||
+        value.startsWith("#") ||
+        /^https?:\/\/.+/.test(value)
+      ) {
+        return true;
+      }
+      throw new Error("Link must be a valid URL or relative path");
+    }),
   body("order")
     .optional()
     .isInt({ min: 0 })
@@ -468,7 +515,19 @@ export const validateContentUpdate = [
     .trim()
     .isLength({ max: 2000 })
     .withMessage("Description must be less than 2000 characters"),
-  body("link").optional().isURL().withMessage("Link must be a valid URL"),
+  body("link")
+    .optional()
+    .custom((value) => {
+      // Allow relative URLs (starting with /) or valid URLs
+      if (
+        value.startsWith("/") ||
+        value.startsWith("#") ||
+        /^https?:\/\/.+/.test(value)
+      ) {
+        return true;
+      }
+      throw new Error("Link must be a valid URL or relative path");
+    }),
   body("order")
     .optional()
     .isInt({ min: 0 })

@@ -117,7 +117,6 @@ export default {
         ]
       } catch (error) {
         console.warn('Failed to fetch stats data from API, using static data:', error)
-        // Fallback to static data if API fails
         stats.value = staticStats
       }
     }

@@ -5,23 +5,19 @@
         <img src="../assets/headerLogo.svg" class="headerLogo" />
       </div>
       <ul class="centerItems" :class="!dropdownVisible ? '' : 'hideMenu'">
-        <li><a href="/#mainnet">Mainnet</a></li>
-        <li><a href="/#testnet">Testnet</a></li>
-        <li><a href="/#partnership">Partnership</a></li>
-        <li><a href="/swap">Swap</a></li>
-        <li><a href="/#aboutUs">About Us</a></li>
-        <li><a href="/#contacts">Contacts</a></li>
+        <li v-for="item in centerMenuItems" :key="item._id || item.title">
+          <a :href="item.link" :target="item.metadata?.isExternal === 'true' ? '_blank' : '_self'">
+            {{ item.title }}
+            <img v-if="item.metadata?.isExternal === 'true'" src="../assets/externalLink.png" />
+          </a>
+        </li>
       </ul>
       <ul class="rightItems" :class="!dropdownVisible ? '' : 'hideMenu'">
-        <li class="externalLink">
-          <a href="https://services.stakecraft.com/" target="_blank"
-            >Services <img src="../assets/externalLink.png"
-          /></a>
-        </li>
-        <li class="externalLink">
-          <a href="https://stakecraft.medium.com/" target="_blank"
-            >Blog <img src="../assets/externalLink.png"
-          /></a>
+        <li v-for="item in rightMenuItems" :key="item._id || item.title" class="externalLink">
+          <a :href="item.link" :target="item.metadata?.isExternal === 'true' ? '_blank' : '_self'">
+            {{ item.title }}
+            <img v-if="item.metadata?.isExternal === 'true'" src="../assets/externalLink.png" />
+          </a>
         </li>
         <li class="changeTheme">
           <ToggleTheme />
@@ -46,21 +42,18 @@
           </div>
         </div>
         <ul class="dropdown-menu">
-          <li><a href="/#mainnet">Mainnet</a></li>
-          <li><a href="/#testnet">Testnet</a></li>
-          <li><a href="/#partnership">Partnership</a></li>
-          <li><a href="/swap">Swap</a></li>
-          <li><a href="/#aboutUs">About Us</a></li>
-          <li><a href="/#contacts">Contacts</a></li>
-          <li class="externalLink">
-            <a href="https://services.stakecraft.com/" target="_blank"
-              >Services <img src="../assets/externalLink.png"
-            /></a>
-          </li>
-          <li class="externalLink">
-            <a href="https://stakecraft.medium.com/" target="_blank"
-              >Blog <img src="../assets/externalLink.png"
-            /></a>
+          <li
+            v-for="item in [...centerMenuItems, ...rightMenuItems]"
+            :key="item._id || item.title"
+            :class="item.metadata?.isExternal === 'true' ? 'externalLink' : ''"
+          >
+            <a
+              :href="item.link"
+              :target="item.metadata?.isExternal === 'true' ? '_blank' : '_self'"
+            >
+              {{ item.title }}
+              <img v-if="item.metadata?.isExternal === 'true'" src="../assets/externalLink.png" />
+            </a>
           </li>
         </ul>
       </div>
@@ -71,6 +64,7 @@
 <script>
 import { inject, onMounted, onBeforeUnmount, ref } from 'vue'
 import ToggleTheme from './ToggleTheme.vue'
+import { useMenu } from '../composables/useMenu.js'
 
 export default {
   name: 'AppHeader',
@@ -82,6 +76,9 @@ export default {
     const dropdownVisible = ref(false)
     const isOpen = ref(false)
     const selectedItem = ref(null)
+
+    // Use menu composable
+    const { centerMenuItems, rightMenuItems } = useMenu()
 
     const handleScroll = () => {
       isScrolled.value = window.scrollY > 0
@@ -120,7 +117,9 @@ export default {
       dropdownVisible,
       isOpen,
       selectedItem,
-      isModalOpen
+      isModalOpen,
+      centerMenuItems,
+      rightMenuItems
     }
   }
 }

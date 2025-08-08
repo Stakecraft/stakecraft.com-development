@@ -23,6 +23,10 @@ const mainnetSchema = new mongoose.Schema(
     explorer: {
       type: String,
     },
+    order: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

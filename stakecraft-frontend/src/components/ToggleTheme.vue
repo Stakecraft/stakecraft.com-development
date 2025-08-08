@@ -16,7 +16,7 @@ export default {
     const theme = inject('theme')
     const setTheme = inject('setTheme')
     const sunMoon = ref(sunImage)
-    // Initialize icon based on current theme
+
     const updateIcon = (currentTheme) => {
       if (currentTheme === 'dark') {
         sunMoon.value = moonImage
@@ -25,12 +25,10 @@ export default {
       }
     }
 
-    // Set initial icon on mount
     onMounted(() => {
       updateIcon(theme.value)
     })
 
-    // Watch for theme changes and update icon
     watch(theme, (newTheme) => {
       updateIcon(newTheme)
     })
@@ -38,7 +36,6 @@ export default {
     function toggleTheme() {
       const newTheme = theme.value === 'light' ? 'dark' : 'light'
       setTheme(newTheme)
-      // Icon will be updated by the watcher
     }
 
     return { toggleTheme, theme, sunMoon }
@@ -64,14 +61,12 @@ input:checked ~ .sunMoon {
   height: 23.62px;
 }
 
-/* Hide default HTML checkbox */
 .switch input {
   opacity: 0;
   width: 0;
   height: 0;
 }
 
-/* The slider */
 .slider {
   position: absolute;
   cursor: pointer;
@@ -117,7 +112,6 @@ input:checked + .slider:before {
   transform: translateX(28px);
 }
 
-/* Rounded sliders */
 .slider.round {
   border-radius: 19.99px;
 }
