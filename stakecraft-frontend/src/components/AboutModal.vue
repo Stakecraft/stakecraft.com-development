@@ -78,8 +78,6 @@ const closeModal = () => {
 }
 
 const saveAboutContent = () => {
-  console.log('form', form)
-
   const contentData = {
     title: form.title,
     content: form.content

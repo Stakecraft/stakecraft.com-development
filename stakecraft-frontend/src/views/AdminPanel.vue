@@ -162,7 +162,7 @@
                     </div>
                   </td>
                   <td class="table-cell font-medium">{{ card.title }}</td>
-                  <td class="table-cell">{{ card.description.slice(0, 70) }}...</td>
+                  <td class="table-cell">{{ card.description }}</td>
                   <td class="table-cell">{{ card.order || 0 }}</td>
                   <td class="table-cell">
                     <div class="action-buttons">
@@ -740,7 +740,6 @@ const loadTeamData = async () => {
   try {
     const data = await teamService.getAll()
     teamMembers.value = data?.data || []
-    console.log('Team data response:', teamMembers.value)
   } catch (error) {
     console.error('Failed to load team data:', error)
     teamMembers.value = []
@@ -969,10 +968,6 @@ const closeTeamModal = () => {
 
 const saveTeamMember = async (memberData) => {
   try {
-    console.log('Current teamMembers.value:', teamMembers.value)
-    console.log('teamMembers.value type:', typeof teamMembers.value)
-    console.log('Is array?', Array.isArray(teamMembers.value))
-
     if (editingTeamMember.value) {
       const updatedMember = await teamService.update(editingTeamMember.value._id, memberData)
       const index = teamMembers.value.findIndex((m) => m._id === editingTeamMember.value._id)
@@ -984,19 +979,14 @@ const saveTeamMember = async (memberData) => {
       }
     } else {
       const newMember = await teamService.create(memberData)
-      console.log('New member response:', newMember)
-
       // Ensure teamMembers.value is an array
       if (!Array.isArray(teamMembers.value)) {
-        console.log('teamMembers.value is not an array, initializing as empty array')
         teamMembers.value = []
       }
 
       // Add the new member to the array
       const memberToAdd = newMember.data || newMember
-      console.log('Adding member to array:', memberToAdd)
       teamMembers.value.push(memberToAdd)
-      console.log('Updated teamMembers.value:', teamMembers.value)
     }
     closeTeamModal()
     await loadTeamData() // Refresh the data to ensure consistency
@@ -1062,16 +1052,6 @@ const deleteAboutContent = async (id) => {
       alert('Failed to delete about content. Please try again.')
     }
   }
-}
-
-// Image handling functions
-const handleImageError = (event) => {
-  console.error('Image failed to load:', event.target.src)
-  // You can add fallback logic here if needed
-}
-
-const handleImageLoad = (event) => {
-  console.log('Image loaded successfully:', event.target.src)
 }
 
 // Position Management Methods
@@ -1991,7 +1971,7 @@ const dropCard = (event, targetCardId) => {
   flex: 1;
   width: 100%;
   overflow-y: auto;
-  padding: 2rem;
+  padding: 1rem 2rem;
   min-height: 0;
   max-height: calc(80vh - 140px);
   scrollbar-width: thin;
@@ -2017,8 +1997,8 @@ const dropCard = (event, targetCardId) => {
 }
 
 .position-instructions {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
   background: #f0f9ff;
   border: 1px solid #bae6fd;
   border-radius: 0.5rem;

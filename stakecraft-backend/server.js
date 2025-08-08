@@ -10,19 +10,13 @@ import compression from "compression";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import { connectDB } from "./config/database.js";
-// import healthRoutes from "./routes/health.js";
-// import adminRoutes from "./routes/admin.js";
 import contentRoutes from "./routes/content.js";
-// import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
-// import mainRouter from "./routes/main.js";
-// import netRouter from "./routes/mainnet.js";
 import mainnetRouter from "./routes/mainnet.js";
 import testnetRouter from "./routes/testnet.js";
 import partnershipRouter from "./routes/partnership.js";
 import aboutRouter from "./routes/about.js";
 import teamRouter from "./routes/team.js";
-// const connectDB = require("./config/database");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -59,8 +53,7 @@ app.use(compression());
 app.use(morgan("combined"));
 
 // Health endpoint (no rate limiting for monitoring)
-// app.get("/api/health", (req, res) => {
-app.get("/health", (req, res) => {
+app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "OK",
     timestamp: new Date().toISOString(),
@@ -69,10 +62,6 @@ app.get("/health", (req, res) => {
   });
 });
 
-// API routes
-// app.use("/api/health", healthRoutes);
-// app.use("/api/auth", authRoutes);
-// app.use("/api/admin", adminRoutes);
 app.use("/api/content", contentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/mainnet", mainnetRouter);
@@ -93,10 +82,10 @@ app.use((err, req, res, next) => {
   });
 });
 
-// // 404 handler
-// app.use("*", (req, res) => {
-//   res.status(404).json({ error: "Route not found" });
-// });
+// 404 handler
+app.use("*", (req, res) => {
+  res.status(404).json({ error: "Route not found" });
+});
 
 // Start server
 const startServer = async () => {

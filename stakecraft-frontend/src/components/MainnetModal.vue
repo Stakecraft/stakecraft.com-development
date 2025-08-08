@@ -266,7 +266,6 @@ const uploadToIPFSAndSave = async (file) => {
 
     if (result.success) {
       form.image = result.url
-      console.log('Image uploaded to IPFS:', result.url)
     } else {
       console.error('IPFS upload failed:', result.error)
       alert('Failed to upload image to IPFS. Please try again.')
@@ -293,8 +292,6 @@ const retryUpload = async () => {
 }
 
 const saveCard = () => {
-  console.log('form', form)
-
   const cardData = {
     image: form.image,
     title: form.title,
@@ -303,7 +300,6 @@ const saveCard = () => {
     explorer: form.explorerText,
     howToStake: form.howToStake
   }
-
   emit('save', cardData)
 }
 </script>

@@ -187,7 +187,6 @@ const uploadToIPFSAndSave = async (file) => {
 
     if (result.success) {
       form.image = result.url
-      console.log('Image uploaded to IPFS:', result.url)
     } else {
       console.error('IPFS upload failed:', result.error)
       alert('Failed to upload image to IPFS. Please try again.')
@@ -214,8 +213,6 @@ const retryUpload = async () => {
 }
 
 const savePartnership = () => {
-  console.log('form', form)
-
   const partnershipData = {
     image: form.image,
     title: form.title

@@ -56,12 +56,6 @@ export function useIPFS() {
       const formData = new FormData()
       formData.append('file', file)
 
-      // You can use different IPFS services:
-      // 1. Pinata (requires API key)
-      // 2. Infura IPFS (requires project ID and secret)
-      // 3. Your own IPFS node
-
-      // Example using a public IPFS service (you should replace with your preferred service)
       const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
         method: 'POST',
         headers: {
