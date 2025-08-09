@@ -1,6 +1,6 @@
 <template>
   <div v-if="show" class="modal-overlay" @click="closeModal">
-    <div class="modal modal-large" @click.stop>
+    <div class="modal modal-large" :class="`van-theme-${theme}`" @click.stop>
       <div class="modal-content">
         <h3 class="modal-title">
           {{ editing ? 'Edit Mainnet Card' : 'Add Mainnet Card' }}
@@ -143,7 +143,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, inject } from 'vue'
 import { useIPFS } from '@/composables/useIPFS'
 
 const props = defineProps({
@@ -162,6 +162,10 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'save'])
+
+// Theme injection
+const theme = inject('theme', ref('light'))
+
 const { uploading, uploadError, uploadToIPFS } = useIPFS()
 const fileInput = ref(null)
 const imagePreview = ref(null)
@@ -332,6 +336,12 @@ const saveCard = () => {
   max-height: 90vh;
   overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.modal.van-theme-dark {
+  background: var(--van-mainnet-network-background);
+  border: 1px solid #333;
 }
 
 .modal-large {
@@ -361,6 +371,11 @@ const saveCard = () => {
   background: white;
   overflow-y: auto;
   max-height: calc(90vh - 4px);
+  transition: all 0.3s ease;
+}
+
+.modal.van-theme-dark .modal-content {
+  background: var(--van-mainnet-network-background);
 }
 
 .modal-title {
@@ -372,6 +387,12 @@ const saveCard = () => {
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
   background: white;
+  transition: all 0.3s ease;
+}
+
+.modal.van-theme-dark .modal-title {
+  color: var(--van-text-color);
+  background: var(--van-mainnet-network-background);
 }
 
 .modal-form {
@@ -390,6 +411,11 @@ const saveCard = () => {
   font-size: 0.875rem;
   font-weight: 600;
   color: #374151;
+  transition: color 0.3s ease;
+}
+
+.modal.van-theme-dark .form-label {
+  color: #f9fafb;
 }
 
 /* Image Upload Styles */
@@ -456,6 +482,11 @@ const saveCard = () => {
   overflow: hidden;
 }
 
+.modal.van-theme-dark .upload-area {
+  background-color: #374151;
+  border-color: #4b5563;
+}
+
 .upload-area:hover {
   border-color: #667eea;
   background-color: #f1f5f9;
@@ -496,12 +527,22 @@ const saveCard = () => {
   font-weight: 500;
   color: #374151;
   margin: 0;
+  transition: color 0.3s ease;
+}
+
+.modal.van-theme-dark .upload-text {
+  color: #f9fafb;
 }
 
 .upload-hint {
   font-size: 0.875rem;
   color: #6b7280;
   margin: 0;
+  transition: color 0.3s ease;
+}
+
+.modal.van-theme-dark .upload-hint {
+  color: #9ca3af;
 }
 
 .upload-progress {
@@ -646,6 +687,12 @@ const saveCard = () => {
   background: white;
   border-bottom-left-radius: 16px;
   border-bottom-right-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.modal.van-theme-dark .modal-actions {
+  background: var(--van-mainnet-network-background);
+  border-top: 1px solid #4b5563;
 }
 
 .btn {
