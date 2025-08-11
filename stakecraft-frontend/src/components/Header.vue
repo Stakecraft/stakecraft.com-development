@@ -2,7 +2,9 @@
   <div>
     <div class="header" :class="[theme, { blurred: isScrolled }]">
       <div class="leftItems">
-        <img src="../assets/headerLogo.svg" class="headerLogo" />
+        <a href="/#">
+          <img src="../assets/headerLogo.svg" class="headerLogo" />
+        </a>
       </div>
       <ul class="centerItems" :class="!dropdownVisible ? '' : 'hideMenu'">
         <li v-for="item in centerMenuItems" :key="item._id || item.title">
