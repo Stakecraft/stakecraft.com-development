@@ -1,6 +1,6 @@
 <template>
   <div v-if="show" class="modal-overlay" @click="closeModal">
-    <div class="modal modal-large" @click.stop>
+    <div class="modal modal-large" :class="`van-theme-${theme}`" @click.stop>
       <div class="modal-content">
         <h3 class="modal-title">
           {{ editing ? 'Edit Menu Item' : 'Add Menu Item' }}
@@ -29,10 +29,10 @@
             <div class="form-hint">
               <p>Examples:</p>
               <ul>
-                <li>
+                <li class="form-hint-li">
                   Internal links: <code>/#mainnet</code>, <code>/swap</code>, <code>/#aboutUs</code>
                 </li>
-                <li>
+                <li class="form-hint-li">
                   External links: <code>https://services.stakecraft.com/</code>,
                   <code>https://stakecraft.medium.com/</code>
                 </li>
@@ -49,7 +49,7 @@
               class="form-input"
               placeholder="Enter display order (0 = first)"
             />
-            <div class="form-hint">Lower numbers appear first in the menu</div>
+            <div class="form-hint form-hint-li">Lower numbers appear first in the menu</div>
             <div v-if="orderError" class="form-error">{{ orderError }}</div>
           </div>
 
@@ -58,7 +58,7 @@
             <div class="checkbox-group">
               <label class="checkbox-label">
                 <input v-model="form.isActive" type="checkbox" class="checkbox-input" />
-                <span class="checkbox-text">Active (visible in menu)</span>
+                <span class="checkbox-text form-hint-li">Active (visible in menu)</span>
               </label>
             </div>
           </div>
@@ -69,7 +69,7 @@
               <option value="center">Center Menu (Mainnet, Testnet, etc.)</option>
               <option value="right">Right Menu (Services, Blog)</option>
             </select>
-            <div class="form-hint">Choose where this menu item should appear</div>
+            <div class="form-hint form-hint-li">Choose where this menu item should appear</div>
           </div>
 
           <div class="form-group">
@@ -77,7 +77,7 @@
             <div class="checkbox-group">
               <label class="checkbox-label">
                 <input v-model="form.isExternal" type="checkbox" class="checkbox-input" />
-                <span class="checkbox-text">Open in new tab (for external links)</span>
+                <span class="checkbox-text form-hint-li">Open in new tab (for external links)</span>
               </label>
             </div>
           </div>
@@ -99,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, inject } from 'vue'
 
 const props = defineProps({
   show: {
@@ -121,6 +121,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'save'])
+
+// Theme injection
+const theme = inject('theme', ref('light'))
 
 const form = reactive({
   name: '',
@@ -266,6 +269,39 @@ const saveMenuItem = () => {
   max-height: 90vh;
   overflow: hidden; /* Hide overflow to ensure clean borders */
   border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* Dark mode styles */
+.modal.van-theme-dark {
+  background: var(--van-mainnet-network-background);
+  border: 1px solid #333;
+}
+
+.modal.van-theme-dark .modal-content {
+  background: var(--van-mainnet-network-background);
+}
+
+.modal.van-theme-dark .modal-title {
+  color: var(--van-text-color);
+  background: var(--van-mainnet-network-background);
+}
+
+.modal.van-theme-dark .form-label {
+  color: #f9fafb;
+}
+
+.modal.van-theme-dark .form-input,
+.modal.van-theme-dark .form-textarea,
+.modal.van-theme-dark .form-select {
+  background-color: #374151;
+  color: #ffffff;
+  border-color: #4b5563;
+}
+
+.modal.van-theme-dark .modal-actions {
+  background: var(--van-mainnet-network-background);
+  border-top: 1px solid #4b5563;
 }
 
 .modal-large {
@@ -349,12 +385,25 @@ const saveMenuItem = () => {
   margin-bottom: 0.25rem;
 }
 
+.form-hint-li {
+  color: #6b7280;
+}
+
+.modal.van-theme-dark .form-hint-li {
+  /* font-weight: 500; */
+  color: #f9fafb;
+}
+
 .form-hint code {
-  background: #f3f4f6;
+  background: #f9fafb;
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
   font-family: 'Courier New', monospace;
   font-size: 0.75rem;
+}
+
+.modal.van-theme-dark .form-hint code {
+  background: #374151;
 }
 
 .form-error {

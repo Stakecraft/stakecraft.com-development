@@ -1,5 +1,5 @@
 <template>
-  <div class="admin-container">
+  <div class="admin-container" :class="`van-theme-${theme}`">
     <!-- Sidebar -->
     <div class="sidebar" :class="{ 'sidebar-open': sidebarOpen }">
       <div class="sidebar-header">
@@ -444,7 +444,7 @@
       class="modal-overlay"
       @click="closeMainnetPositionManager"
     >
-      <div class="modal-container" @click.stop>
+      <div class="modal-container" :class="`van-theme-${theme}`" @click.stop>
         <div class="modal-content">
           <div class="modal-header">
             <h3 class="modal-title">Manage Mainnet Card Positions</h3>
@@ -508,7 +508,7 @@
       class="modal-overlay"
       @click="closeTestnetPositionManager"
     >
-      <div class="modal-container" @click.stop>
+      <div class="modal-container" :class="`van-theme-${theme}`" @click.stop>
         <div class="modal-content">
           <div class="modal-header">
             <h3 class="modal-title">Manage Testnet Card Positions</h3>
@@ -570,7 +570,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import {
   Menu,
   Bell,
@@ -604,6 +604,9 @@ import {
   teamService,
   aboutService
 } from '@/services/adminService'
+
+// Theme injection
+const theme = inject('theme')
 
 // Reactive data
 const sidebarOpen = ref(false)
@@ -1156,6 +1159,13 @@ const dropCard = (event, targetCardId) => {
   min-height: 100vh;
   background-color: #f8f9fa;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: background-color 0.3s ease;
+}
+
+/* Dark theme styles */
+.admin-container.van-theme-dark {
+  background-color: var(--van-background);
+  color: var(--van-text-color);
 }
 
 /* Sidebar Styles */
@@ -1168,8 +1178,13 @@ const dropCard = (event, targetCardId) => {
   background: white;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   transform: translateX(-100%);
-  transition: transform 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
   z-index: 50;
+}
+
+.van-theme-dark .sidebar {
+  background: var(--van-mainnet-network-background);
+  border-right: 1px solid #333;
 }
 
 .sidebar-open {
@@ -1228,10 +1243,25 @@ const dropCard = (event, targetCardId) => {
   color: #111827;
 }
 
+.van-theme-dark .nav-item:hover {
+  background-color: #374151;
+  color: #f9fafb;
+}
+
 .nav-item-active {
   background-color: #eff6ff;
   color: #1d4ed8;
   border-right: 4px solid #1d4ed8;
+}
+
+.van-theme-dark .nav-item-active {
+  background-color: #1e40af;
+  color: #dbeafe;
+  border-right: 4px solid var(--van-seconday-color);
+}
+
+.van-theme-dark .nav-item {
+  color: #d1d5db;
 }
 
 .nav-icon {
@@ -1268,6 +1298,12 @@ const dropCard = (event, targetCardId) => {
   background: white;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
   border-bottom: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.van-theme-dark .top-bar {
+  background: var(--van-header-background);
+  border-bottom: 1px solid #333;
 }
 
 .top-bar-content {
@@ -1312,6 +1348,11 @@ const dropCard = (event, targetCardId) => {
   font-size: 1.5rem;
   font-weight: 600;
   color: #1f2937;
+  transition: color 0.3s ease;
+}
+
+.van-theme-dark .page-title {
+  color: var(--van-text-color);
 }
 
 .top-bar-right {
@@ -1345,6 +1386,11 @@ const dropCard = (event, targetCardId) => {
   border-radius: 50%;
 }
 
+.theme-toggle-wrapper {
+  display: flex;
+  align-items: center;
+}
+
 /* Content Area Styles */
 .content-area {
   padding: 1.5rem;
@@ -1366,6 +1412,11 @@ const dropCard = (event, targetCardId) => {
   font-weight: 600;
   color: #1f2937;
   margin: 0;
+  transition: color 0.3s ease;
+}
+
+.van-theme-dark .section-title {
+  color: var(--van-text-color);
 }
 
 /* Button Styles */
@@ -1414,6 +1465,12 @@ const dropCard = (event, targetCardId) => {
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
   overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.van-theme-dark .table-container {
+  background: var(--van-mainnet-network-background);
+  border: 1px solid #333;
 }
 
 .data-table {
@@ -1424,6 +1481,12 @@ const dropCard = (event, targetCardId) => {
 .data-table thead {
   background-color: #f9fafb;
   border-bottom: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.van-theme-dark .data-table thead {
+  background-color: #374151;
+  border-bottom: 1px solid #4b5563;
 }
 
 .data-table th {
@@ -1434,21 +1497,42 @@ const dropCard = (event, targetCardId) => {
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  transition: color 0.3s ease;
+}
+
+.van-theme-dark .data-table th {
+  color: #f9fafb;
 }
 
 .table-row:hover {
   background-color: #f9fafb;
+  transition: background-color 0.3s ease;
+}
+
+.van-theme-dark .table-row:hover {
+  background-color: #374151;
 }
 
 .table-cell {
   padding: 1rem 1.5rem;
   border-bottom: 1px solid #f3f4f6;
   font-size: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+.van-theme-dark .table-cell {
+  border-bottom: 1px solid #4b5563;
+  color: #f9fafb;
 }
 
 .font-medium {
   font-weight: 500;
   color: #111827;
+  transition: color 0.3s ease;
+}
+
+.van-theme-dark .font-medium {
+  color: #ffffff;
 }
 
 .network-cell {
@@ -1501,6 +1585,10 @@ const dropCard = (event, targetCardId) => {
   font-size: 0.875rem;
   color: #374151;
   word-break: break-all;
+}
+
+.van-theme-dark .url-text {
+  color: #f9fafb;
 }
 
 .external-badge {
@@ -1578,6 +1666,12 @@ const dropCard = (event, targetCardId) => {
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
   overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.van-theme-dark .card {
+  background: var(--van-mainnet-network-background);
+  border: 1px solid #333;
 }
 
 .card-image {
@@ -1651,6 +1745,12 @@ const dropCard = (event, targetCardId) => {
   border: 1px solid #e5e7eb;
   padding: 1.5rem;
   text-align: center;
+  transition: all 0.3s ease;
+}
+
+.van-theme-dark .partnership-card {
+  background: var(--van-mainnet-network-background);
+  border: 1px solid #333;
 }
 
 .partner-icon {
@@ -1680,6 +1780,11 @@ const dropCard = (event, targetCardId) => {
   font-weight: 600;
   color: #1f2937;
   margin: 0 0 0.5rem 0;
+  transition: color 0.3s ease;
+}
+
+.van-theme-dark .partner-name {
+  color: var(--van-text-color);
 }
 
 .partner-description {
@@ -1695,6 +1800,12 @@ const dropCard = (event, targetCardId) => {
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
   margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.van-theme-dark .content-card {
+  background: var(--van-mainnet-network-background);
+  border: 1px solid #333;
 }
 
 .card-header {
@@ -1861,6 +1972,12 @@ const dropCard = (event, targetCardId) => {
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.van-theme-dark .loading-container {
+  background: var(--van-mainnet-network-background);
+  border: 1px solid #333;
 }
 
 .loading-spinner {
@@ -1927,6 +2044,12 @@ const dropCard = (event, targetCardId) => {
   height: 80vh;
   display: flex;
   flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.van-theme-dark .modal-container {
+  background: var(--van-mainnet-network-background);
+  border: 1px solid #333;
 }
 
 .modal-content {
@@ -1943,6 +2066,12 @@ const dropCard = (event, targetCardId) => {
   align-items: center;
   background: #f9fafb;
   flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.van-theme-dark .modal-header {
+  background: #374151;
+  border-bottom: 1px solid #4b5563;
 }
 
 .modal-title {
@@ -1950,6 +2079,11 @@ const dropCard = (event, targetCardId) => {
   font-weight: 700;
   color: #1f2937;
   margin: 0;
+  transition: color 0.3s ease;
+}
+
+.van-theme-dark .modal-title {
+  color: var(--van-text-color);
 }
 
 .close-button {
@@ -2003,12 +2137,23 @@ const dropCard = (event, targetCardId) => {
   border: 1px solid #bae6fd;
   border-radius: 0.5rem;
   flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.van-theme-dark .position-instructions {
+  background: #1e3a8a;
+  border: 1px solid #3b82f6;
 }
 
 .position-instructions p {
   margin: 0;
   color: #0369a1;
   font-size: 0.875rem;
+  transition: color 0.3s ease;
+}
+
+.van-theme-dark .position-instructions p {
+  color: #60a5fa;
 }
 
 .cards-list {
@@ -2053,6 +2198,11 @@ const dropCard = (event, targetCardId) => {
   transition: all 0.2s;
   min-height: 80px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.van-theme-dark .card-item {
+  background: var(--van-mainnet-network-background);
+  border: 1px solid #4b5563;
 }
 
 .card-item:hover {
@@ -2136,6 +2286,11 @@ const dropCard = (event, targetCardId) => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color 0.3s ease;
+}
+
+.van-theme-dark .card-title {
+  color: #ffffff;
 }
 
 .card-description {
@@ -2147,6 +2302,11 @@ const dropCard = (event, targetCardId) => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  transition: color 0.3s ease;
+}
+
+.van-theme-dark .card-description {
+  color: #d1d5db;
 }
 
 .card-position {
@@ -2171,5 +2331,11 @@ const dropCard = (event, targetCardId) => {
   border-top: 1px solid #e5e7eb;
   background: #f9fafb;
   flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.van-theme-dark .modal-actions {
+  background: #374151;
+  border-top: 1px solid #4b5563;
 }
 </style>

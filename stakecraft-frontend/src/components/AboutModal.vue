@@ -1,6 +1,6 @@
 <template>
   <div v-if="show" class="modal-overlay" @click="closeModal">
-    <div class="modal modal-large" @click.stop>
+    <div class="modal modal-large" :class="`van-theme-${theme}`" @click.stop>
       <div class="modal-content">
         <h3 class="modal-title">
           {{ editing ? 'Edit About Content' : 'Add About Content' }}
@@ -35,7 +35,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, inject } from 'vue'
 
 const props = defineProps({
   show: {
@@ -53,6 +53,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'save'])
+
+// Theme injection
+const theme = inject('theme', ref('light'))
 
 const form = reactive({
   title: '',
@@ -114,6 +117,12 @@ const saveAboutContent = () => {
   max-height: 90vh;
   overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.modal.van-theme-dark {
+  background: var(--van-mainnet-network-background);
+  border: 1px solid #333;
 }
 
 .modal-large {
@@ -138,6 +147,11 @@ const saveAboutContent = () => {
   background: white;
   overflow-y: auto;
   max-height: calc(90vh - 4px);
+  transition: all 0.3s ease;
+}
+
+.modal.van-theme-dark .modal-content {
+  background: var(--van-mainnet-network-background);
 }
 
 .modal-title {
@@ -149,6 +163,12 @@ const saveAboutContent = () => {
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
   background: white;
+  transition: all 0.3s ease;
+}
+
+.modal.van-theme-dark .modal-title {
+  color: var(--van-text-color);
+  background: var(--van-mainnet-network-background);
 }
 
 .modal-form {
@@ -167,6 +187,11 @@ const saveAboutContent = () => {
   font-size: 0.875rem;
   font-weight: 600;
   color: #374151;
+  transition: color 0.3s ease;
+}
+
+.modal.van-theme-dark .form-label {
+  color: #f9fafb;
 }
 
 .form-input,
@@ -179,7 +204,16 @@ const saveAboutContent = () => {
   background-color: white;
   transition:
     border-color 0.2s,
-    box-shadow 0.2s;
+    box-shadow 0.2s,
+    background-color 0.3s,
+    color 0.3s;
+}
+
+.modal.van-theme-dark .form-input,
+.modal.van-theme-dark .form-textarea {
+  background-color: #374151;
+  color: #ffffff;
+  border-color: #4b5563;
 }
 
 .form-input:focus,
@@ -201,6 +235,12 @@ const saveAboutContent = () => {
   background-color: #ffffff;
   transition: all 0.2s ease;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.modal.van-theme-dark .form-textarea {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #ffffff;
 }
 
 .form-textarea:hover {
@@ -227,6 +267,12 @@ const saveAboutContent = () => {
   background: white;
   border-bottom-left-radius: 16px;
   border-bottom-right-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.modal.van-theme-dark .modal-actions {
+  background: var(--van-mainnet-network-background);
+  border-top: 1px solid #4b5563;
 }
 
 .btn {

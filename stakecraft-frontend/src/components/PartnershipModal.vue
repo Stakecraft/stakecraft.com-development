@@ -1,6 +1,6 @@
 <template>
   <div v-if="show" class="modal-overlay" @click="closeModal">
-    <div class="modal modal-large" @click.stop>
+    <div class="modal modal-large" :class="`van-theme-${theme}`" @click.stop>
       <div class="modal-content">
         <h3 class="modal-title">
           {{ editing ? 'Edit Partnership' : 'Add Partnership' }}
@@ -90,7 +90,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, inject } from 'vue'
 import { useIPFS } from '@/composables/useIPFS'
 
 const props = defineProps({
@@ -109,6 +109,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'save'])
+
+// Theme injection
+const theme = inject('theme', ref('light'))
 const { uploading, uploadError, uploadToIPFS } = useIPFS()
 const fileInput = ref(null)
 const imagePreview = ref(null)
@@ -249,6 +252,51 @@ const savePartnership = () => {
   max-height: 90vh;
   overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* Dark mode styles */
+.modal.van-theme-dark {
+  background: var(--van-mainnet-network-background);
+  border: 1px solid #333;
+}
+
+.modal.van-theme-dark .modal-content {
+  background: var(--van-mainnet-network-background);
+}
+
+.modal.van-theme-dark .modal-title {
+  color: var(--van-text-color);
+  background: var(--van-mainnet-network-background);
+}
+
+.modal.van-theme-dark .form-label {
+  color: #f9fafb;
+}
+
+.modal.van-theme-dark .form-input,
+.modal.van-theme-dark .form-textarea {
+  background-color: #374151;
+  color: #ffffff;
+  border-color: #4b5563;
+}
+
+.modal.van-theme-dark .upload-area {
+  background-color: #374151;
+  border-color: #4b5563;
+}
+
+.modal.van-theme-dark .upload-text {
+  color: #f9fafb;
+}
+
+.modal.van-theme-dark .upload-hint {
+  color: #9ca3af;
+}
+
+.modal.van-theme-dark .modal-actions {
+  background: var(--van-mainnet-network-background);
+  border-top: 1px solid #4b5563;
 }
 
 .modal-large {
