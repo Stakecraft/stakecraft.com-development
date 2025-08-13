@@ -5,7 +5,9 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const mongoUri =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/stakecraft";
+  process.env.MONGODB_URI ||
+  process.env.MONGODB_URI_PRODUCTION ||
+  "mongodb://localhost:27017/stakecraft";
 
 console.log("🔗 Connecting to MongoDB...");
 console.log("Database URI:", mongoUri.replace(/\/\/.*@/, "//***:***@")); // Hide credentials in logs
