@@ -418,10 +418,18 @@ button {
     flex-direction: column;
   }
 
-  .team {
+  /* .team {
     display: grid;
+  } */
+
+  .team-grid {
+    grid-template-columns: repeat(2, 2fr);
   }
 
+  .team {
+    display: grid;
+    grid-template-columns: repeat(1, 2fr);
+  }
   .team-member {
     width: 100%;
   }
