@@ -20,20 +20,34 @@ let connectedWallet = null
 
 export const getAvailableWallets = () => {
   try {
-    return getWallets().get()
+    // Only include Sui-compatible wallets. Some multi-chain wallets (e.g. Phantom)
+    // may register on the page, but they are not Sui wallets and will not expose
+    // Sui features. We explicitly filter for wallets that support Sui signing.
+    const allWallets = getWallets().get()
+
+    const suiWallets = allWallets.filter((w) => {
+      const featureKeys = Object.keys(w.features || {})
+      const supportsSui = featureKeys.some((k) => k.startsWith('sui:'))
+      const supportsConnect = !!w.features?.['standard:connect']
+      const chains = w.chains || []
+      const isSuiChain = chains.some((c) => typeof c === 'string' && c.startsWith('sui:'))
+      return supportsSui && supportsConnect && (isSuiChain || true)
+    })
+
+    return suiWallets
   } catch (error) {
     console.error('Error getting available wallets:', error)
     return []
   }
 }
 
-export const connectWallet = async (walletName = null) => {
+export const connectWallet = async (walletName = 'slush') => {
   try {
     const availableWallets = getAvailableWallets()
 
     if (availableWallets.length === 0) {
       throw new Error(
-        'No Sui wallets found. Please install a Sui wallet like Sui Wallet, Suiet, or Martian Wallet.'
+        'No Sui wallets found. Please install Slush Wallet (preferred) or another Sui-compatible wallet.'
       )
     }
 
@@ -41,9 +55,12 @@ export const connectWallet = async (walletName = null) => {
     if (walletName) {
       wallet = availableWallets.find((w) => w.name.toLowerCase().includes(walletName.toLowerCase()))
       if (!wallet) {
-        throw new Error(
-          `Wallet "${walletName}" not found. Available wallets: ${availableWallets.map((w) => w.name).join(', ')}`
+        // If the requested wallet is not installed, fall back to any Sui wallet
+        // so the dApp can still be used, but clearly communicate the situation.
+        console.warn(
+          `Requested wallet "${walletName}" not found. Falling back to first Sui wallet.`
         )
+        wallet = availableWallets[0]
       }
     } else {
       wallet = availableWallets[0]
@@ -68,6 +85,37 @@ export const connectWallet = async (walletName = null) => {
   } catch (error) {
     console.error('Failed to connect wallet:', error)
     throw new Error(`Failed to connect wallet: ${error.message}`)
+  }
+}
+
+// Strictly connect to Slush wallet only. Throws if Slush is not installed.
+export const connectSlushWalletOnly = async () => {
+  try {
+    const availableWallets = getAvailableWallets()
+
+    const slush = availableWallets.find((w) => w.name.toLowerCase().includes('slush'))
+    if (!slush) {
+      throw new Error('Slush Wallet not found. Please install the Slush Wallet browser extension.')
+    }
+
+    if (!slush.features['standard:connect']) {
+      throw new Error('Slush Wallet does not support the required connection feature')
+    }
+
+    const connectResult = await slush.features['standard:connect'].connect()
+    if (!connectResult || connectResult.accounts.length === 0) {
+      throw new Error('No accounts found or connection was rejected')
+    }
+
+    connectedWallet = slush
+    return {
+      address: connectResult.accounts[0].address,
+      walletName: slush.name,
+      accounts: connectResult.accounts
+    }
+  } catch (error) {
+    console.error('Failed to connect Slush wallet:', error)
+    throw new Error(`Failed to connect Slush wallet: ${error.message}`)
   }
 }
 
@@ -195,7 +243,6 @@ export const getStakedTotalAccounts = async (delegatorAddress) => {
   })
 
   if (!stakingObjects.data || stakingObjects.data.length === 0) {
-
     try {
       const allObjects = await SUI_CLIENT.getOwnedObjects({
         owner: delegatorAddress,
@@ -316,7 +363,6 @@ export const undelegateStake = async (
     }
 
     let stakingObjectId = null
-    let foundStakeAmount = 0
 
     // If a specific staking object ID is provided, use it directly
     if (specificStakingObjectId) {
@@ -332,7 +378,6 @@ export const undelegateStake = async (
 
           if (stakedAmount > 0) {
             stakingObjectId = specificStakingObjectId
-            foundStakeAmount = stakedAmount
           } else {
             throw new Error(`Staking object ${specificStakingObjectId} has no stake amount`)
           }
@@ -346,11 +391,9 @@ export const undelegateStake = async (
         )
       }
     } else {
-
-
       const amountInMist = Math.floor(unstakeAmount * 1_000_000_000)
       console.log('amountInMist', amountInMist)
-      
+
       const stakingObjects = await SUI_CLIENT.getOwnedObjects({
         owner: delegatorAddress,
         filter: {
@@ -371,7 +414,6 @@ export const undelegateStake = async (
 
             if (stakedAmount > 0) {
               stakingObjectId = obj.data.objectId
-              foundStakeAmount = stakedAmount
               break
             }
           }
@@ -397,7 +439,6 @@ export const undelegateStake = async (
                 )
                 if (stakeAmount > 0) {
                   stakingObjectId = obj.data.objectId
-                  foundStakeAmount = stakeAmount
                   break
                 }
               }
