@@ -54,8 +54,7 @@
             <div class="warning-content">
               <h3 class="warning-title">Wallet Not Found</h3>
               <p class="warning-message">
-                To use Walrus staking, you need to install a Sui wallet extension like Sui Wallet or
-                Suiet.
+                To use Walrus staking, please install the Slush Wallet for Sui.
               </p>
             </div>
           </div>
@@ -63,11 +62,11 @@
           <!-- Wallet Connection -->
           <div v-if="!walletConnected" class="wallet-connection">
             <button
-              @click="connectWallet"
+              @click="connectSlush"
               class="primary-button full-width"
               :disabled="isConnecting"
             >
-              {{ isConnecting ? 'Connecting...' : 'Connect Sui Wallet' }}
+              {{ isConnecting ? 'Connecting...' : 'Connect Slush Wallet' }}
             </button>
 
             <!-- Network Links -->
@@ -394,6 +393,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import {
   connectWallet,
+  connectSlushWalletOnly,
   delegateTokens,
   undelegateStake,
   withdrawSpecificStake,
@@ -488,7 +488,7 @@ export default {
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
-        const result = await connectWallet()
+        const result = await connectWallet('slush')
         walletAddress.value = result.address
         walletConnected.value = true
         isConnecting.value = false
@@ -496,6 +496,22 @@ export default {
         await loadStakingAccounts()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
+        walletError.value = true
+        isConnecting.value = false
+      }
+    }
+
+    const connectSlush = async () => {
+      try {
+        isConnecting.value = true
+        const result = await connectSlushWalletOnly()
+        walletAddress.value = result.address
+        walletConnected.value = true
+        isConnecting.value = false
+        await refreshStakingInfo()
+        await loadStakingAccounts()
+      } catch (error) {
+        console.error('Failed to connect Slush wallet:', error)
         walletError.value = true
         isConnecting.value = false
       }
@@ -711,6 +727,7 @@ export default {
       unstakingError,
       transactionHash,
       connectWallet: handleConnectWallet,
+      connectSlush,
       delegateTokens: handleDelegateTokens,
       undelegateStake: handleUndelegateStake,
       withdrawSpecificStake,

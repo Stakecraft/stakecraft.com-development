@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="header" :class="[theme, { blurred: isScrolled }]">
+    <div class="header" :class="[theme, { blurred: isScrolled, 'modal-open': isOpen }]">
       <div class="leftItems">
         <a href="/#">
           <img src="../assets/headerLogo.svg" class="headerLogo" />
@@ -52,6 +52,7 @@
             <a
               :href="item.link"
               :target="item.metadata?.isExternal === 'true' ? '_blank' : '_self'"
+              @click="toggleDropdown"
             >
               {{ item.title }}
               <img v-if="item.metadata?.isExternal === 'true'" src="../assets/externalLink.png" />
@@ -276,16 +277,16 @@ export default {
 .slide-enter-active,
 .slide-leave-active {
   transition:
-    transform 0.5s ease,
+    transform 0.3s ease,
     opacity 0.3s ease;
 }
 
 .slide-enter-from {
-  transform: translateX(100%);
+  transform: translateY(-100%);
 }
 
 .slide-enter-to {
-  transform: translateX(0);
+  transform: translateY(0);
 }
 
 .slide-leave-to,
@@ -294,10 +295,12 @@ export default {
 }
 
 .mobileHeader {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
+  height: 100vh;
+  overflow-y: auto;
   background-color: var(--van-background);
   z-index: 10000;
 }
