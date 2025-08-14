@@ -4,21 +4,23 @@ on:
   push:
     branches:
     - dev
+    - ayoub_dev
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: pull diff and restast services
+      - name: pull diff and restart services
         env:
           SERVER_ENV:  ${{ secrets.SERVER_ENV }}
           AUTH_CONFIG: ${{ secrets.AUTH_CONFIG }}
         uses: fifsky/ssh-action@master
         with:
           command: |
-            cd ~/stakecraft.com
+            cd ~/stakecraft.com-development
             git pull
             cd stakecraftFE/
-            /usr/bin/npm run build
+            npm install --legacy-peer-deps
+            npm run build
           host: ${{ secrets.HOST }}
           user: ${{ secrets.USER }}
           port: ${{ secrets.PORT }}
