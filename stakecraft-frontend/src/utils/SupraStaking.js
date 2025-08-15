@@ -30,10 +30,24 @@ export const walletConnect = async () => {
   }
 }
 
+// Disconnect wallet function
+export const disconnectWallet = async () => {
+  try {
+    const provider = getProvider()
+    if (provider && provider.disconnect) {
+      await provider.disconnect()
+    }
+    return true
+  } catch (error) {
+    console.error('Error disconnecting wallet:', error)
+    return false
+  }
+}
+
 // Get SUPRA balance for a wallet address
 export const getSupraBalance = async (walletAddress) => {
   try {
-    const provider = getProvider()
+    //  const provider = getProvider()
     let supraClient = await SupraClient.init('https://rpc-mainnet.supra.com/')
     const balance = await supraClient.getAccountSupraCoinBalance(walletAddress)
     console.log('balance', balance)
@@ -48,7 +62,7 @@ export const getSupraBalance = async (walletAddress) => {
 
 export const getTotalStakedAmount = async (walletAddress, validatorAddress) => {
   try {
-    const provider = getProvider()
+    // const provider = getProvider()
 
     let supraClient = await SupraClient.init('https://rpc-mainnet.supra.com/')
     console.log('supraClient', supraClient)

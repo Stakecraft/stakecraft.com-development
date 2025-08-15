@@ -54,11 +54,27 @@ export const getKavaBalance = async (walletAddress) => {
 
 export const getTotalStakedAmount = async (delegatorAddress, validatorAddress) => {
   try {
+    // Validate addresses
+    if (!delegatorAddress || !validatorAddress) {
+      throw new Error('Both delegator and validator addresses are required')
+    }
+
+    // Validate bech32 addresses
+    if (delegatorAddress.length < 10 || validatorAddress.length < 10) {
+      throw new Error('Invalid address format')
+    }
+
     await window.keplr.enable(KAVA_CHAIN_ID)
     const offlineSigner = window.getOfflineSigner(KAVA_CHAIN_ID)
     const client = await tryRpcEndpoints(offlineSigner)
-    console.log('client', client)
+
+    console.log('Getting delegation for:', { delegatorAddress, validatorAddress })
     const stakingInfo = await client.getDelegation(delegatorAddress, validatorAddress)
+
+    if (!stakingInfo) {
+      return { amount: '0' }
+    }
+
     return stakingInfo
   } catch (error) {
     console.error('Error getting total staked amount:', error)
@@ -91,6 +107,15 @@ export const delegateTokens = async (delegatorAddress, validatorAddress, amount)
 
 export const undelegateStake = async (delegatorAddress, validatorAddress, unstakeAmount) => {
   try {
+    // Validate addresses and amount
+    if (!delegatorAddress || !validatorAddress) {
+      throw new Error('Both delegator and validator addresses are required')
+    }
+
+    if (!unstakeAmount || unstakeAmount <= 0) {
+      throw new Error('Valid unstake amount is required')
+    }
+
     await window.keplr.enable(KAVA_CHAIN_ID)
     const offlineSigner = window.getOfflineSigner(KAVA_CHAIN_ID)
     const client = await tryRpcEndpoints(offlineSigner)
@@ -98,17 +123,17 @@ export const undelegateStake = async (delegatorAddress, validatorAddress, unstak
     const delegation = await client.getDelegation(delegatorAddress, validatorAddress)
     console.log('delegation', delegation)
 
-    if (!delegation) {
-      throw new Error('No delegation found')
+    if (!delegation || !delegation.amount) {
+      throw new Error('No delegation found for this validator')
     }
 
-    // Get the delegation amount from the correct path in the object
-    // const delegationAmount = delegation?.amount
-    // console.log('delegationAmount', delegationAmount)
+    // Get the delegation amount
+    const currentDelegation = Number(delegation.amount) / 1_000_000
+    console.log('currentDelegation', currentDelegation)
     console.log('unstakeAmount', unstakeAmount)
 
-    if (!unstakeAmount) {
-      throw new Error('Could not find delegation amount')
+    if (unstakeAmount > currentDelegation) {
+      throw new Error(`Cannot unstake more than currently delegated (${currentDelegation} KAVA)`)
     }
 
     // Format the amount properly for undelegation

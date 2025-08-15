@@ -112,6 +112,31 @@
                   </a>
                 </div>
               </div>
+              <!-- Disconnect Button -->
+              <div class="wallet-actions">
+                <button
+                  @click="handleDisconnectWallet"
+                  class="disconnect-button"
+                  title="Disconnect Wallet"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16,17 21,12 16,7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                  Disconnect Wallet
+                </button>
+              </div>
             </div>
 
             <!-- Tab Navigation -->
@@ -413,6 +438,38 @@ export default {
       }
     }
 
+    const handleDisconnectWallet = () => {
+      try {
+        // Clear wallet state
+        walletAddress.value = ''
+        walletConnected.value = false
+
+        // Clear staking-related state
+        delegatedAmount.value = 0
+        rewardsEarned.value = 0
+        lastRewardTime.value = null
+        availableBalance.value = 0
+
+        // Clear form inputs
+        delegateAmount.value = 0
+        undelegateAmount.value = 0
+
+        // Clear success/error messages
+        delegationSuccess.value = false
+        delegationError.value = null
+        undelegationSuccess.value = false
+        undelegationError.value = null
+        transactionHash.value = ''
+
+        // Clear wallet error state
+        walletError.value = false
+
+        console.log('Wallet disconnected successfully')
+      } catch (error) {
+        console.error('Error disconnecting wallet:', error)
+      }
+    }
+
     const refreshDelegationInfo = async () => {
       if (!walletAddress.value) return
 
@@ -523,7 +580,8 @@ export default {
       lastRewardTime,
       availableBalance,
       activeTab,
-      totalGrtBalance
+      totalGrtBalance,
+      handleDisconnectWallet
     }
   }
 }
@@ -1008,5 +1066,43 @@ input[type='number'] {
 
 .delegate-button {
   margin-top: 1.5rem;
+}
+
+/* Wallet Actions */
+.wallet-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: center;
+}
+
+.disconnect-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.disconnect-button:hover {
+  background-color: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.disconnect-button:active {
+  transform: translateY(0);
+}
+
+.disconnect-button svg {
+  width: 18px;
+  height: 18px;
 }
 </style>
