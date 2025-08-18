@@ -1,17 +1,38 @@
-import { AminoMsg, makeCosmoshubPath, makeSignDoc, serializeSignDoc, StdFee } from '@cosmjs/amino'
-import { BroadcastMode, SigningStargateClient } from '@cosmjs/stargate'
+import { SigningStargateClient } from '@cosmjs/stargate'
 import { Bech32 } from '@cosmjs/encoding'
 
 const ZETA_CONFIG = {
   chainId: 'zetachain_7000-1',
   rpc: 'https://zetachain-rpc.polkachu.com',
-  // rpc: 'https://zetachain-archive.allthatnode.com:1317',
   rest: 'https://zetachain-api.polkachu.com',
   denom: 'azeta',
   prefix: 'zeta',
   decimals: 18,
   displayDecimals: 6,
   explorer: 'https://explorer.zetachain.com/tx/'
+}
+
+const RPC_ENDPOINTS = [
+  'https://zetachain-rpc.polkachu.com',
+  'https://zetachain-mainnet-archive.allthatnode.com:26657',
+  'https://rpc.zetachain.nodestake.top'
+]
+
+// Helper function to try different RPC endpoints
+export const tryRpcEndpoints = async (offlineSigner) => {
+  let lastError = null
+  for (const endpoint of RPC_ENDPOINTS) {
+    try {
+      const client = await SigningStargateClient.connectWithSigner(endpoint, offlineSigner, {
+        accountParser: ethAccountParser
+      })
+      return client
+    } catch (error) {
+      console.warn(`Failed to connect to ${endpoint}:`, error)
+      lastError = error
+    }
+  }
+  throw new Error(`Failed to connect to any RPC endpoint. Last error: ${lastError?.message}`)
 }
 
 // Add custom account parser for Ethermint
@@ -58,15 +79,12 @@ export async function connectWallet() {
     await suggestChain()
     await window.keplr.enable(ZETA_CONFIG.chainId)
 
-    const offlineSigner = window.keplr.getOfflineSigner(ZETA_CONFIG.chainId)
+    const offlineSigner = window.getOfflineSigner(ZETA_CONFIG.chainId)
     console.log('offlineSigner', offlineSigner)
 
     const accounts = await offlineSigner.getAccounts()
     console.log('accounts', accounts)
 
-    if (accounts.length === 0) {
-      throw new Error('No accounts found in Keplr')
-    }
     return accounts[0].address
   } catch (error) {
     console.error('Connection error:', error)
@@ -176,24 +194,32 @@ export async function getTotalStakedAmount(delegatorAddress, validatorAddress) {
   }
 
   try {
-    await window.keplr.enable(ZETA_CONFIG.chainId)
-    const response = await fetch(
-      `${ZETA_CONFIG.rest}/cosmos/staking/v1beta1/validators/${validatorAddress}/delegations/${delegatorAddress}`
-    )
-    const data = await response.json()
-
-    if (data.delegation_response) {
-      const amount = data.delegation_response.balance.amount
-      console.log('amount', amount)
-      return {
-        amount,
-        denom: data.delegation_response.balance.denom,
-        displayAmount: Number(amount) / Math.pow(10, ZETA_CONFIG.displayDecimals)
-      }
+    // Validate addresses
+    if (!delegatorAddress || !validatorAddress) {
+      throw new Error('Both delegator and validator addresses are required')
     }
-    console.log('data', data);
-    
-    return { amount: '0', denom: ZETA_CONFIG.denom, displayAmount: 0 }
+
+    // Validate bech32 addresses
+    if (delegatorAddress.length < 10 || validatorAddress.length < 10) {
+      throw new Error('Invalid address format')
+    }
+
+    await window.keplr.enable(ZETA_CONFIG.chainId)
+    const offlineSigner = window.getOfflineSigner(ZETA_CONFIG.chainId)
+    const client = await tryRpcEndpoints(offlineSigner)
+
+    console.log('Getting delegation for:', { delegatorAddress, validatorAddress })
+    const stakingInfo = await client.getDelegation(delegatorAddress, validatorAddress)
+
+    if (!stakingInfo) {
+      return { amount: '0', denom: ZETA_CONFIG.denom, displayAmount: 0 }
+    }
+
+    return {
+      amount: stakingInfo.amount,
+      denom: stakingInfo.denom,
+      displayAmount: Number(stakingInfo.amount) / Math.pow(10, ZETA_CONFIG.displayDecimals)
+    }
   } catch (error) {
     console.error('Error getting total staked amount:', error)
     throw new Error('Failed to get total staked amount: ' + error.message)
@@ -214,16 +240,10 @@ export async function initializeAccount(address) {
 
     // If account doesn't exist, we need to initialize it
     await window.keplr.enable(ZETA_CONFIG.chainId)
-    const offlineSigner = window.keplr.getOfflineSigner(ZETA_CONFIG.chainId)
-    
+    const offlineSigner = window.getOfflineSigner(ZETA_CONFIG.chainId)
+
     // Create client with Ethermint account parser
-    const client = await SigningStargateClient.connectWithSigner(
-      ZETA_CONFIG.rpc,
-      offlineSigner,
-      {
-        accountParser: ethAccountParser
-      }
-    )
+    await tryRpcEndpoints(offlineSigner)
 
     const accounts = await offlineSigner.getAccounts()
     const userAddress = accounts[0].address
@@ -237,8 +257,8 @@ export async function initializeAccount(address) {
       `${ZETA_CONFIG.rest}/cosmos/bank/v1beta1/balances/${address}`
     )
     const balanceData = await balanceResponse.json()
-    
-    const zetaBalance = balanceData.balances.find(b => b.denom === ZETA_CONFIG.denom)
+
+    const zetaBalance = balanceData.balances.find((b) => b.denom === ZETA_CONFIG.denom)
     if (!zetaBalance || Number(zetaBalance.amount) === 0) {
       throw new Error('No ZETA tokens found in wallet. Please add some ZETA tokens before staking.')
     }
@@ -277,32 +297,25 @@ export async function initializeAccount(address) {
       memo: 'Initialize account'
     }
 
-    const { signed, signature } = await window.keplr.signAmino(
-      ZETA_CONFIG.chainId,
-      address,
-      signDoc
-    )
+    const { signed } = await window.keplr.signAmino(ZETA_CONFIG.chainId, address, signDoc)
 
     // Broadcast the transaction using REST API
-    const broadcastResponse = await fetch(
-      `${ZETA_CONFIG.rest}/cosmos/tx/v1beta1/txs`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          tx_bytes: signed,
-          mode: 'BROADCAST_MODE_SYNC'
-        })
-      }
-    )
+    const broadcastResponse = await fetch(`${ZETA_CONFIG.rest}/cosmos/tx/v1beta1/txs`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        tx_bytes: signed,
+        mode: 'BROADCAST_MODE_SYNC'
+      })
+    })
 
     const broadcastResult = await broadcastResponse.json()
     if (broadcastResult.tx_response?.txhash) {
       console.log('Account initialized:', broadcastResult.tx_response.txhash)
       // Wait for the transaction to be included in a block
-      await new Promise(resolve => setTimeout(resolve, 5000))
+      await new Promise((resolve) => setTimeout(resolve, 5000))
       return true
     } else {
       throw new Error('Failed to broadcast initialization transaction')
@@ -320,116 +333,32 @@ export async function delegateTokens(delegatorAddress, validatorAddress, amount)
 
   try {
     await window.keplr.enable(ZETA_CONFIG.chainId)
-    const amountInAzeta = Math.floor(amount * Math.pow(10, ZETA_CONFIG.displayDecimals)).toString()
 
     // Convert Ethereum address to ZetaChain address if needed
-    const zetaAddress = delegatorAddress.startsWith('0x') 
+    const zetaAddress = delegatorAddress.startsWith('0x')
       ? ethToZetaAddress(delegatorAddress)
       : delegatorAddress
 
     // Initialize account if needed
     await initializeAccount(zetaAddress)
 
-    // Wait for account initialization to be processed
-    await new Promise(resolve => setTimeout(resolve, 5000))
+    const offlineSigner = window.getOfflineSigner(ZETA_CONFIG.chainId)
+    const client = await tryRpcEndpoints(offlineSigner)
 
-    // Initialize client after account is ready
-    const offlineSigner = window.keplr.getOfflineSigner(ZETA_CONFIG.chainId)
-    const client = await SigningStargateClient.connectWithSigner(
-      ZETA_CONFIG.rpc,
-      offlineSigner,
-      {
-        accountParser: ethAccountParser
-      }
-    )
-
-    // Get account info after initialization
-    const accountInfo = await getAccountInfo(zetaAddress)
-    if (!accountInfo || !accountInfo.accountNumber) {
-      throw new Error('Account not properly initialized. Please try again.')
-    }
-
-    const msg = {
-      type: 'cosmos-sdk/MsgDelegate',
-      value: {
-        delegator_address: zetaAddress,
-        validator_address: validatorAddress,
-        amount: {
-          denom: ZETA_CONFIG.denom,
-          amount: amountInAzeta
-        }
-      }
-    }
-
-    const fee = {
-      amount: [
-        {
-          denom: ZETA_CONFIG.denom,
-          amount: '10000'
-        }
-      ],
-      gas: '500000'
-    }
-
-    const signDoc = {
-      chain_id: ZETA_CONFIG.chainId,
-      account_number: accountInfo.accountNumber,
-      sequence: accountInfo.sequence,
-      fee,
-      msgs: [msg],
-      memo: ''
-    }
-
-    const { signed, signature } = await window.keplr.signAmino(
-      ZETA_CONFIG.chainId,
+    const result = await client.delegateTokens(
       zetaAddress,
-      signDoc
-    )
-
-    // Encode the signed transaction
-    const signedTx = {
-      msg: signed.msgs,
-      fee: signed.fee,
-      signatures: [{
-        pub_key: {
-          type: 'tendermint/PubKeySecp256k1',
-          value: signature.pub_key.value
-        },
-        signature: signature.signature
-      }],
-      memo: signed.memo
-    }
-
-    const signedTxBase64 = btoa(JSON.stringify(signedTx))
-
-    console.log('signedTxBase64', signedTxBase64)
-
-    const broadcastResponse = await fetch(
-      `${ZETA_CONFIG.rest}/cosmos/tx/v1beta1/txs`,
+      validatorAddress,
       {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          tx_bytes: signedTxBase64,
-          mode: 'BROADCAST_MODE_SYNC'
-        })
-      }
+        denom: ZETA_CONFIG.denom,
+        amount: Math.floor(amount * Math.pow(10, ZETA_CONFIG.displayDecimals)).toString()
+      },
+      'auto',
+      'Delegate ZETA tokens'
     )
 
-    const broadcastResult = await broadcastResponse.json()
-
-    console.log('broadcastResult', broadcastResult)
-
-    if (broadcastResult.tx_response?.txhash) {
-      return {
-        txHash: broadcastResult.tx_response.txhash,
-        explorerLink: `${ZETA_CONFIG.explorer}${broadcastResult.tx_response.txhash}`
-      }
-    } else {
-      console.error('Broadcast error:', broadcastResult)
-      throw new Error('Failed to broadcast delegation transaction: ' + (broadcastResult.error || 'Unknown error'))
+    return {
+      txHash: result.transactionHash,
+      explorerLink: `${ZETA_CONFIG.explorer}${result.transactionHash}`
     }
   } catch (error) {
     console.error('Delegation error:', error)
@@ -440,13 +369,11 @@ export async function delegateTokens(delegatorAddress, validatorAddress, amount)
 export async function getZetaBalance(walletAddress) {
   try {
     await window.keplr.enable(ZETA_CONFIG.chainId)
-    const offlineSigner = window.keplr.getOfflineSigner(ZETA_CONFIG.chainId)
-    const client = await SigningStargateClient.connectWithSigner(ZETA_CONFIG.rpc, offlineSigner, {
-      accountParser: ethAccountParser
-    })
+    const offlineSigner = window.getOfflineSigner(ZETA_CONFIG.chainId)
+    const client = await tryRpcEndpoints(offlineSigner)
     const balances = await client.getAllBalances(walletAddress)
     // Find the ZETA balance (denom: 'azeta')
-    const zetaBalance = balances.find(b => b.denom === ZETA_CONFIG.denom)
+    const zetaBalance = balances.find((b) => b.denom === ZETA_CONFIG.denom)
     // Convert from micro-ZETA to ZETA
     return zetaBalance ? Number(zetaBalance.amount) / Math.pow(10, ZETA_CONFIG.decimals) : 0
   } catch (error) {
@@ -461,66 +388,56 @@ export async function undelegateStake(delegatorAddress, validatorAddress, unstak
   }
 
   try {
+    // Validate addresses and amount
+    if (!delegatorAddress || !validatorAddress) {
+      throw new Error('Both delegator and validator addresses are required')
+    }
+
+    if (!unstakeAmount || unstakeAmount <= 0) {
+      throw new Error('Valid unstake amount is required')
+    }
+
     await window.keplr.enable(ZETA_CONFIG.chainId)
-    const amountInAzeta = Math.floor(unstakeAmount * Math.pow(10, ZETA_CONFIG.displayDecimals)).toString()
 
     // Convert Ethereum address to ZetaChain address if needed
     const zetaAddress = delegatorAddress.startsWith('0x')
       ? ethToZetaAddress(delegatorAddress)
       : delegatorAddress
 
-    // Initialize account if needed
-    await initializeAccount(zetaAddress)
+    const offlineSigner = window.getOfflineSigner(ZETA_CONFIG.chainId)
+    const client = await tryRpcEndpoints(offlineSigner)
 
-    // Initialize client after account is ready
-    const offlineSigner = window.keplr.getOfflineSigner(ZETA_CONFIG.chainId)
-    const client = await SigningStargateClient.connectWithSigner(ZETA_CONFIG.rpc, offlineSigner, {
-      accountParser: ethAccountParser
-    })
+    const delegation = await client.getDelegation(zetaAddress, validatorAddress)
+    console.log('delegation', delegation)
 
-    const accountInfo = await getAccountInfo(zetaAddress)
-
-    const msg = {
-      type: 'cosmos-sdk/MsgUndelegate',
-      value: {
-        delegator_address: zetaAddress,
-        validator_address: validatorAddress,
-        amount: {
-          denom: ZETA_CONFIG.denom,
-          amount: amountInAzeta
-        }
-      }
+    if (!delegation || !delegation.amount) {
+      throw new Error('No delegation found for this validator')
     }
 
-    const fee = {
-      amount: [
-        {
-          denom: ZETA_CONFIG.denom,
-          amount: '10000'
-        }
-      ],
-      gas: '500000'
+    // Get the delegation amount
+    const currentDelegation = Number(delegation.amount) / Math.pow(10, ZETA_CONFIG.displayDecimals)
+    console.log('currentDelegation', currentDelegation)
+    console.log('unstakeAmount', unstakeAmount)
+
+    if (unstakeAmount > currentDelegation) {
+      throw new Error(`Cannot unstake more than currently delegated (${currentDelegation} ZETA)`)
     }
 
-    const signDoc = {
-      chain_id: ZETA_CONFIG.chainId,
-      account_number: accountInfo.accountNumber,
-      sequence: accountInfo.sequence,
-      fee,
-      msgs: [msg],
-      memo: ''
+    // Format the amount properly for undelegation
+    const amount = {
+      denom: ZETA_CONFIG.denom,
+      amount: Math.floor(unstakeAmount * Math.pow(10, ZETA_CONFIG.displayDecimals)).toString()
     }
+    console.log('formatted amount', amount)
 
-    const { signed, signature } = await window.keplr.signAmino(
-      ZETA_CONFIG.chainId,
+    const result = await client.undelegateTokens(
       zetaAddress,
-      signDoc
+      validatorAddress,
+      amount,
+      'auto',
+      'Undelegate ZETA tokens'
     )
-
-    const result = await client.signAndBroadcast(zetaAddress, [msg], {
-      amount: [{ denom: ZETA_CONFIG.denom, amount: '10000' }],
-      gas: '500000'
-    })
+    console.log('result', result)
 
     return {
       txHash: result.transactionHash,
@@ -529,5 +446,36 @@ export async function undelegateStake(delegatorAddress, validatorAddress, unstak
   } catch (error) {
     console.error('Undelegation error:', error)
     throw new Error('Failed to undelegate tokens: ' + error.message)
+  }
+}
+
+// Get staking rewards for a delegator/validator pair
+export const getZetaRewards = async (delegatorAddress, validatorAddress) => {
+  try {
+    console.log('validatorAddress', validatorAddress)
+
+    const earnedRewards = await fetch(
+      `${ZETA_CONFIG.rest}/cosmos/distribution/v1beta1/delegators/${delegatorAddress}/rewards`
+    ).then((r) => r.json())
+    console.log('earnedRewards', earnedRewards)
+    return earnedRewards
+  } catch (error) {
+    console.error('Error getting ZETA rewards:', error)
+    return 0
+  }
+}
+
+// Get unbonding delegations for a delegator/validator pair
+export const getZetaUnbonding = async (delegatorAddress, validatorAddress) => {
+  try {
+    console.log('validatorAddress', validatorAddress)
+    const unbonding_responses = await fetch(
+      `${ZETA_CONFIG.rest}/cosmos/staking/v1beta1/delegators/${delegatorAddress}/unbonding_delegations`
+    ).then((r) => r.json())
+    console.log('unbonding_responses', unbonding_responses)
+    return unbonding_responses
+  } catch (error) {
+    console.error('Error getting ZETA unbonding:', error)
+    return []
   }
 }

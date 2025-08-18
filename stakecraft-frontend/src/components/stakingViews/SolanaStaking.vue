@@ -119,6 +119,26 @@
               </div>
             </div>
 
+            <!-- Disconnect Button -->
+            <div class="disconnect-section">
+              <button @click="disconnectWallet" class="disconnect-button">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M16 17l5-5-5-5M21 12H9M10 3H6a2 2 0 00-2 2v14a2 2 0 002 2h4" />
+                </svg>
+                Disconnect Wallet
+              </button>
+            </div>
+
             <!-- Tab Navigation -->
             <div class="tab-container">
               <button
@@ -407,6 +427,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import {
   connectWallet,
+  WalletDisconnect,
   delegateStake,
   createAndInitializeStakeAccount,
   getTotalStakedAmount,
@@ -765,6 +786,29 @@ export default {
       return address.substring(0, 6) + '...' + address.substring(address.length - 4)
     }
 
+    const handleDisconnectWallet = async () => {
+      console.log('Disconnecting wallet')
+      try {
+        await WalletDisconnect()
+        walletConnected.value = false
+        walletAddress.value = ''
+        connectedWalletType.value = ''
+        stakeAmount.value = 0
+        unstakeAmount.value = 0
+        stakingSuccess.value = false
+        unstakingSuccess.value = false
+        stakingError.value = null
+        unstakingError.value = null
+        transactionSignature.value = ''
+        totalSolBalance.value = 0
+        stakingAccounts.value = []
+        availableBalance.value = 0
+        stakedAmount.value = 0
+      } catch (error) {
+        console.error('Failed to disconnect wallet:', error)
+      }
+    }
+
     const getStatusClass = (account) => {
       if (account.isActive) {
         return 'active'
@@ -804,6 +848,7 @@ export default {
       isValidStake,
       isValidUnstake,
       connectWallet: handleConnectWallet,
+      disconnectWallet: handleDisconnectWallet,
       delegateStake: handleDelegateStake,
       undelegateStake: handleUndelegateStake,
       LAMPORTS_PER_SOL,
@@ -1637,5 +1682,41 @@ export default {
 
 .status-hint {
   opacity: 0.7;
+}
+
+/* Disconnect Button Styles */
+.disconnect-section {
+  margin: 1rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.disconnect-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.disconnect-button:hover {
+  background-color: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.disconnect-button:active {
+  transform: translateY(0);
+}
+
+.disconnect-button svg {
+  width: 16px;
+  height: 16px;
 }
 </style>

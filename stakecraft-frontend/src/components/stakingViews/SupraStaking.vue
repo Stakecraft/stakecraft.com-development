@@ -1,6 +1,6 @@
 <template>
   <transition name="modal-fade">
-    <div class="modal-overlay" @click.self="closeModal">
+    <div v-if="network" class="modal-overlay" @click.self="closeModal">
       <div v-if="network" class="modal-container" @click.stop>
         <div class="modal-content">
           <!-- Header -->
@@ -114,9 +114,28 @@
               </div>
             </div>
 
+            <!-- Disconnect Button -->
+            <div class="disconnect-section">
+              <button @click="handleDisconnectWallet" class="disconnect-button">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M16 17l5-5-5-5M21 12H9M10 3H6a2 2 0 00-2 2v14a2 2 0 002 2h4" />
+                </svg>
+                Disconnect Wallet
+              </button>
+            </div>
+
             <!-- Tab Navigation -->
             <div class="tab-container">
-
               <button
                 class="tab-button"
                 :class="{ 'tab-active': activeTab === 'stake' }"
@@ -391,18 +410,47 @@ export default {
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
-        stakingError.value = null
-        const connectedId = await walletConnect()
-        walletAddress.value = connectedId
+        const address = await walletConnect()
+        walletAddress.value = address
         walletConnected.value = true
-        await refreshStakingInfo()
-        return walletAddress.value
+        isConnecting.value = false
+        refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         walletError.value = true
-        stakingError.value = error.message
-      } finally {
         isConnecting.value = false
+      }
+    }
+
+    const handleDisconnectWallet = () => {
+      try {
+        // Clear wallet state
+        walletAddress.value = ''
+        walletConnected.value = false
+
+        // Clear staking-related state
+        stakedAmount.value = 0
+        lastRewardTime.value = null
+        totalSupraBalance.value = 0
+        availableBalance.value = 0
+
+        // Clear form inputs
+        stakeAmount.value = 0
+        unstakeAmount.value = 0
+
+        // Clear success/error messages
+        stakingSuccess.value = false
+        stakingError.value = null
+        unstakingSuccess.value = false
+        unstakingError.value = null
+        transactionHash.value = ''
+
+        // Clear wallet error state
+        walletError.value = false
+
+        console.log('Wallet disconnected successfully')
+      } catch (error) {
+        console.error('Error disconnecting wallet:', error)
       }
     }
 
@@ -525,7 +573,9 @@ export default {
       availableBalance,
       activeTab,
       totalSupraBalance,
+      handleDisconnectWallet,
       connectWallet: handleConnectWallet,
+      disconnectWallet: handleDisconnectWallet,
       delegateTokens: handleDelegateTokens,
       undelegateTokens: handleUndelegateTokens,
       truncateAddress
@@ -1013,5 +1063,41 @@ input[type='number'] {
 .tooltip-container:hover .tooltip {
   visibility: visible;
   opacity: 1;
+}
+
+/* Disconnect Button Styles */
+.disconnect-section {
+  margin: 1rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.disconnect-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.disconnect-button:hover {
+  background-color: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.disconnect-button:active {
+  transform: translateY(0);
+}
+
+.disconnect-button svg {
+  width: 16px;
+  height: 16px;
 }
 </style>

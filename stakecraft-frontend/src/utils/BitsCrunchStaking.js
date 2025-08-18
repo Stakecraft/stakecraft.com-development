@@ -30,6 +30,25 @@ export const connectWallet = async () => {
   }
 }
 
+// Disconnect wallet function
+export const WalletDisconnect = async () => {
+  console.log('Disconnecting wallet')
+
+  try {
+    console.log('Disconnecting wallet')
+    if (window.ethereum && window.ethereum.connected) {
+      await window.ethereum.request({
+        method: 'wallet_requestPermissions',
+        params: [{ eth_accounts: {} }]
+      })
+    }
+    return true
+  } catch (error) {
+    console.error('Error disconnecting wallet:', error)
+    return false
+  }
+}
+
 const switchToEthereum = async () => {
   try {
     await window.ethereum.request({
