@@ -411,6 +411,7 @@ export default {
 
     const handleConnectWallet = async () => {
       try {
+        console.log('handleConnectWallet')
         isConnecting.value = true
         const address = await connectWallet()
         walletAddress.value = address

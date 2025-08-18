@@ -106,31 +106,26 @@
                   </a>
                 </div>
               </div>
-              <!-- Disconnect Button -->
-              <div class="wallet-actions">
-                <button
-                  @click="handleDisconnectWallet"
-                  class="disconnect-button"
-                  title="Disconnect Wallet"
+            </div>
+
+            <!-- Disconnect Button -->
+            <div class="disconnect-section">
+              <button @click="handleDisconnectWallet" class="disconnect-button">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16,17 21,12 16,7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                  </svg>
-                  Disconnect Wallet
-                </button>
-              </div>
+                  <path d="M16 17l5-5-5-5M21 12H9M10 3H6a2 2 0 00-2 2v14a2 2 0 002 2h4" />
+                </svg>
+                Disconnect Wallet
+              </button>
             </div>
 
             <div class="tab-container">
@@ -319,7 +314,8 @@ import {
   undelegateStake,
   getTotalStakedAmount,
   getPolygonBalance,
-  getRewardsEarned
+  getRewardsEarned,
+  WalletDisconnect
 } from '../../utils/PolygonStaking'
 
 export default {
@@ -384,48 +380,15 @@ export default {
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
-        const address = await connectWallet()
+        const { address, signer } = await connectWallet()
         walletAddress.value = address
+        signer.value = signer
         walletConnected.value = true
         isConnecting.value = false
         refreshStakingInfo()
       } catch (error) {
-        console.error('Failed to connect wallet:', error)
         walletError.value = true
         isConnecting.value = false
-      }
-    }
-
-    const handleDisconnectWallet = () => {
-      try {
-        // Clear wallet state
-        walletAddress.value = ''
-        walletConnected.value = false
-
-        // Clear staking-related state
-        stakedAmount.value = 0
-        rewardsEarned.value = 0
-        lastRewardTime.value = null
-        totalMaticBalance.value = 0
-        availableBalance.value = 0
-
-        // Clear form inputs
-        stakeAmount.value = 0
-        unstakeAmount.value = 0
-
-        // Clear success/error messages
-        stakingSuccess.value = false
-        stakingError.value = null
-        unstakingSuccess.value = false
-        unstakingError.value = null
-        transactionHash.value = ''
-
-        // Clear wallet error state
-        walletError.value = false
-
-        console.log('Wallet disconnected successfully')
-      } catch (error) {
-        console.error('Error disconnecting wallet:', error)
       }
     }
 
@@ -446,6 +409,39 @@ export default {
         }
       } catch (error) {
         console.error('Error refreshing staking info:', error)
+      }
+    }
+
+    const handleDisconnectWallet = async () => {
+      try {
+        // Clear wallet state
+        await WalletDisconnect()
+        walletAddress.value = ''
+        walletConnected.value = false
+
+        // Clear staking-related state
+        stakedAmount.value = 0
+        rewardsEarned.value = 0
+        totalPolygonBalance.value = 0
+        availableBalance.value = 0
+
+        // Clear form inputs
+        stakeAmount.value = 0
+        unstakeAmount.value = 0
+
+        // Clear success/error messages
+        stakingSuccess.value = false
+        stakingError.value = null
+        unstakingSuccess.value = false
+        unstakingError.value = null
+        transactionHash.value = ''
+
+        // Clear wallet error state
+        walletError.value = false
+
+        console.log('Wallet disconnected successfully')
+      } catch (error) {
+        console.error('Error disconnecting wallet:', error)
       }
     }
 
@@ -526,7 +522,6 @@ export default {
       connectWallet: handleConnectWallet,
       delegateTokens: handleDelegateTokens,
       undelegateStake: handleUndelegateStake,
-      handleDisconnectWallet,
       truncateAddress,
       walletError,
       isConnecting,
@@ -536,7 +531,8 @@ export default {
       activeTab,
       availableBalance,
       totalPolygonBalance,
-      signer
+      signer,
+      handleDisconnectWallet
     }
   }
 }
@@ -1000,11 +996,9 @@ input[type='number'] {
   color: #92400e;
 }
 
-/* Wallet Actions */
-.wallet-actions {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
+/* Disconnect Button Styles */
+.disconnect-section {
+  margin: 1rem 0;
   display: flex;
   justify-content: center;
 }
@@ -1034,7 +1028,7 @@ input[type='number'] {
 }
 
 .disconnect-button svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 </style>

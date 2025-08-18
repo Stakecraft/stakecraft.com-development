@@ -115,7 +115,7 @@
               <!-- Disconnect Button -->
               <div class="wallet-actions">
                 <button
-                  @click="handleDisconnectWallet"
+                  @click="DisconnectWallet"
                   class="disconnect-button"
                   title="Disconnect Wallet"
                 >

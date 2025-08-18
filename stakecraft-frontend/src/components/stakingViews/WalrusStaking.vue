@@ -771,7 +771,7 @@ export default {
       unstakingError,
       transactionHash,
       connectWallet: handleConnectWallet,
-      disconnectWallet: handleDisconnectWallet,
+      handleDisconnectWallet,
       connectSlush,
       delegateTokens: handleDelegateTokens,
       undelegateStake: handleUndelegateStake,

@@ -115,16 +115,12 @@
             </div>
 
             <!-- Disconnect Button -->
-            <div class="wallet-actions">
-              <button
-                @click="handleDisconnectWallet"
-                class="disconnect-button"
-                title="Disconnect Wallet"
-              >
+            <div class="disconnect-section">
+              <button @click="disconnectWallet" class="disconnect-button">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
+                  width="16"
+                  height="16"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -132,9 +128,7 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                 >
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                  <polyline points="16,17 21,12 16,7" />
-                  <line x1="21" y1="12" x2="9" y2="12" />
+                  <path d="M16 17l5-5-5-5M21 12H9M10 3H6a2 2 0 00-2 2v14a2 2 0 002 2h4" />
                 </svg>
                 Disconnect Wallet
               </button>
@@ -512,8 +506,9 @@ export default {
       return address.substring(0, 6) + '...' + address.substring(address.length - 4)
     }
 
-    const handleDisconnectWallet = () => {
+    const handleDisconnectWallet = async () => {
       try {
+        await WalletDisconnect()
         // Clear wallet state
         walletAddress.value = ''
         walletConnected.value = false
@@ -1060,11 +1055,9 @@ input[type='number'] {
   opacity: 1;
 }
 
-/* Wallet Actions */
-.wallet-actions {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
+/* Disconnect Button Styles */
+.disconnect-section {
+  margin: 1rem 0;
   display: flex;
   justify-content: center;
 }
@@ -1094,7 +1087,7 @@ input[type='number'] {
 }
 
 .disconnect-button svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 </style>
