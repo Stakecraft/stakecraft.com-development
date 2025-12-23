@@ -178,3 +178,80 @@ export const updateTestnetPositions = async (req, res) => {
     });
   }
 };
+
+// Migrate testnet network(s) to mainnet
+export const migrateToMainnet = async (req, res) => {
+  try {
+    const { ids } = req.body; // Array of testnet IDs to migrate
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        success: false,
+        msg: "Please provide an array of network IDs to migrate",
+      });
+    }
+
+    // Import Mainnet model
+    const Mainnet = (await import("../models/Mainnet.js")).default;
+
+    const migratedNetworks = [];
+    const errors = [];
+
+    for (const id of ids) {
+      try {
+        // Find the testnet network
+        const testnetNetwork = await Testnet.findById(id);
+
+        if (!testnetNetwork) {
+          errors.push({ id, error: "Network not found" });
+          continue;
+        }
+
+        // Get the highest order in mainnet and add 1
+        const highestMainnet = await Mainnet.findOne({}).sort({ order: -1 });
+        const newOrder = highestMainnet ? highestMainnet.order + 1 : 1;
+
+        // Create new mainnet entry with the testnet data
+        const mainnetData = {
+          title: testnetNetwork.title,
+          description: testnetNetwork.description,
+          image: testnetNetwork.image,
+          validator: "", // Optional fields for mainnet
+          howToStake: "",
+          explorer: "",
+          order: newOrder,
+        };
+
+        const newMainnet = new Mainnet(mainnetData);
+        await newMainnet.save();
+
+        // Delete from testnet
+        await Testnet.findByIdAndDelete(id);
+
+        migratedNetworks.push({
+          originalId: id,
+          newId: newMainnet._id,
+          title: testnetNetwork.title,
+        });
+      } catch (error) {
+        errors.push({ id, error: error.message });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      msg: `Successfully migrated ${migratedNetworks.length} network(s) to mainnet`,
+      data: {
+        migrated: migratedNetworks,
+        errors: errors,
+      },
+    });
+  } catch (error) {
+    console.error("Migrate to mainnet error:", error);
+    res.status(500).json({
+      success: false,
+      msg: "Failed to migrate networks to mainnet",
+      error: error.message,
+    });
+  }
+};

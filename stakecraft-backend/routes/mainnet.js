@@ -5,6 +5,7 @@ import {
   updateMainnetList,
   deleteMainnetList,
   updateMainnetPositions,
+  migrateToTestnet,
 } from "../controllers/mainnetCtrl.js";
 
 const router = express.Router();
@@ -14,5 +15,6 @@ router.get("/", getMainnetList);
 router.put("/:id", updateMainnetList);
 router.delete("/:id", deleteMainnetList);
 router.put("/positions/update", updateMainnetPositions);
+router.post("/migrate-to-testnet", migrateToTestnet);
 
 export default router;

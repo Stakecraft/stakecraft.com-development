@@ -200,3 +200,77 @@ export const updateMainnetPositions = async (req, res) => {
     });
   }
 };
+
+// Migrate mainnet network(s) to testnet
+export const migrateToTestnet = async (req, res) => {
+  try {
+    const { ids } = req.body; // Array of mainnet IDs to migrate
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        success: false,
+        msg: "Please provide an array of network IDs to migrate",
+      });
+    }
+
+    // Import Testnet model
+    const Testnet = (await import("../models/Testnet.js")).default;
+
+    const migratedNetworks = [];
+    const errors = [];
+
+    for (const id of ids) {
+      try {
+        // Find the mainnet network
+        const mainnetNetwork = await Mainnet.findById(id);
+
+        if (!mainnetNetwork) {
+          errors.push({ id, error: "Network not found" });
+          continue;
+        }
+
+        // Get the highest order in testnet and add 1
+        const highestTestnet = await Testnet.findOne({}).sort({ order: -1 });
+        const newOrder = highestTestnet ? highestTestnet.order + 1 : 1;
+
+        // Create new testnet entry with the mainnet data
+        const testnetData = {
+          title: mainnetNetwork.title,
+          description: mainnetNetwork.description,
+          image: mainnetNetwork.image,
+          order: newOrder,
+        };
+
+        const newTestnet = new Testnet(testnetData);
+        await newTestnet.save();
+
+        // Delete from mainnet
+        await Mainnet.findByIdAndDelete(id);
+
+        migratedNetworks.push({
+          originalId: id,
+          newId: newTestnet._id,
+          title: mainnetNetwork.title,
+        });
+      } catch (error) {
+        errors.push({ id, error: error.message });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      msg: `Successfully migrated ${migratedNetworks.length} network(s) to testnet`,
+      data: {
+        migrated: migratedNetworks,
+        errors: errors,
+      },
+    });
+  } catch (error) {
+    console.error("Migrate to testnet error:", error);
+    res.status(500).json({
+      success: false,
+      msg: "Failed to migrate networks to testnet",
+      error: error.message,
+    });
+  }
+};

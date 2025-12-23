@@ -93,6 +93,14 @@ export const mainnetService = {
       method: 'PUT',
       body: JSON.stringify({ positions })
     })
+  },
+
+  // Migrate mainnet networks to testnet
+  async migrateToTestnet(ids) {
+    return apiCall('/mainnet/migrate-to-testnet', {
+      method: 'POST',
+      body: JSON.stringify({ ids })
+    })
   }
 }
 
@@ -131,6 +139,14 @@ export const testnetService = {
     return apiCall('/testnet/positions/update', {
       method: 'PUT',
       body: JSON.stringify({ positions })
+    })
+  },
+
+  // Migrate testnet networks to mainnet
+  async migrateToMainnet(ids) {
+    return apiCall('/testnet/migrate-to-mainnet', {
+      method: 'POST',
+      body: JSON.stringify({ ids })
     })
   }
 }
