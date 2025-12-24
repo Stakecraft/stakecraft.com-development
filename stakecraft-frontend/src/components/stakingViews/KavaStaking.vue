@@ -112,6 +112,31 @@
                   </a>
                 </div>
               </div>
+              <!-- Disconnect Button -->
+              <div class="wallet-actions">
+                <button
+                  @click="handleDisconnectWallet"
+                  class="disconnect-button"
+                  title="Disconnect Wallet"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16,17 21,12 16,7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                  Disconnect Wallet
+                </button>
+              </div>
             </div>
 
             <!-- Tab Navigation -->
@@ -274,14 +299,14 @@
                       <span class="info-label">Unbonding Period:</span>
                       <span class="info-value">21 days</span>
                     </div>
-                    <div class="info-row">
+                    <!-- <div class="info-row">
                       <span class="info-label">End Date:</span>
                       <span class="info-value">{{
                         unbondingSummary[0].completionTime.slice(0, 10) +
                         ' : ' +
                         unbondingSummary[0].completionTime.slice(11, 19)
                       }}</span>
-                    </div>
+                    </div> -->
                   </div>
                 </div>
 
@@ -352,6 +377,9 @@ import {
   getKavaUnbonding
 } from '../../utils/KavaStaking'
 
+// Import KAVA_CHAIN_ID constant
+const KAVA_CHAIN_ID = 'kava_2222-10'
+
 function ukavaToKava(amount) {
   return (Number(amount) / 1_000_000).toFixed(10)
 }
@@ -398,10 +426,58 @@ export default {
     const formattedRewards = ref('0')
     const unbondingSummary = ref([])
     onMounted(() => {
-      if (props.network?.validator?.[0]) {
-        validatorAddress.value = props.network.validator[0]
+      // Handle both string and array validator formats
+      if (props.network?.validator) {
+        if (Array.isArray(props.network.validator)) {
+          validatorAddress.value = props.network.validator[0]
+        } else {
+          validatorAddress.value = props.network.validator
+        }
       }
+
+      // Check for existing wallet connection
+      checkExistingWalletConnection()
     })
+
+    const checkExistingWalletConnection = async () => {
+      try {
+        const wasConnected = localStorage.getItem('kavaWalletConnected')
+        const savedAddress = localStorage.getItem('kavaWalletAddress')
+
+        if (wasConnected === 'true' && savedAddress) {
+          // Verify the wallet is still accessible
+          if (window.keplr) {
+            try {
+              await window.keplr.enable(KAVA_CHAIN_ID)
+              const offlineSigner = window.getOfflineSigner(KAVA_CHAIN_ID)
+              const accounts = await offlineSigner.getAccounts()
+
+              if (accounts.length > 0 && accounts[0].address === savedAddress) {
+                // Wallet is still accessible, restore connection
+                walletAddress.value = savedAddress
+                walletConnected.value = true
+                refreshStakingInfo()
+                console.log('Wallet connection restored from localStorage')
+              } else {
+                // Wallet changed, clear localStorage
+                localStorage.removeItem('kavaWalletConnected')
+                localStorage.removeItem('kavaWalletAddress')
+              }
+            } catch (error) {
+              // Wallet not accessible, clear localStorage
+              localStorage.removeItem('kavaWalletConnected')
+              localStorage.removeItem('kavaWalletAddress')
+              console.log('Could not restore wallet connection:', error.message)
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error checking existing wallet connection:', error)
+        // Clear localStorage on error
+        localStorage.removeItem('kavaWalletConnected')
+        localStorage.removeItem('kavaWalletAddress')
+      }
+    }
 
     // Add watch on activeTab to clear messages
     watch(activeTab, () => {
@@ -434,11 +510,56 @@ export default {
         walletAddress.value = address
         walletConnected.value = true
         isConnecting.value = false
+
+        // Save wallet connection to localStorage
+        localStorage.setItem('kavaWalletConnected', 'true')
+        localStorage.setItem('kavaWalletAddress', address)
+
         refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         walletError.value = true
         isConnecting.value = false
+      }
+    }
+
+    const handleDisconnectWallet = () => {
+      try {
+        // Clear wallet state
+        walletAddress.value = ''
+        walletConnected.value = false
+
+        // Clear staking-related state
+        stakedAmount.value = 0
+        rewardsEarned.value = 0
+        unbondingList.value = []
+        unbondingSummary.value = []
+        totalKavaBalance.value = 0
+        availableBalance.value = 0
+        formattedRewards.value = '0'
+        lastRewardTime.value = null
+
+        // Clear form inputs
+        stakeAmount.value = 0
+        unstakeAmount.value = 0
+
+        // Clear success/error messages
+        stakingSuccess.value = false
+        stakingError.value = null
+        unstakingSuccess.value = false
+        unstakingError.value = null
+        transactionHash.value = ''
+
+        // Clear wallet error state
+        walletError.value = false
+
+        // Clear localStorage
+        localStorage.removeItem('kavaWalletConnected')
+        localStorage.removeItem('kavaWalletAddress')
+
+        console.log('Wallet disconnected successfully')
+      } catch (error) {
+        console.error('Error disconnecting wallet:', error)
       }
     }
 
@@ -587,7 +708,9 @@ export default {
       activeTab,
       totalKavaBalance,
       formattedRewards,
-      unbondingSummary
+      unbondingSummary,
+      handleDisconnectWallet,
+      checkExistingWalletConnection
     }
   }
 }
@@ -1098,5 +1221,46 @@ input[type='number'] {
 .unbonding-days {
   color: #b45309;
   font-size: 0.85rem;
+}
+
+/* Wallet Actions */
+.wallet-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: center;
+}
+
+.disconnect-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.disconnect-button:hover {
+  background-color: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+}
+
+.disconnect-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+}
+
+.disconnect-button svg {
+  width: 18px;
+  height: 18px;
+  stroke: white;
 }
 </style>

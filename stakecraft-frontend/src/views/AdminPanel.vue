@@ -245,6 +245,160 @@
           </div>
         </div>
 
+        <!-- Network Migration Section -->
+        <div v-if="activeSection === 'migration'" class="section">
+          <div class="section-header">
+            <h3 class="section-title">Network Migration</h3>
+          </div>
+
+          <div class="migration-info-banner">
+            <ArrowLeftRight class="info-icon" />
+            <p>
+              Select networks below to migrate them between Mainnet and Testnet. This is useful when
+              a network graduates from testnet to mainnet or needs to be moved back for testing.
+            </p>
+          </div>
+
+          <div class="migration-container">
+            <!-- Mainnet to Testnet -->
+            <div class="migration-panel">
+              <div class="migration-panel-header mainnet-header">
+                <Globe class="panel-icon" />
+                <h4>Mainnet Networks</h4>
+                <span class="network-count">{{ mainnetCards.length }} networks</span>
+              </div>
+
+              <div class="migration-panel-actions">
+                <button @click="selectAllMainnet" class="btn btn-sm btn-outline">
+                  <CheckSquare class="btn-icon-sm" />
+                  {{ selectedMainnetForMigration.length === mainnetCards.length ? 'Deselect All' : 'Select All' }}
+                </button>
+                <span class="selected-count" v-if="selectedMainnetForMigration.length > 0">
+                  {{ selectedMainnetForMigration.length }} selected
+                </span>
+              </div>
+
+              <div v-if="loading.mainnet" class="loading-container-small">
+                <div class="loading-spinner"></div>
+              </div>
+
+              <div v-else class="migration-cards-list">
+                <div
+                  v-for="card in mainnetCards"
+                  :key="card._id"
+                  class="migration-card-item"
+                  :class="{ selected: selectedMainnetForMigration.includes(card._id) }"
+                  @click="toggleMainnetSelection(card._id)"
+                >
+                  <div class="migration-checkbox">
+                    <input
+                      type="checkbox"
+                      :checked="selectedMainnetForMigration.includes(card._id)"
+                      @click.stop
+                      @change="toggleMainnetSelection(card._id)"
+                    />
+                  </div>
+                  <img
+                    v-if="card.image"
+                    :src="card.image"
+                    :alt="card.title"
+                    class="migration-card-image"
+                  />
+                  <div v-else class="migration-card-placeholder">
+                    <ImageIcon class="placeholder-icon-xs" />
+                  </div>
+                  <div class="migration-card-info">
+                    <span class="migration-card-title">{{ card.title }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="migration-panel-footer">
+                <button
+                  @click="migrateMainnetToTestnet"
+                  class="btn btn-migrate btn-migrate-to-testnet"
+                  :disabled="selectedMainnetForMigration.length === 0 || migratingNetworks"
+                >
+                  <span v-if="migratingNetworks" class="loading-spinner-small"></span>
+                  <ArrowRight v-else class="btn-icon" />
+                  Migrate to Testnet
+                </button>
+              </div>
+            </div>
+
+            <!-- Migration Arrow -->
+            <div class="migration-arrow">
+              <ArrowLeftRight class="arrow-icon" />
+            </div>
+
+            <!-- Testnet to Mainnet -->
+            <div class="migration-panel">
+              <div class="migration-panel-header testnet-header">
+                <Network class="panel-icon" />
+                <h4>Testnet Networks</h4>
+                <span class="network-count">{{ testnetCards.length }} networks</span>
+              </div>
+
+              <div class="migration-panel-actions">
+                <button @click="selectAllTestnet" class="btn btn-sm btn-outline">
+                  <CheckSquare class="btn-icon-sm" />
+                  {{ selectedTestnetForMigration.length === testnetCards.length ? 'Deselect All' : 'Select All' }}
+                </button>
+                <span class="selected-count" v-if="selectedTestnetForMigration.length > 0">
+                  {{ selectedTestnetForMigration.length }} selected
+                </span>
+              </div>
+
+              <div v-if="loading.testnet" class="loading-container-small">
+                <div class="loading-spinner"></div>
+              </div>
+
+              <div v-else class="migration-cards-list">
+                <div
+                  v-for="card in testnetCards"
+                  :key="card._id"
+                  class="migration-card-item"
+                  :class="{ selected: selectedTestnetForMigration.includes(card._id) }"
+                  @click="toggleTestnetSelection(card._id)"
+                >
+                  <div class="migration-checkbox">
+                    <input
+                      type="checkbox"
+                      :checked="selectedTestnetForMigration.includes(card._id)"
+                      @click.stop
+                      @change="toggleTestnetSelection(card._id)"
+                    />
+                  </div>
+                  <img
+                    v-if="card.image"
+                    :src="card.image"
+                    :alt="card.title"
+                    class="migration-card-image"
+                  />
+                  <div v-else class="migration-card-placeholder">
+                    <ImageIcon class="placeholder-icon-xs" />
+                  </div>
+                  <div class="migration-card-info">
+                    <span class="migration-card-title">{{ card.title }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="migration-panel-footer">
+                <button
+                  @click="migrateTestnetToMainnet"
+                  class="btn btn-migrate btn-migrate-to-mainnet"
+                  :disabled="selectedTestnetForMigration.length === 0 || migratingNetworks"
+                >
+                  <span v-if="migratingNetworks" class="loading-spinner-small"></span>
+                  <ArrowLeft v-else class="btn-icon" />
+                  Migrate to Mainnet
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div v-if="activeSection === 'partnerships'" class="section">
           <div class="section-header">
             <h3 class="section-title">Partnerships</h3>
@@ -584,7 +738,11 @@ import {
   Network,
   FileText,
   User,
-  Move
+  Move,
+  ArrowLeftRight,
+  ArrowRight,
+  ArrowLeft,
+  CheckSquare
 } from 'lucide-vue-next'
 
 // Import modal components
@@ -639,11 +797,17 @@ const editingTestnet = ref(null)
 const editingPartnership = ref(null)
 const editingTeamMember = ref(null)
 const editingAboutContent = ref(null)
+
+// Migration states
+const selectedMainnetForMigration = ref([])
+const selectedTestnetForMigration = ref([])
+const migratingNetworks = ref(false)
 // Menu items for sidebar
 const menuItems = [
   { id: 'menu', name: 'Menu Items', icon: Settings },
   { id: 'mainnet', name: 'Mainnet Cards', icon: Globe },
   { id: 'testnet', name: 'Testnet Cards', icon: Network },
+  { id: 'migration', name: 'Network Migration', icon: ArrowLeftRight },
   { id: 'partnerships', name: 'Partnerships', icon: Building },
   { id: 'team', name: 'Team Members', icon: User },
   { id: 'about', name: 'About Content', icon: FileText }
@@ -1146,6 +1310,119 @@ const dropCard = (event, targetCardId) => {
   })
 
   draggedCard.value = null
+}
+
+// Migration Functions
+const toggleMainnetSelection = (cardId) => {
+  const index = selectedMainnetForMigration.value.indexOf(cardId)
+  if (index === -1) {
+    selectedMainnetForMigration.value.push(cardId)
+  } else {
+    selectedMainnetForMigration.value.splice(index, 1)
+  }
+}
+
+const toggleTestnetSelection = (cardId) => {
+  const index = selectedTestnetForMigration.value.indexOf(cardId)
+  if (index === -1) {
+    selectedTestnetForMigration.value.push(cardId)
+  } else {
+    selectedTestnetForMigration.value.splice(index, 1)
+  }
+}
+
+const selectAllMainnet = () => {
+  if (selectedMainnetForMigration.value.length === mainnetCards.value.length) {
+    selectedMainnetForMigration.value = []
+  } else {
+    selectedMainnetForMigration.value = mainnetCards.value.map((card) => card._id)
+  }
+}
+
+const selectAllTestnet = () => {
+  if (selectedTestnetForMigration.value.length === testnetCards.value.length) {
+    selectedTestnetForMigration.value = []
+  } else {
+    selectedTestnetForMigration.value = testnetCards.value.map((card) => card._id)
+  }
+}
+
+const migrateMainnetToTestnet = async () => {
+  if (selectedMainnetForMigration.value.length === 0) {
+    alert('Please select at least one mainnet network to migrate')
+    return
+  }
+
+  const selectedNames = mainnetCards.value
+    .filter((card) => selectedMainnetForMigration.value.includes(card._id))
+    .map((card) => card.title)
+    .join(', ')
+
+  if (
+    !confirm(
+      `Are you sure you want to migrate the following networks from Mainnet to Testnet?\n\n${selectedNames}`
+    )
+  ) {
+    return
+  }
+
+  try {
+    migratingNetworks.value = true
+    const result = await mainnetService.migrateToTestnet(selectedMainnetForMigration.value)
+
+    if (result.success) {
+      alert(result.msg)
+      selectedMainnetForMigration.value = []
+      // Refresh both lists
+      await Promise.all([loadMainnetData(), loadTestnetData()])
+    } else {
+      alert('Migration failed: ' + (result.msg || 'Unknown error'))
+    }
+  } catch (error) {
+    console.error('Migration error:', error)
+    alert('Failed to migrate networks: ' + error.message)
+  } finally {
+    migratingNetworks.value = false
+  }
+}
+
+const migrateTestnetToMainnet = async () => {
+  if (selectedTestnetForMigration.value.length === 0) {
+    alert('Please select at least one testnet network to migrate')
+    return
+  }
+
+  const selectedNames = testnetCards.value
+    .filter((card) => selectedTestnetForMigration.value.includes(card._id))
+    .map((card) => card.title)
+    .join(', ')
+
+  if (
+    !confirm(
+      `Are you sure you want to migrate the following networks from Testnet to Mainnet?\n\n${selectedNames}\n\nNote: You may need to update validator, howToStake, and explorer fields after migration.`
+    )
+  ) {
+    return
+  }
+
+  try {
+    migratingNetworks.value = true
+    const result = await testnetService.migrateToMainnet(selectedTestnetForMigration.value)
+
+    if (result.success) {
+      alert(result.msg)
+      selectedTestnetForMigration.value = []
+      // Refresh both lists
+      await Promise.all([loadMainnetData(), loadTestnetData()])
+    } else {
+      alert('Migration failed: ' + (result.msg || 'Unknown error'))
+    }
+  } catch (error) {
+    console.error('Migration error:', error)
+    alert('Failed to migrate networks: ' + error.message)
+  } finally {
+    migratingNetworks.value = false
+  }
 }
 </script>
 
@@ -2337,5 +2614,384 @@ const dropCard = (event, targetCardId) => {
 .van-theme-dark .modal-actions {
   background: #374151;
   border-top: 1px solid #4b5563;
+}
+
+/* Network Migration Styles */
+.migration-info-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+  border: 1px solid #93c5fd;
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.van-theme-dark .migration-info-banner {
+  background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
+  border: 1px solid #3b82f6;
+}
+
+.migration-info-banner .info-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+.van-theme-dark .migration-info-banner .info-icon {
+  color: #60a5fa;
+}
+
+.migration-info-banner p {
+  margin: 0;
+  color: #1e40af;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.van-theme-dark .migration-info-banner p {
+  color: #bfdbfe;
+}
+
+.migration-container {
+  display: flex;
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+@media (max-width: 1024px) {
+  .migration-container {
+    flex-direction: column;
+  }
+}
+
+.migration-panel {
+  flex: 1;
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.van-theme-dark .migration-panel {
+  background: var(--van-mainnet-network-background);
+  border: 1px solid #374151;
+}
+
+.migration-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.van-theme-dark .migration-panel-header {
+  border-bottom: 1px solid #374151;
+}
+
+.migration-panel-header.mainnet-header {
+  background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 100%);
+}
+
+.van-theme-dark .migration-panel-header.mainnet-header {
+  background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+}
+
+.migration-panel-header.testnet-header {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+}
+
+.van-theme-dark .migration-panel-header.testnet-header {
+  background: linear-gradient(135deg, #92400e 0%, #b45309 100%);
+}
+
+.migration-panel-header .panel-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.mainnet-header .panel-icon {
+  color: #059669;
+}
+
+.van-theme-dark .mainnet-header .panel-icon {
+  color: #34d399;
+}
+
+.testnet-header .panel-icon {
+  color: #d97706;
+}
+
+.van-theme-dark .testnet-header .panel-icon {
+  color: #fbbf24;
+}
+
+.migration-panel-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  flex: 1;
+}
+
+.van-theme-dark .migration-panel-header h4 {
+  color: #f9fafb;
+}
+
+.network-count {
+  font-size: 0.75rem;
+  color: #6b7280;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.van-theme-dark .network-count {
+  color: #d1d5db;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.migration-panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.van-theme-dark .migration-panel-actions {
+  border-bottom: 1px solid #374151;
+}
+
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  color: #4b5563;
+}
+
+.btn-outline:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.van-theme-dark .btn-outline {
+  border-color: #4b5563;
+  color: #d1d5db;
+}
+
+.van-theme-dark .btn-outline:hover {
+  background: #374151;
+  border-color: #6b7280;
+}
+
+.btn-icon-sm {
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-right: 0.375rem;
+}
+
+.selected-count {
+  font-size: 0.75rem;
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+.van-theme-dark .selected-count {
+  color: #60a5fa;
+}
+
+.loading-container-small {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.migration-cards-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.migration-card-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border: 2px solid transparent;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.van-theme-dark .migration-card-item {
+  background: #1f2937;
+}
+
+.migration-card-item:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.van-theme-dark .migration-card-item:hover {
+  background: #374151;
+  border-color: #4b5563;
+}
+
+.migration-card-item.selected {
+  background: #eff6ff;
+  border-color: #3b82f6;
+}
+
+.van-theme-dark .migration-card-item.selected {
+  background: #1e3a8a;
+  border-color: #3b82f6;
+}
+
+.migration-checkbox {
+  flex-shrink: 0;
+}
+
+.migration-checkbox input[type='checkbox'] {
+  width: 1.125rem;
+  height: 1.125rem;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
+.migration-card-image {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.375rem;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.migration-card-placeholder {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: #e5e7eb;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.van-theme-dark .migration-card-placeholder {
+  background: #374151;
+}
+
+.placeholder-icon-xs {
+  width: 1rem;
+  height: 1rem;
+  color: #9ca3af;
+}
+
+.migration-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.migration-card-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.van-theme-dark .migration-card-title {
+  color: #f9fafb;
+}
+
+.migration-panel-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.van-theme-dark .migration-panel-footer {
+  border-top: 1px solid #374151;
+  background: #1f2937;
+}
+
+.btn-migrate {
+  width: 100%;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.btn-migrate:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-migrate-to-testnet {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border: none;
+}
+
+.btn-migrate-to-testnet:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.btn-migrate-to-mainnet {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+}
+
+.btn-migrate-to-mainnet:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.migration-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .migration-arrow {
+    transform: rotate(90deg);
+  }
+}
+
+.migration-arrow .arrow-icon {
+  width: 2rem;
+  height: 2rem;
+  color: #9ca3af;
+}
+
+.van-theme-dark .migration-arrow .arrow-icon {
+  color: #6b7280;
 }
 </style>

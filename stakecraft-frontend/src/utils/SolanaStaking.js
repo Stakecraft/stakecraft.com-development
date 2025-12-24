@@ -18,6 +18,24 @@ const connection = new Connection(endpoint, {
 // Global wallet reference
 let currentWallet = null
 
+// Disconnect wallet function
+export const WalletDisconnect = async () => {
+  console.log('Disconnecting wallet')
+
+  try {
+    console.log('Disconnecting wallet')
+    if (currentWallet && currentWallet.connected) {
+      await currentWallet.disconnect()
+    }
+    currentWallet = null
+    return true
+  } catch (error) {
+    console.error('Error disconnecting wallet:', error)
+    currentWallet = null
+    return false
+  }
+}
+
 // Helper function to determine stake activation status from parsed account data
 const getStakeActivationFromParsedData = async (parsedAccountData) => {
   try {
@@ -215,20 +233,17 @@ export const delegateStake = async (stakeAccountAddress, validatorAddress) => {
     const stakeAccountPubkey = new PublicKey(stakeAccountAddress)
     const validatorPubkey = new PublicKey(validatorAddress)
 
-
     // Verify stake account exists and is initialized
     const stakeAccount = await connection.getAccountInfo(stakeAccountPubkey)
     if (!stakeAccount) {
       throw new Error('Stake account not found')
     }
 
-
     // Verify validator account exists
     const validatorAccount = await connection.getAccountInfo(validatorPubkey)
     if (!validatorAccount) {
       throw new Error('Validator account not found')
     }
-
 
     const delegateInstruction = StakeProgram.delegate({
       stakePubkey: stakeAccountPubkey,
@@ -242,7 +257,6 @@ export const delegateStake = async (stakeAccountAddress, validatorAddress) => {
     const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed')
     transaction.recentBlockhash = blockhash
     transaction.lastValidBlockHeight = lastValidBlockHeight
-
 
     const signedTransaction = await wallet.signTransaction(transaction)
     const signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
@@ -262,7 +276,6 @@ export const delegateStake = async (stakeAccountAddress, validatorAddress) => {
     if (confirmation.value.err) {
       throw new Error(`Transaction failed: ${confirmation.value.err}`)
     }
-
 
     return signature
   } catch (error) {
@@ -559,12 +572,10 @@ export const getSolBalance = async (walletAddress) => {
 }
 
 export const getAllStakingAccounts = async (walletAddress, validatorAddress) => {
-
   try {
     if (!walletAddress || !validatorAddress) {
       throw new Error('Wallet address and validator address are required')
     }
-
 
     const walletPubkey = new PublicKey(walletAddress)
     const validatorPubkey = new PublicKey(validatorAddress)
@@ -685,6 +696,5 @@ export const getStakeRewards = async (stakeAccountAddress) => {
       epoch: null,
       currentEpoch: null
     }
-
   }
 }

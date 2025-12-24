@@ -100,6 +100,31 @@
                   >
                 </div>
               </div>
+              <!-- Disconnect Button -->
+              <div class="wallet-actions">
+                <button
+                  @click="handleDisconnectWallet"
+                  class="disconnect-button"
+                  title="Disconnect Wallet"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16,17 21,12 16,7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                  Disconnect Wallet
+                </button>
+              </div>
             </div>
 
             <!-- Tab Navigation -->
@@ -353,16 +378,45 @@ export default {
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
-        walletError.value = false
         const address = await connectWallet()
         walletAddress.value = address
         walletConnected.value = true
-        await refreshStakingInfo()
+        isConnecting.value = false
+        refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         walletError.value = true
-      } finally {
         isConnecting.value = false
+      }
+    }
+
+    const handleDisconnectWallet = () => {
+      try {
+        // Clear wallet state
+        walletAddress.value = ''
+        walletConnected.value = false
+
+        // Clear staking-related state
+        stakedAmount.value = 0
+        stakingRewards.value = 0 // Assuming rewardsEarned and lastRewardTime are stakingRewards
+        transactionHash.value = ''
+
+        // Clear form inputs
+        stakeAmount.value = 0
+        unstakeAmount.value = 0
+
+        // Clear success/error messages
+        stakingSuccess.value = false
+        stakingError.value = null
+        unstakingSuccess.value = false
+        unstakingError.value = null
+
+        // Clear wallet error state
+        walletError.value = false
+
+        console.log('Wallet disconnected successfully')
+      } catch (error) {
+        console.error('Error disconnecting wallet:', error)
       }
     }
 
@@ -481,6 +535,7 @@ export default {
       handleStake,
       handleUnstake,
       handleApproval,
+      handleDisconnectWallet,
       truncateAddress,
       walletError,
       isConnecting,
@@ -908,5 +963,43 @@ input[type='number'] {
 .tooltip-container:hover .tooltip {
   visibility: visible;
   opacity: 1;
+}
+
+/* Wallet Actions */
+.wallet-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: center;
+}
+
+.disconnect-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.disconnect-button:hover {
+  background-color: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.disconnect-button:active {
+  transform: translateY(0);
+}
+
+.disconnect-button svg {
+  width: 18px;
+  height: 18px;
 }
 </style>

@@ -13,11 +13,23 @@ dist
 dist-ssr
 coverage
 *.local
+# Environment files (with secrets)
 .env
+.env.local
+.env.*.local
 
-# Backend and Frontend environment files
+# Backend and Frontend environment files (with secrets)
 stakecraft-backend/.env
+stakecraft-backend/.env.development
+stakecraft-backend/.env.production
 stakecraft-frontend/.env
+stakecraft-frontend/.env.development
+stakecraft-frontend/.env.production
+
+# Keep example files
+!.env.example
+!stakecraft-backend/.env.example
+!stakecraft-frontend/.env.example
 
 /cypress/videos/
 /cypress/screenshots/

@@ -41,7 +41,26 @@ export async function connectWallet() {
 
   const signer = await provider.getSigner()
   const signerAddress = await signer.getAddress()
+  console.log('signerAddress', signerAddress)
   return { provider, signer, address: signerAddress }
+}
+
+export const WalletDisconnect = async () => {
+  console.log('Disconnecting wallet')
+
+  try {
+    console.log('Disconnecting wallet')
+    if (window.ethereum && window.ethereum.connected) {
+      await window.ethereum.request({
+        method: 'wallet_requestPermissions',
+        params: [{ eth_accounts: {} }]
+      })
+    }
+    return true
+  } catch (error) {
+    console.error('Error disconnecting wallet:', error)
+    return false
+  }
 }
 
 export async function getPolygonBalance(address) {

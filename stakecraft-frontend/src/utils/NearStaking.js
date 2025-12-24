@@ -51,6 +51,24 @@ export const walletConnect = async () => {
   }
 }
 
+// Disconnect wallet function
+export const WalletDisconnect = async () => {
+  try {
+    if (selector) {
+      const wallet = await selector.wallet('meteor-wallet')
+      if (wallet && wallet.signOut) {
+        await wallet.signOut()
+      }
+    }
+    selector = null
+    return true
+  } catch (error) {
+    console.error('Error disconnecting wallet:', error)
+    selector = null
+    return false
+  }
+}
+
 export const getAccountId = async () => {
   if (!selector) {
     await walletConnect()
@@ -161,7 +179,7 @@ export const undelegateTokens = async (walletAddress, validatorAccountId, unstak
 
     const wallet = await selector.wallet('meteor-wallet')
     const amountYocto = utils.format.parseNearAmount(unstakeAmount.toString())
-    
+
     const result = await wallet.signAndSendTransaction({
       signerId: walletAddress,
       receiverId: validatorAccountId,
