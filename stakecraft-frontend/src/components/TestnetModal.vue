@@ -262,7 +262,8 @@ const saveCard = () => {
   const cardData = {
     image: form.image,
     title: form.title,
-    description: form.description
+    description: form.description,
+    order: form.order
   }
 
   emit('save', cardData)

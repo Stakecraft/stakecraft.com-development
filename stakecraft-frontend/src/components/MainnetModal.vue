@@ -302,7 +302,8 @@ const saveCard = () => {
     description: form.description,
     validator: form.validatorText,
     explorer: form.explorerText,
-    howToStake: form.howToStake
+    howToStake: form.howToStake,
+    order: form.order
   }
   emit('save', cardData)
 }
