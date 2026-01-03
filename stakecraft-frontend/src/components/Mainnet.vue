@@ -28,147 +28,151 @@
       </button>
     </div>
     <solana-staking
-      v-if="selectedNetwork?.title === 'Solana'"
+      v-if="selectedNetwork?.title === 'Solana' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <kava-staking
-      v-if="selectedNetwork?.title === 'Kava'"
+      v-if="selectedNetwork?.title === 'Kava' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <koii-staking
-      v-if="selectedNetwork?.title === 'Koii'"
+      v-if="selectedNetwork?.title === 'Koii' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <agoric-staking
-      v-if="selectedNetwork?.title === 'Agoric'"
+      v-if="selectedNetwork?.title === 'Agoric' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <band-staking
-      v-if="selectedNetwork?.title === 'Band Protocol'"
+      v-if="selectedNetwork?.title === 'Band Protocol' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <stargaze-staking
-      v-if="selectedNetwork?.title === 'Stargaze'"
+      v-if="selectedNetwork?.title === 'Stargaze' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <bitsong-staking
-      v-if="selectedNetwork?.title === 'Bitsong'"
+      v-if="selectedNetwork?.title === 'Bitsong' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <aura-staking
-      v-if="selectedNetwork?.title === 'Aura Network'"
+      v-if="selectedNetwork?.title === 'Aura Network' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <juno-staking
-      v-if="selectedNetwork?.title === 'Juno'"
+      v-if="selectedNetwork?.title === 'Juno' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <zeta-staking
-      v-if="selectedNetwork?.title === 'Zetachain'"
+      v-if="selectedNetwork?.title === 'Zetachain' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <ki-staking
-      v-if="selectedNetwork?.title === 'Ki Foundation'"
+      v-if="selectedNetwork?.title === 'Ki Foundation' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <supra-staking
-      v-if="selectedNetwork?.title === 'Supra Oracles'"
+      v-if="selectedNetwork?.title === 'Supra Oracles' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <near-staking
-      v-if="selectedNetwork?.title === 'Near Protocol'"
+      v-if="selectedNetwork?.title === 'Near Protocol' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <zeta-staking
-      v-if="selectedNetwork?.title === 'Zachain'"
+      v-if="selectedNetwork?.title === 'Zachain' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <polygon-staking
-      v-if="selectedNetwork?.title === 'Polygon'"
+      v-if="selectedNetwork?.title === 'Polygon' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <moonriver-staking
-      v-if="selectedNetwork?.title === 'Moonriver'"
+      v-if="selectedNetwork?.title === 'Moonriver' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <graph-staking
-      v-if="selectedNetwork?.title === 'The Graph'"
+      v-if="selectedNetwork?.title === 'The Graph' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <centrifuge-staking
-      v-if="selectedNetwork?.title === 'Centrifuge'"
+      v-if="selectedNetwork?.title === 'Centrifuge' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <altair-staking
-      v-if="selectedNetwork?.title === 'Altair'"
+      v-if="selectedNetwork?.title === 'Altair' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <stafi-staking
-      v-if="selectedNetwork?.title === 'Stafi'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <aura-staking
-      v-if="selectedNetwork?.title === 'Aura Network'"
+      v-if="selectedNetwork?.title === 'Stafi' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <QProtocolStaking
-      v-if="selectedNetwork?.title === 'Q Protocol'"
+      v-if="selectedNetwork?.title === 'Q Protocol' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <CovalentStaking
-      v-if="selectedNetwork?.title === 'Covalent'"
+      v-if="selectedNetwork?.title === 'Covalent' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <SubQueryStaking
-      v-if="selectedNetwork?.title === 'SubQuery'"
+      v-if="selectedNetwork?.title === 'SubQuery' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <BitsCrunchStaking
-      v-if="selectedNetwork?.title === 'BitsCrunch'"
+      v-if="selectedNetwork?.title === 'BitsCrunch' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <RedbellyStaking
-      v-if="selectedNetwork?.title === 'Redbelly'"
+      v-if="selectedNetwork?.title === 'Redbelly' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <WalrusStaking
-      v-if="selectedNetwork?.title === 'Walrus'"
+      v-if="selectedNetwork?.title === 'Walrus' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
     <MonadStaking
-      v-if="selectedNetwork?.title === 'Monad'"
+      v-if="selectedNetwork?.title === 'Monad' && isModalVisible && !showNotReadyModal"
       :network="selectedNetwork"
       @close="closeModal"
     />
+    <!-- Network Not Ready Modal -->
+    <network-not-ready-modal
+      v-if="showNotReadyModal"
+      :network="selectedNetwork"
+      @close="closeNotReadyModal"
+    />
+
+    <!-- Generic Modal for networks without dedicated staking components -->
     <modal
       v-if="
+        selectedNetwork &&
         ![
           'Solana',
           'Kava',
@@ -196,7 +200,8 @@
           'Redbelly',
           'Walrus',
           'Monad'
-        ].includes(selectedNetwork?.title)
+        ].includes(selectedNetwork?.title) &&
+        !showNotReadyModal
       "
       v-show="isModalVisible"
       @close="closeModal"
@@ -208,8 +213,10 @@
 <script>
 import modal from './Modal.vue'
 import LoadingSpinner from './LoadingSpinner.vue'
+import NetworkNotReadyModal from './NetworkNotReadyModal.vue'
 import { ref, onMounted } from 'vue'
 import { useContent } from '../composables/useContent.js'
+import { isNetworkReadyForStaking } from '../utils/networkReadiness.js'
 import SolanaStaking from './stakingViews/SolanaStaking.vue'
 import KavaStaking from './stakingViews/KavaStaking.vue'
 import NearStaking from './stakingViews/NearStaking.vue'
@@ -254,6 +261,7 @@ export default {
     KiStaking,
     modal,
     LoadingSpinner,
+    NetworkNotReadyModal,
     PolygonStaking,
     MoonriverStaking,
     GraphStaking,
@@ -274,6 +282,7 @@ export default {
 
     const isModalVisible = ref(false)
     const selectedNetwork = ref(null)
+    const showNotReadyModal = ref(false)
 
     // Fetch mainnet content on component mount
     onMounted(async () => {
@@ -281,12 +290,45 @@ export default {
     })
 
     const showModal = (network) => {
-      selectedNetwork.value = network
-      isModalVisible.value = true
+      try {
+        if (!network) {
+          console.error('Network is null or undefined')
+          return
+        }
+
+        // Check if network is ready for staking
+        const readinessCheck = isNetworkReadyForStaking(network)
+        
+        if (!readinessCheck.isReady) {
+          // Show "not ready" message instead of staking modal
+          selectedNetwork.value = network
+          showNotReadyModal.value = true
+          console.warn(`Network ${network.title} is not ready for staking:`, readinessCheck.reason)
+          return
+        }
+
+        // Network is ready, show staking modal
+        selectedNetwork.value = network
+        isModalVisible.value = true
+        showNotReadyModal.value = false
+      } catch (error) {
+        console.error('Error in showModal:', error)
+        // If there's an error, show the not ready modal as a fallback
+        if (network) {
+          selectedNetwork.value = network
+          showNotReadyModal.value = true
+        }
+      }
     }
 
     const closeModal = () => {
       isModalVisible.value = false
+      selectedNetwork.value = null
+      showNotReadyModal.value = false
+    }
+
+    const closeNotReadyModal = () => {
+      showNotReadyModal.value = false
       selectedNetwork.value = null
     }
 
@@ -296,6 +338,8 @@ export default {
       showModal,
       isModalVisible,
       closeModal,
+      showNotReadyModal,
+      closeNotReadyModal,
       loading,
       error
     }
