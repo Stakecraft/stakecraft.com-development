@@ -309,7 +309,7 @@
                 </div>
                 <div v-if="unstakingError" class="error-message">{{ unstakingError }}</div>
                 <button
-                  @click="handleUndelegateStake"
+                  @click="undelegateStake"
                   :disabled="!isValidUnstake || isProcessing"
                   class="primary-button full-width delegate-button unstake-button"
                   :class="{ 'button-disabled': !isValidUnstake || isProcessing }"
@@ -350,7 +350,7 @@
                 </div>
                 <div v-if="claimingError" class="error-message">{{ claimingError }}</div>
                 <button
-                  @click="handleClaimRewards"
+                  @click="claimRewards"
                   :disabled="!canClaim || isProcessing"
                   class="primary-button full-width delegate-button"
                   :class="{ 'button-disabled': !canClaim || isProcessing }"
@@ -391,7 +391,7 @@
                 </div>
                 <div v-if="compoundingError" class="error-message">{{ compoundingError }}</div>
                 <button
-                  @click="handleCompoundRewards"
+                  @click="compoundRewards"
                   :disabled="!canCompound || isProcessing"
                   class="primary-button full-width delegate-button"
                   :class="{ 'button-disabled': !canCompound || isProcessing }"
