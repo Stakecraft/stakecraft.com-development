@@ -2,7 +2,13 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 
 // Ensure environment variables are loaded
-dotenv.config();
+// dotenv.config();
+
+// Load the appropriate .env file based on NODE_ENV
+const envFile = process.env.NODE_ENV === 'production' 
+  ? '.env.production' 
+  : '.env.development';
+dotenv.config({ path: envFile });
 
 const mongoUri =
   process.env.MONGODB_URI ||

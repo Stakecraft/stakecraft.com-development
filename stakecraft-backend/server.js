@@ -30,7 +30,8 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
       process.env.FRONTEND_URL,
       'https://stakecraft.com',
       'https://www.stakecraft.com',
-      'http://localhost:4173'
+      'http://localhost:4173',
+      'http://localhost:5173'
     ].filter(Boolean)
   : [
       'http://localhost:3000',
