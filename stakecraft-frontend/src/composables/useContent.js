@@ -12,6 +12,7 @@ export function useContent() {
   const about = ref([])
   const team = ref([])
   const menu = ref([])
+  const products = ref([])
 
   // Individual loading states for each section
   const loading = ref({
@@ -20,7 +21,8 @@ export function useContent() {
     partnerships: false,
     about: false,
     team: false,
-    menu: false
+    menu: false,
+    products: false
   })
 
   // Individual error states for each section
@@ -30,7 +32,8 @@ export function useContent() {
     partnerships: null,
     about: null,
     team: null,
-    menu: null
+    menu: null,
+    products: null
   })
 
   // Helper function to convert IPFS hash to URL
@@ -43,18 +46,25 @@ export function useContent() {
   }
 
   // Helper function to process content with IPFS images
+  const normalizeImageList = (urls) => {
+    if (!Array.isArray(urls)) return []
+    return urls.map((u) => (u ? getIPFSURL(u) : null)).filter(Boolean)
+  }
+
   const processContentWithIPFS = (content) => {
     if (!content) return content
 
     if (Array.isArray(content)) {
       return content.map((item) => ({
         ...item,
-        image: item.image ? getIPFSURL(item.image) : null
+        image: item.image ? getIPFSURL(item.image) : null,
+        images: item.images ? normalizeImageList(item.images) : item.images
       }))
     } else {
       return {
         ...content,
-        image: content.image ? getIPFSURL(content.image) : null
+        image: content.image ? getIPFSURL(content.image) : null,
+        images: content.images ? normalizeImageList(content.images) : content.images
       }
     }
   }
@@ -98,6 +108,25 @@ export function useContent() {
       console.error('Error fetching partnerships:', err)
     } finally {
       loading.value.partnerships = false
+    }
+  }
+
+  const fetchProducts = async () => {
+    try {
+      loading.value.products = true
+      error.value.products = null
+      const response = await axios.get(`${API_BASE_URL}/products/`)
+      const raw = response.data?.data || response.data || []
+      const list = Array.isArray(raw) ? raw : []
+      products.value = list.map((item) => ({
+        ...item,
+        images: normalizeImageList(item.images || [])
+      }))
+    } catch (err) {
+      error.value.products = err.message
+      console.error('Error fetching products:', err)
+    } finally {
+      loading.value.products = false
     }
   }
 
@@ -156,6 +185,13 @@ export function useContent() {
     return menu.value
   })
 
+  const getProducts = computed(() => {
+    if (!products.value || !Array.isArray(products.value)) return []
+    return [...products.value]
+      .filter((p) => p.isActive !== false)
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
+  })
+
   return {
     // content
     mainnet,
@@ -164,11 +200,13 @@ export function useContent() {
     about,
     team,
     menu,
+    products,
     loading,
     error,
     fetchMainnet,
     fetchTestnet,
     fetchPartnerships,
+    fetchProducts,
     fetchAbout,
     fetchTeam,
     getMainnetNetworks,
@@ -177,6 +215,7 @@ export function useContent() {
     getAboutContent,
     getTeamMembers,
     getMenuItems,
+    getProducts,
     getIPFSURL,
     processContentWithIPFS
   }

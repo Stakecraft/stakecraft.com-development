@@ -17,6 +17,7 @@ import testnetRouter from "./routes/testnet.js";
 import partnershipRouter from "./routes/partnership.js";
 import aboutRouter from "./routes/about.js";
 import teamRouter from "./routes/team.js";
+import productRouter from "./routes/product.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -67,20 +68,12 @@ app.use(
         callback(null, true);
       } else {
         console.warn(`CORS blocked origin: ${origin}`);
-        callback(new Error('Not allowed by CORS'));
+        callback(null, false);
       }
     },
     credentials: true,
   })
 );
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: "Too many requests from this IP, please try again later.",
-});
-app.use("/api/", limiter);
 
 // Body parsing middleware
 app.use(express.json({ limit: "10mb" }));
@@ -92,7 +85,7 @@ app.use(compression());
 // Logging middleware
 app.use(morgan("combined"));
 
-// Health endpoint (no rate limiting for monitoring)
+// Health check BEFORE rate limiter (monitoring must not consume the API quota)
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "OK",
@@ -102,6 +95,18 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// Rate limiting: admin + home load many endpoints in parallel; 100/15min breaks normal use.
+const isProduction = process.env.NODE_ENV === "production";
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: isProduction ? 800 : 5000,
+  message: "Too many requests from this IP, please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: () => process.env.DISABLE_RATE_LIMIT === "true",
+});
+app.use("/api/", limiter);
+
 app.use("/api/content", contentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/mainnet", mainnetRouter);
@@ -109,6 +114,7 @@ app.use("/api/testnet", testnetRouter);
 app.use("/api/partnership", partnershipRouter);
 app.use("/api/about", aboutRouter);
 app.use("/api/team", teamRouter);
+app.use("/api/products", productRouter);
 
 // Error handling middlewares
 app.use((err, req, res, next) => {
@@ -131,10 +137,19 @@ app.use("*", (req, res) => {
 const startServer = async () => {
   try {
     await connectDB().catch(console.dir);
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
-      console.log(`Health endpoint: http://localhost:${PORT}/health`);
-      console.log(`Admin panel: http://localhost:${PORT}/api/admin`);
+      console.log(`Health endpoint: http://localhost:${PORT}/api/health`);
+    });
+    server.on("error", (err) => {
+      if (err.code === "EADDRINUSE") {
+        console.error(
+          `Port ${PORT} is already in use. Stop the other process or set PORT in .env.`
+        );
+      } else {
+        console.error("HTTP server error:", err);
+      }
+      process.exit(1);
     });
   } catch (error) {
     console.error("Failed to start server:", error);

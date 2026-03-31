@@ -38,8 +38,8 @@ export function useIPFS() {
       return hash
     }
 
-    // If it's just a hash, convert to full URL
-    if (hash.startsWith('Qm')) {
+    // CIDv0 / CIDv1 (base32) raw hashes
+    if (hash.startsWith('Qm') || hash.startsWith('bafy')) {
       return `${IPFS_GATEWAY}${hash}`
     }
 

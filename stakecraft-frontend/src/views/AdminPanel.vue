@@ -428,6 +428,81 @@
           </div>
         </div>
 
+        <div v-if="activeSection === 'products'" class="section">
+          <div class="section-header">
+            <h3 class="section-title">Products &amp; projects</h3>
+            <button @click="showProductModal = true" class="btn btn-primary">
+              <Plus class="btn-icon" />
+              Add product
+            </button>
+          </div>
+
+          <div v-if="loading.products" class="loading-container">
+            <div class="loading-spinner"></div>
+            <p>Loading products…</p>
+          </div>
+
+          <div v-else class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Preview</th>
+                  <th>Title</th>
+                  <th>Link</th>
+                  <th>Images</th>
+                  <th>Order</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="p in products" :key="p._id" class="table-row">
+                  <td class="table-cell">
+                    <div class="product-thumb-cell">
+                      <img
+                        v-if="p.images?.length"
+                        :src="p.images[0]"
+                        :alt="p.title"
+                        class="product-thumb-img"
+                      />
+                      <Package v-else class="product-thumb-fallback" />
+                    </div>
+                  </td>
+                  <td class="table-cell font-medium">{{ p.title }}</td>
+                  <td class="table-cell">
+                    <a
+                      v-if="p.link"
+                      :href="p.link"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="url-text"
+                      >{{ truncate(p.link, 40) }}</a
+                    >
+                    <span v-else class="muted">—</span>
+                  </td>
+                  <td class="table-cell">{{ p.images?.length || 0 }}</td>
+                  <td class="table-cell">{{ p.order ?? 0 }}</td>
+                  <td class="table-cell">
+                    <span :class="['status-badge', p.isActive !== false ? 'status-active' : 'status-inactive']">
+                      {{ p.isActive !== false ? 'Active' : 'Hidden' }}
+                    </span>
+                  </td>
+                  <td class="table-cell">
+                    <div class="action-buttons">
+                      <button @click="editProduct(p)" class="action-btn edit-btn">
+                        <Edit class="action-icon" />
+                      </button>
+                      <button @click="deleteProduct(p._id)" class="action-btn delete-btn">
+                        <Trash2 class="action-icon" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <div v-if="activeSection === 'about'" class="section">
           <div class="section-header">
             <h3 class="section-title">About Content</h3>
@@ -564,6 +639,14 @@
       :partnership="editingPartnership || {}"
       @close="closePartnershipModal"
       @save="savePartnership"
+    />
+
+    <ProductModal
+      :show="showProductModal"
+      :editing="!!editingProduct"
+      :product="editingProduct || {}"
+      @close="closeProductModal"
+      @save="saveProduct"
     />
 
     <TeamModal
@@ -742,7 +825,8 @@ import {
   ArrowLeftRight,
   ArrowRight,
   ArrowLeft,
-  CheckSquare
+  CheckSquare,
+  Package
 } from 'lucide-vue-next'
 
 // Import modal components
@@ -752,6 +836,7 @@ import TestnetModal from '@/components/TestnetModal.vue'
 import PartnershipModal from '@/components/PartnershipModal.vue'
 import TeamModal from '@/components/TeamModal.vue'
 import AboutModal from '@/components/AboutModal.vue'
+import ProductModal from '@/components/ProductModal.vue'
 
 // Import API services
 import {
@@ -760,7 +845,8 @@ import {
   testnetService,
   partnershipService,
   teamService,
-  aboutService
+  aboutService,
+  productService
 } from '@/services/adminService'
 
 // Theme injection
@@ -776,6 +862,7 @@ const loading = ref({
   mainnet: false,
   testnet: false,
   partnerships: false,
+  products: false,
   team: false,
   about: false
 })
@@ -787,6 +874,7 @@ const showTestnetModal = ref(false)
 const showPartnershipModal = ref(false)
 const showTeamModal = ref(false)
 const showAboutModal = ref(false)
+const showProductModal = ref(false)
 const showMainnetPositionManager = ref(false)
 const showTestnetPositionManager = ref(false)
 // Editing states
@@ -797,6 +885,7 @@ const editingTestnet = ref(null)
 const editingPartnership = ref(null)
 const editingTeamMember = ref(null)
 const editingAboutContent = ref(null)
+const editingProduct = ref(null)
 
 // Migration states
 const selectedMainnetForMigration = ref([])
@@ -809,6 +898,7 @@ const menuItems = [
   { id: 'testnet', name: 'Testnet Cards', icon: Network },
   { id: 'migration', name: 'Network Migration', icon: ArrowLeftRight },
   { id: 'partnerships', name: 'Partnerships', icon: Building },
+  { id: 'products', name: 'Products', icon: Package },
   { id: 'team', name: 'Team Members', icon: User },
   { id: 'about', name: 'About Content', icon: FileText }
 ]
@@ -818,6 +908,7 @@ const menuData = ref([])
 const mainnetCards = ref([])
 const testnetCards = ref([])
 const partnerships = ref([])
+const products = ref([])
 const teamMembers = ref([])
 const aboutContent = ref([])
 
@@ -834,6 +925,7 @@ const loadAllData = async () => {
       loadMainnetData(),
       loadTestnetData(),
       loadPartnershipsData(),
+      loadProductsData(),
       loadTeamData(),
       loadAboutData()
     ])
@@ -899,6 +991,24 @@ const loadPartnershipsData = async () => {
   } finally {
     loading.value.partnerships = false
   }
+}
+
+const loadProductsData = async () => {
+  loading.value.products = true
+  try {
+    const data = await productService.getAll()
+    products.value = data?.data || []
+  } catch (error) {
+    console.error('Failed to load products:', error)
+    products.value = []
+  } finally {
+    loading.value.products = false
+  }
+}
+
+const truncate = (str, n) => {
+  if (!str) return ''
+  return str.length <= n ? str : `${str.slice(0, n)}…`
 }
 
 // Load team data
@@ -1119,6 +1229,47 @@ const deletePartnership = async (id) => {
       console.error('Failed to delete partnership:', error)
       alert('Failed to delete partnership. Please try again.')
     }
+  }
+}
+
+const editProduct = (p) => {
+  editingProduct.value = p
+  showProductModal.value = true
+}
+
+const closeProductModal = () => {
+  showProductModal.value = false
+  editingProduct.value = null
+}
+
+const saveProduct = async (payload) => {
+  try {
+    if (editingProduct.value) {
+      const res = await productService.update(editingProduct.value._id, payload)
+      const idx = products.value.findIndex((x) => x._id === editingProduct.value._id)
+      if (idx !== -1) {
+        products.value[idx] = res.data || { ...editingProduct.value, ...payload }
+      }
+    } else {
+      const res = await productService.create(payload)
+      products.value.push(res.data || res)
+    }
+    closeProductModal()
+    await loadProductsData()
+  } catch (error) {
+    console.error('Failed to save product:', error)
+    alert('Failed to save product. Please try again.')
+  }
+}
+
+const deleteProduct = async (id) => {
+  if (!confirm('Delete this product?')) return
+  try {
+    await productService.delete(id)
+    products.value = products.value.filter((p) => p._id !== id)
+  } catch (error) {
+    console.error('Failed to delete product:', error)
+    alert('Failed to delete product. Please try again.')
   }
 }
 
@@ -1822,6 +1973,33 @@ const migrateTestnetToMainnet = async () => {
   height: 3rem;
   object-fit: cover;
   border-radius: 0.375rem;
+}
+
+.product-thumb-cell {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-thumb-fallback {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #9ca3af;
+}
+
+.table-cell .muted {
+  color: #9ca3af;
 }
 
 .image-placeholder-small {

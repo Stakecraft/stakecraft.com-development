@@ -10,6 +10,10 @@ const router = createRouter({
       component: HomeView
     },
     {
+      path: '/products',
+      redirect: { path: '/', hash: '#products' }
+    },
+    {
       path: '/health',
       name: 'health',
       component: async () => await import('../views/HealthView.vue')

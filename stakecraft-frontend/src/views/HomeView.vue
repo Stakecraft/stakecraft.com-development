@@ -16,6 +16,7 @@
     </div>
     <Mainnet />
     <Testnet />
+    <Products />
     <Whychooseus />
     <About />
     <LetsConnect />
@@ -28,9 +29,10 @@ import Testnet from '../components/Testnet.vue'
 import Whychooseus from '../components/Whychooseus.vue'
 import About from '../components/About.vue'
 import LetsConnect from '../components/LetsConnect.vue'
+import Products from '../components/Products.vue'
 
 export default {
-  components: { Mainnet, Testnet, Whychooseus, About, LetsConnect },
+  components: { Mainnet, Testnet, Products, Whychooseus, About, LetsConnect },
   setup() {}
 }
 </script>

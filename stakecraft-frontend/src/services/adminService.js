@@ -213,6 +213,33 @@ export const teamService = {
   }
 }
 
+// Products (portfolio / previous projects)
+export const productService = {
+  async getAll() {
+    return apiCall('/products')
+  },
+
+  async create(data) {
+    return apiCall('/products', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
+  },
+
+  async update(id, data) {
+    return apiCall(`/products/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    })
+  },
+
+  async delete(id) {
+    return apiCall(`/products/${id}`, {
+      method: 'DELETE'
+    })
+  }
+}
+
 // About Content API
 export const aboutService = {
   // Get about content
