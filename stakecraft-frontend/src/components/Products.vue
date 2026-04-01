@@ -1,13 +1,11 @@
 <template>
   <section class="products-wrap mainAreas" id="products">
     <div class="products-hero">
-      <p class="products-kicker">What we ship</p>
-      <h2 class="products-title">
-        Our <span class="products-title-accent">products</span> &amp; builds
-      </h2>
+      <div class="titleHeader">
+        Products
+      </div>
       <p class="products-sub">
-        Highlights from past work — each entry can include rich copy, outbound links, and a gallery
-        of images hosted on IPFS.
+        Highlights from past work — each entry includes rich copy, outbound links, and an image gallery hosted on IPFS.
       </p>
     </div>
 
@@ -123,10 +121,17 @@ export default {
 </script>
 
 <style scoped>
-.products-wrap {
+/*
+ * Vertical rhythm: match Partnerships (#partnership padding-top: 120px).
+ * Global .mainAreas in main.scss uses `padding: 0 72px`, which forces top/bottom to 0
+ * and was canceling padding on this block — #products raises specificity so top space applies.
+ */
+#products.products-wrap {
+  padding-top: 120px;
   padding-bottom: 120px;
   position: relative;
   overflow: hidden;
+  scroll-margin-top: 96px;
 }
 
 .products-wrap::before {
@@ -176,9 +181,9 @@ export default {
 .products-sub {
   font-size: 1.05rem;
   line-height: 1.65;
-  color: var(--van-text-color-2, #4b5563);
   margin: 0;
   max-width: 540px;
+  font-family: poppins;
 }
 
 .products-grid {
@@ -298,18 +303,17 @@ export default {
 }
 
 .product-name {
-  font-family: generalSans, system-ui, sans-serif;
+  font-family: poppins;
   font-size: 1.125rem;
   font-weight: 600;
   margin: 0;
-  color: var(--van-text-color, #111827);
   line-height: 1.25;
 }
 
 .product-copy {
-  font-size: 0.875rem;
-  line-height: 1.55;
-  color: var(--van-text-color-2, #4b5563);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  font-family: poppins;
   margin: 0;
   white-space: pre-wrap;
   display: -webkit-box;
@@ -354,7 +358,7 @@ export default {
 .products-state {
   text-align: center;
   padding: 48px 24px;
-  color: var(--van-text-color-2, #6b7280);
+  color: #374151;
 }
 
 .products-state--error {
@@ -387,6 +391,22 @@ export default {
   border-color: rgba(255, 255, 255, 0.08);
 }
 
+:global(.van-theme-dark) .products-sub {
+  color: #e5e7eb;
+}
+
+:global(.van-theme-dark) .product-name {
+  color: #f9fafb;
+}
+
+:global(.van-theme-dark) .product-copy {
+  color: #e5e7eb;
+}
+
+:global(.van-theme-dark) .products-state:not(.products-state--error) {
+  color: #d1d5db;
+}
+
 :global(.van-theme-dark) .product-frame {
   background: linear-gradient(180deg, #252f3f 0%, #1a222d 100%);
   box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.06);
@@ -394,6 +414,12 @@ export default {
 
 :global(.van-theme-dark) .product-thumb {
   background: #374151;
+}
+
+@media only screen and (max-width: 900px) {
+  #products.products-wrap {
+    padding-top: 60px;
+  }
 }
 
 @media only screen and (max-width: 1100px) {
@@ -413,7 +439,7 @@ export default {
     height: clamp(168px, 48vw, 220px);
   }
 
-  .products-wrap {
+  #products.products-wrap {
     padding-bottom: 80px;
   }
 }

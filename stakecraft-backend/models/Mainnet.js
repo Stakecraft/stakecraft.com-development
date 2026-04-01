@@ -27,7 +27,6 @@ const mainnetSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    /** When false, hidden on public site; still in DB and admin */
     isVisible: {
       type: Boolean,
       default: true,
