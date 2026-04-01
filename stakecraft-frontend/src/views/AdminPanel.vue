@@ -484,10 +484,10 @@
 
         <div v-if="activeSection === 'products'" class="section">
           <div class="section-header">
-            <h3 class="section-title">Products &amp; projects</h3>
+            <h3 class="section-title">Projects</h3>
             <button @click="showProductModal = true" class="btn btn-primary">
               <Plus class="btn-icon" />
-              Add product
+              Add project
             </button>
           </div>
 
@@ -954,7 +954,7 @@ const menuItems = [
   { id: 'testnet', name: 'Testnet Cards', icon: Network },
   { id: 'migration', name: 'Network Migration', icon: ArrowLeftRight },
   { id: 'partnerships', name: 'Partnerships', icon: Building },
-  { id: 'products', name: 'Products', icon: Package },
+  { id: 'products', name: 'Projects', icon: Package },
   { id: 'team', name: 'Team Members', icon: User },
   { id: 'about', name: 'About Content', icon: FileText }
 ]
@@ -1055,7 +1055,7 @@ const loadProductsData = async () => {
     const data = await productService.getAll()
     products.value = data?.data || []
   } catch (error) {
-    console.error('Failed to load products:', error)
+    console.error('Failed to load projects:', error)
     products.value = []
   } finally {
     loading.value.products = false
@@ -1346,19 +1346,19 @@ const saveProduct = async (payload) => {
     closeProductModal()
     await loadProductsData()
   } catch (error) {
-    console.error('Failed to save product:', error)
-    alert('Failed to save product. Please try again.')
+    console.error('Failed to save project:', error)
+    alert('Failed to save project. Please try again.')
   }
 }
 
 const deleteProduct = async (id) => {
-  if (!confirm('Delete this product?')) return
+  if (!confirm('Delete this project?')) return
   try {
     await productService.delete(id)
     products.value = products.value.filter((p) => p._id !== id)
   } catch (error) {
-    console.error('Failed to delete product:', error)
-    alert('Failed to delete product. Please try again.')
+    console.error('Failed to delete project:', error)
+    alert('Failed to delete project. Please try again.')
   }
 }
 

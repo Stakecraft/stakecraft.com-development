@@ -2,7 +2,7 @@
   <section class="products-wrap mainAreas" id="products">
     <div class="products-hero">
       <div class="titleHeader">
-        Products
+        Projects
       </div>
       <p class="products-sub">
         Highlights from past work — each entry includes rich copy, outbound links, and an image gallery hosted on IPFS.

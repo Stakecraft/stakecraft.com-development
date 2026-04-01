@@ -3,7 +3,7 @@
     <div class="modal modal-large" :class="`van-theme-${theme}`" @click.stop>
       <div class="modal-content">
         <h3 class="modal-title">
-          {{ editing ? 'Edit Product' : 'Add Product' }}
+          {{ editing ? 'Edit project' : 'Add project' }}
         </h3>
         <form @submit.prevent="saveProduct" class="modal-form">
           <div class="form-group">

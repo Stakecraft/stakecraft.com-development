@@ -14,7 +14,7 @@ const fallbackMenuItems = [
     metadata: { menuSection: 'center', isExternal: 'false' }
   },
   {
-    title: 'Products',
+    title: 'Projects',
     link: '/#products',
     metadata: { menuSection: 'center', isExternal: 'false' }
   },
