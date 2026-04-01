@@ -10,6 +10,7 @@ export const createMainnetList = async (req, res) => {
       howToStake,
       explorer,
       order,
+      isVisible,
     } = req.body;
 
     // Check for duplicate order
@@ -33,6 +34,7 @@ export const createMainnetList = async (req, res) => {
       howToStake,
       explorer,
       order: order || 0,
+      isVisible: isVisible !== false,
     };
 
     const mainnet = new Mainnet(mainnetData);
@@ -54,7 +56,10 @@ export const createMainnetList = async (req, res) => {
 };
 
 export const getMainnetList = async (req, res) => {
-  const mainnet = await Mainnet.find({}).sort({ order: 1 });
+  const includeHidden =
+    req.query.includeHidden === "true" || req.query.includeHidden === "1";
+  const filter = includeHidden ? {} : { isVisible: { $ne: false } };
+  const mainnet = await Mainnet.find(filter).sort({ order: 1 });
   res.status(200).json({
     success: true,
     msg: "Mainnet Fetched Successfully!",
@@ -73,6 +78,7 @@ export const updateMainnetList = async (req, res) => {
       howToStake,
       explorer,
       order,
+      isVisible,
     } = req.body;
 
     // Check for duplicate order (only if order is being changed)
@@ -102,15 +108,15 @@ export const updateMainnetList = async (req, res) => {
       }
     }
 
-    const updateData = {
-      title,
-      description,
-      image,
-      validator,
-      howToStake,
-      explorer,
-      order,
-    };
+    const updateData = {};
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (image !== undefined) updateData.image = image;
+    if (validator !== undefined) updateData.validator = validator;
+    if (howToStake !== undefined) updateData.howToStake = howToStake;
+    if (explorer !== undefined) updateData.explorer = explorer;
+    if (order !== undefined) updateData.order = order;
+    if (isVisible !== undefined) updateData.isVisible = isVisible;
 
     const updatedMainnet = await Mainnet.findByIdAndUpdate(id, updateData, {
       new: true,
@@ -239,6 +245,10 @@ export const migrateToTestnet = async (req, res) => {
           description: mainnetNetwork.description,
           image: mainnetNetwork.image,
           order: newOrder,
+          isVisible:
+            mainnetNetwork.isVisible !== undefined
+              ? mainnetNetwork.isVisible
+              : true,
         };
 
         const newTestnet = new Testnet(testnetData);

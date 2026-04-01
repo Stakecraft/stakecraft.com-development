@@ -145,7 +145,12 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="card in mainnetCards" :key="card.id" class="table-row">
+                <tr
+                  v-for="card in mainnetCards"
+                  :key="card._id || card.id"
+                  class="table-row"
+                  :class="{ 'row-item-hidden': card.isVisible === false }"
+                >
                   <td class="table-cell">
                     <div class="network-cell">
                       <img
@@ -166,6 +171,19 @@
                   <td class="table-cell">{{ card.order || 0 }}</td>
                   <td class="table-cell">
                     <div class="action-buttons">
+                      <button
+                        type="button"
+                        @click="toggleMainnetVisible(card)"
+                        class="action-btn visibility-btn"
+                        :title="
+                          card.isVisible === false
+                            ? 'Show on public site'
+                            : 'Hide from public site'
+                        "
+                      >
+                        <Eye v-if="card.isVisible !== false" class="action-icon" />
+                        <EyeOff v-else class="action-icon" />
+                      </button>
                       <button @click="editMainnetCard(card)" class="action-btn edit-btn">
                         <Edit class="action-icon" />
                       </button>
@@ -212,7 +230,12 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="card in testnetCards" :key="card.id" class="table-row">
+                <tr
+                  v-for="card in testnetCards"
+                  :key="card._id || card.id"
+                  class="table-row"
+                  :class="{ 'row-item-hidden': card.isVisible === false }"
+                >
                   <td class="table-cell">
                     <div class="network-cell">
                       <img
@@ -231,6 +254,19 @@
                   <td class="table-cell">{{ card.order || 0 }}</td>
                   <td class="table-cell">
                     <div class="action-buttons">
+                      <button
+                        type="button"
+                        @click="toggleTestnetVisible(card)"
+                        class="action-btn visibility-btn"
+                        :title="
+                          card.isVisible === false
+                            ? 'Show on public site'
+                            : 'Hide from public site'
+                        "
+                      >
+                        <Eye v-if="card.isVisible !== false" class="action-icon" />
+                        <EyeOff v-else class="action-icon" />
+                      </button>
                       <button @click="editTestnetCard(card)" class="action-btn edit-btn">
                         <Edit class="action-icon" />
                       </button>
@@ -409,7 +445,12 @@
           </div>
 
           <div class="partnerships-grid">
-            <div v-for="partner in partnerships" :key="partner._id" class="partnership-card">
+            <div
+              v-for="partner in partnerships"
+              :key="partner._id"
+              class="partnership-card"
+              :class="{ 'partnership-card--hidden': partner.isVisible === false }"
+            >
               <div class="partner-icon">
                 <img v-if="partner.image" :src="partner.image" :alt="partner.title" />
                 <Building class="default-icon" v-else />
@@ -417,6 +458,19 @@
               <h4 class="partner-name">{{ partner.title }}</h4>
               <!-- <p class="partner-description">{{ partner.description }}</p> -->
               <div class="card-actions">
+                <button
+                  type="button"
+                  @click="togglePartnershipVisible(partner)"
+                  class="action-btn visibility-btn"
+                  :title="
+                    partner.isVisible === false
+                      ? 'Show on public site'
+                      : 'Hide from public site'
+                  "
+                >
+                  <Eye v-if="partner.isVisible !== false" class="action-icon" />
+                  <EyeOff v-else class="action-icon" />
+                </button>
                 <button @click="editPartnership(partner)" class="action-btn edit-btn">
                   <Edit class="action-icon" />
                 </button>
@@ -826,7 +880,9 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckSquare,
-  Package
+  Package,
+  Eye,
+  EyeOff
 } from 'lucide-vue-next'
 
 // Import modal components
@@ -958,7 +1014,7 @@ const loadMenuData = async () => {
 const loadMainnetData = async () => {
   loading.value.mainnet = true
   try {
-    const data = await mainnetService.getAll()
+    const data = await mainnetService.getAll(true)
     mainnetCards.value = data?.data || []
   } catch (error) {
     console.error('Failed to load mainnet data:', error)
@@ -971,7 +1027,7 @@ const loadMainnetData = async () => {
 const loadTestnetData = async () => {
   loading.value.testnet = true
   try {
-    const data = await testnetService.getAll()
+    const data = await testnetService.getAll(true)
     testnetCards.value = data?.data || []
   } catch (error) {
     console.error('Failed to load testnet data:', error)
@@ -984,7 +1040,7 @@ const loadTestnetData = async () => {
 const loadPartnershipsData = async () => {
   loading.value.partnerships = true
   try {
-    const data = await partnershipService.getAll()
+    const data = await partnershipService.getAll(true)
     partnerships.value = data?.data || []
   } catch (error) {
     console.error('Failed to load partnerships data:', error)
@@ -1229,6 +1285,39 @@ const deletePartnership = async (id) => {
       console.error('Failed to delete partnership:', error)
       alert('Failed to delete partnership. Please try again.')
     }
+  }
+}
+
+const toggleMainnetVisible = async (card) => {
+  try {
+    const newVal = card.isVisible === false
+    await mainnetService.update(card._id, { isVisible: newVal })
+    await loadMainnetData()
+  } catch (error) {
+    console.error('Failed to toggle mainnet visibility:', error)
+    alert('Failed to update visibility. Please try again.')
+  }
+}
+
+const toggleTestnetVisible = async (card) => {
+  try {
+    const newVal = card.isVisible === false
+    await testnetService.update(card._id, { isVisible: newVal })
+    await loadTestnetData()
+  } catch (error) {
+    console.error('Failed to toggle testnet visibility:', error)
+    alert('Failed to update visibility. Please try again.')
+  }
+}
+
+const togglePartnershipVisible = async (partner) => {
+  try {
+    const newVal = partner.isVisible === false
+    await partnershipService.update(partner._id, { isVisible: newVal })
+    await loadPartnershipsData()
+  } catch (error) {
+    console.error('Failed to toggle partnership visibility:', error)
+    alert('Failed to update visibility. Please try again.')
   }
 }
 
@@ -2101,6 +2190,22 @@ const migrateTestnetToMainnet = async () => {
 
 .delete-btn:hover {
   color: #991b1b;
+}
+
+.visibility-btn {
+  color: #64748b;
+}
+
+.visibility-btn:hover {
+  color: #4f46e5;
+}
+
+.row-item-hidden {
+  opacity: 0.55;
+}
+
+.partnership-card--hidden {
+  opacity: 0.55;
 }
 
 .action-icon {

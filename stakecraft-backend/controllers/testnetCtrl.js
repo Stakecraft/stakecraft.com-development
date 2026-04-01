@@ -2,7 +2,7 @@ import Testnet from "../models/Testnet.js";
 
 export const createTestnetList = async (req, res) => {
   try {
-    const { title, description, image, order } = req.body;
+    const { title, description, image, order, isVisible } = req.body;
 
     // Check for duplicate order
     if (order !== undefined && order !== null) {
@@ -22,6 +22,7 @@ export const createTestnetList = async (req, res) => {
       description,
       image,
       order: order || 0,
+      isVisible: isVisible !== false,
     };
 
     const testnet = new Testnet(testnetData);
@@ -43,7 +44,10 @@ export const createTestnetList = async (req, res) => {
 };
 
 export const getTestnetList = async (req, res) => {
-  const testnet = await Testnet.find({}).sort({ order: 1 });
+  const includeHidden =
+    req.query.includeHidden === "true" || req.query.includeHidden === "1";
+  const filter = includeHidden ? {} : { isVisible: { $ne: false } };
+  const testnet = await Testnet.find(filter).sort({ order: 1 });
   res.status(200).json({
     success: true,
     msg: "Testnet Fetched Successfully!",
@@ -54,7 +58,7 @@ export const getTestnetList = async (req, res) => {
 export const updateTestnetList = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, image, order } = req.body;
+    const { title, description, image, order, isVisible } = req.body;
 
     // Check for duplicate order (only if order is being changed)
     if (order !== undefined && order !== null) {
@@ -83,12 +87,12 @@ export const updateTestnetList = async (req, res) => {
       }
     }
 
-    const updateData = {
-      title,
-      description,
-      image,
-      order,
-    };
+    const updateData = {};
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (image !== undefined) updateData.image = image;
+    if (order !== undefined) updateData.order = order;
+    if (isVisible !== undefined) updateData.isVisible = isVisible;
 
     const updatedTestnet = await Testnet.findByIdAndUpdate(id, updateData, {
       new: true,
@@ -220,6 +224,10 @@ export const migrateToMainnet = async (req, res) => {
           howToStake: "",
           explorer: "",
           order: newOrder,
+          isVisible:
+            testnetNetwork.isVisible !== undefined
+              ? testnetNetwork.isVisible
+              : true,
         };
 
         const newMainnet = new Mainnet(mainnetData);

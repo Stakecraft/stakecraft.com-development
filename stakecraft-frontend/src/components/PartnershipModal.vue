@@ -69,6 +69,12 @@
             <label class="form-label">Partner Name</label>
             <input v-model="form.title" type="text" class="form-input" required />
           </div>
+          <div class="form-group form-group-checkbox">
+            <label class="checkbox-label">
+              <input v-model="form.isVisible" type="checkbox" />
+              Visible on public website
+            </label>
+          </div>
           <div class="modal-actions">
             <button
               type="button"
@@ -119,7 +125,8 @@ const selectedFile = ref(null)
 
 const form = reactive({
   image: '',
-  title: ''
+  title: '',
+  isVisible: true
 })
 
 watch(
@@ -128,10 +135,12 @@ watch(
     if (newPartnership && Object.keys(newPartnership).length > 0) {
       form.image = newPartnership.image || ''
       form.title = newPartnership.title || ''
+      form.isVisible = newPartnership.isVisible !== false
       imagePreview.value = newPartnership.image || null
     } else {
       form.image = ''
       form.title = ''
+      form.isVisible = true
       imagePreview.value = null
       selectedFile.value = null
     }
@@ -218,7 +227,8 @@ const retryUpload = async () => {
 const savePartnership = () => {
   const partnershipData = {
     image: form.image,
-    title: form.title
+    title: form.title,
+    isVisible: form.isVisible !== false
   }
 
   emit('save', partnershipData)
@@ -526,6 +536,24 @@ const savePartnership = () => {
 
 .retry-btn:hover {
   background-color: #b91c1c;
+}
+
+.form-group-checkbox {
+  margin-bottom: 0.25rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #374151;
+}
+
+.modal.van-theme-dark .checkbox-label {
+  color: #f9fafb;
 }
 
 .loading-spinner-small {

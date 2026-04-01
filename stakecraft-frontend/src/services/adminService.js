@@ -62,8 +62,10 @@ export const menuService = {
 }
 
 export const mainnetService = {
-  async getAll() {
-    return apiCall('/mainnet/', {
+  /** @param {boolean} [includeHidden] — admin: pass true to list hidden cards */
+  async getAll(includeHidden = false) {
+    const q = includeHidden ? '?includeHidden=true' : ''
+    return apiCall(`/mainnet/${q}`, {
       method: 'GET'
     })
   },
@@ -106,9 +108,9 @@ export const mainnetService = {
 
 // Testnet Cards API
 export const testnetService = {
-  // Get all testnet cards
-  async getAll() {
-    return apiCall('/testnet')
+  async getAll(includeHidden = false) {
+    const q = includeHidden ? '?includeHidden=true' : ''
+    return apiCall(`/testnet${q}`)
   },
 
   // Create new testnet card
@@ -153,9 +155,9 @@ export const testnetService = {
 
 // Partnerships API
 export const partnershipService = {
-  // Get all partnerships
-  async getAll() {
-    return apiCall('/partnership')
+  async getAll(includeHidden = false) {
+    const q = includeHidden ? '?includeHidden=true' : ''
+    return apiCall(`/partnership${q}`)
   },
 
   // Create new partnership
