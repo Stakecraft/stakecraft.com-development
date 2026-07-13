@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import { getJwtSecret } from "../utils/jwtSecret.js";
 
 export const authenticateToken = async (req, res, next) => {
   try {
@@ -10,10 +11,7 @@ export const authenticateToken = async (req, res, next) => {
       return res.status(401).json({ error: "Access token required" });
     }
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "your-secret-key"
-    );
+    const decoded = jwt.verify(token, getJwtSecret());
     const user = await User.findById(decoded.userId);
 
     if (!user || !user.isActive) {

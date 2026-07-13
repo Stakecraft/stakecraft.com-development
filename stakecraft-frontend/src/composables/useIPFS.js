@@ -46,23 +46,22 @@ export function useIPFS() {
     return null
   }
 
-  // Upload file to IPFS using a service like Pinata, Infura, or your own IPFS node
+  // Upload file to IPFS via backend proxy (keeps Pinata keys server-side)
   const uploadToIPFS = async (file) => {
     uploading.value = true
     uploadError.value = null
 
     try {
-      // Create FormData for the file upload
       const formData = new FormData()
       formData.append('file', file)
 
-      const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+      const headers = token ? { Authorization: `Bearer ${token}` } : {}
+
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
+      const response = await fetch(`${API_BASE}/upload/ipfs`, {
         method: 'POST',
-        headers: {
-          // Add your Pinata API key here
-          pinata_api_key: import.meta.env.VITE_PINATA_API_KEY || '',
-          pinata_secret_api_key: import.meta.env.VITE_PINATA_SECRET_KEY || ''
-        },
+        headers,
         body: formData
       })
 
@@ -71,7 +70,7 @@ export function useIPFS() {
       }
 
       const result = await response.json()
-      const ipfsHash = result.IpfsHash
+      const ipfsHash = result.hash || result.IpfsHash
 
       return {
         success: true,

@@ -3,8 +3,8 @@
     <div class="homeView">
       <div class="presentation">
         <div class="titleArea">
-          <div class="titleLvl1">Trustworthy</div>
-          <div class="titleLvl2">Validator</div>
+          <h1 class="titleLvl1">Trustworthy</h1>
+          <div class="titleLvl2" aria-hidden="true">Validator</div>
         </div>
         <div class="websiteDescription">
           Stakecraft validator offers services to make profit to users from staking their digital
@@ -14,24 +14,46 @@
       </div>
       <div class="imageArea" />
     </div>
-    <Mainnet />
+    <MainnetStatic v-if="isSSR" />
+    <MainnetInteractive v-else />
     <Testnet />
     <Whychooseus />
     <About />
+    <CitabilitySection />
     <LetsConnect />
   </div>
 </template>
 
 <script>
-import Mainnet from '../components/Mainnet.vue'
+import MainnetStatic from '../components/MainnetStatic.vue'
 import Testnet from '../components/Testnet.vue'
 import Whychooseus from '../components/Whychooseus.vue'
 import About from '../components/About.vue'
+import CitabilitySection from '../components/CitabilitySection.vue'
 import LetsConnect from '../components/LetsConnect.vue'
+import { defineAsyncComponent } from 'vue'
+import { useSeo } from '../composables/useSeo.js'
+import { routeSeo } from '../config/seo.js'
+
+const isSSR = import.meta.env.SSR
+const MainnetInteractive = isSSR
+  ? null
+  : defineAsyncComponent(() => import('../components/Mainnet.vue'))
 
 export default {
-  components: { Mainnet, Testnet, Whychooseus, About, LetsConnect },
-  setup() {}
+  components: {
+    MainnetStatic,
+    MainnetInteractive,
+    Testnet,
+    Whychooseus,
+    About,
+    CitabilitySection,
+    LetsConnect
+  },
+  setup() {
+    useSeo(routeSeo.home)
+    return { isSSR, MainnetInteractive }
+  }
 }
 </script>
 

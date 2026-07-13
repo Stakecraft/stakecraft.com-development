@@ -1,17 +1,19 @@
 import { ref, computed } from 'vue'
 import axios from 'axios'
+import prefetchedData from '../data/prefetched.json'
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
 
 // IPFS Gateway URL
 const IPFS_GATEWAY = 'https://ipfs.io/ipfs/'
 
 export function useContent() {
-  const mainnet = ref([])
-  const testnet = ref([])
-  const partnerships = ref([])
-  const about = ref([])
-  const team = ref([])
-  const menu = ref([])
+  const mainnet = ref(prefetchedData.mainnet || [])
+  const testnet = ref(prefetchedData.testnet || [])
+  const partnerships = ref(prefetchedData.partnership || [])
+  const about = ref(prefetchedData.about || [])
+  const team = ref(prefetchedData.team || [])
+  const menu = ref(prefetchedData.menu || [])
 
   // Individual loading states for each section
   const loading = ref({

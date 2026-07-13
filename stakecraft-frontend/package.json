@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite --mode development",
-    "build": "vite build --mode production",
-    "build:dev": "vite build --mode development",
+    "prefetch": "node scripts/prefetch-content.js",
+    "sitemap": "node scripts/generate-sitemap.js",
+    "build": "npm run sitemap && npm run prefetch && vite-ssg build --mode production",
+    "build:dev": "npm run sitemap && vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
     "format": "prettier --write src/",
@@ -42,7 +44,7 @@
     "@solana/wallet-adapter-wallets": "^0.19.34",
     "@solana/web3.js": "^1.98.0",
     "@tailwindcss/postcss": "^4.1.11",
-    "@truffle/hdwallet-provider": "^2.1.15",
+    "@unhead/vue": "^2.0.19",
     "axios": "^1.11.0",
     "buffer": "^6.0.3",
     "cosmjs-types": "^0.9.0",
@@ -68,7 +70,8 @@
     "prettier": "^3.2.5",
     "tailwindcss": "^4.1.5",
     "vite": "^5.3.1",
-    "vite-plugin-node-polyfills": "^0.23.0"
+    "vite-plugin-node-polyfills": "^0.23.0",
+    "vite-ssg": "^28.2.2"
   },
   "overrides": {
     "chalk": "5.3.0",

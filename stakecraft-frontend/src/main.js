@@ -1,12 +1,36 @@
 import './assets/main.css'
 
-import { createApp } from 'vue'
+import { ViteSSG } from 'vite-ssg'
 import App from './App.vue'
-import router from './router'
-import { ConfigProvider } from 'vant';
+import { routes, prerenderRoutes } from './router/routes.js'
+import { ConfigProvider } from 'vant'
 
-const app = createApp(App);
+export const createApp = ViteSSG(
+  App,
+  { routes },
+  ({ app, router, isClient }) => {
+    app.use(ConfigProvider)
 
-app.use(router);
-app.use(ConfigProvider);
-app.mount('#app');
+    if (isClient) {
+      import('./router/clientRoutes.js').then(({ clientOnlyRoutes }) => {
+        for (const route of clientOnlyRoutes) {
+          router.addRoute(route)
+        }
+      })
+
+      router.beforeEach((to, from, next) => {
+        if (to.meta.requiresAuth) {
+          const token = localStorage.getItem('auth_token')
+          if (!token) {
+            next()
+            return
+          }
+        }
+        next()
+      })
+    }
+  },
+  {
+    includedRoutes: () => prerenderRoutes
+  }
+)

@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { body, validationResult } from "express-validator";
 import User from "../models/User.js";
 import { authenticateToken } from "../middleware/auth.js";
+import { getJwtSecret } from "../utils/jwtSecret.js";
 
 const router = express.Router();
 
@@ -48,7 +49,7 @@ router.post(
       // Generate JWT token
       const token = jwt.sign(
         { userId: user._id, role: user.role },
-        process.env.JWT_SECRET || "your-secret-key",
+        getJwtSecret(),
         { expiresIn: "24h" }
       );
 

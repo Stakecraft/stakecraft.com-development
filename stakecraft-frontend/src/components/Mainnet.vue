@@ -27,249 +27,37 @@
         </div>
       </button>
     </div>
-    <solana-staking
-      v-if="selectedNetwork?.title === 'Solana'"
-      :network="selectedNetwork"
+    <component
+      v-if="StakingModalsHost"
+      :is="StakingModalsHost"
+      :selected-network="selectedNetwork"
+      :is-modal-visible="isModalVisible"
       @close="closeModal"
-    />
-    <kava-staking
-      v-if="selectedNetwork?.title === 'Kava'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <koii-staking
-      v-if="selectedNetwork?.title === 'Koii'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <agoric-staking
-      v-if="selectedNetwork?.title === 'Agoric'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <band-staking
-      v-if="selectedNetwork?.title === 'Band Protocol'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <stargaze-staking
-      v-if="selectedNetwork?.title === 'Stargaze'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <bitsong-staking
-      v-if="selectedNetwork?.title === 'Bitsong'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <aura-staking
-      v-if="selectedNetwork?.title === 'Aura Network'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <juno-staking
-      v-if="selectedNetwork?.title === 'Juno'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <zeta-staking
-      v-if="selectedNetwork?.title === 'Zetachain'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <ki-staking
-      v-if="selectedNetwork?.title === 'Ki Foundation'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <supra-staking
-      v-if="selectedNetwork?.title === 'Supra Oracles'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <near-staking
-      v-if="selectedNetwork?.title === 'Near Protocol'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <zeta-staking
-      v-if="selectedNetwork?.title === 'Zachain'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <polygon-staking
-      v-if="selectedNetwork?.title === 'Polygon'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <moonriver-staking
-      v-if="selectedNetwork?.title === 'Moonriver'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <graph-staking
-      v-if="selectedNetwork?.title === 'The Graph'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <centrifuge-staking
-      v-if="selectedNetwork?.title === 'Centrifuge'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <altair-staking
-      v-if="selectedNetwork?.title === 'Altair'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <stafi-staking
-      v-if="selectedNetwork?.title === 'Stafi'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <aura-staking
-      v-if="selectedNetwork?.title === 'Aura Network'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <QProtocolStaking
-      v-if="selectedNetwork?.title === 'Q Protocol'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <CovalentStaking
-      v-if="selectedNetwork?.title === 'Covalent'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <SubQueryStaking
-      v-if="selectedNetwork?.title === 'SubQuery'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <BitsCrunchStaking
-      v-if="selectedNetwork?.title === 'BitsCrunch'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <RedbellyStaking
-      v-if="selectedNetwork?.title === 'Redbelly'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <WalrusStaking
-      v-if="selectedNetwork?.title === 'Walrus'"
-      :network="selectedNetwork"
-      @close="closeModal"
-    />
-    <modal
-      v-if="
-        ![
-          'Solana',
-          'Kava',
-          'Koii',
-          'Agoric',
-          'Band Protocol',
-          'Stargaze',
-          'Bitsong',
-          'Juno',
-          'Zetachain',
-          'Ki Foundation',
-          'Supra Oracles',
-          'Near Protocol',
-          'Polygon',
-          'Moonriver',
-          'The Graph',
-          'Centrifuge',
-          'Altair',
-          'Stafi',
-          'Aura Network',
-          'Q Protocol',
-          'Covalent',
-          'SubQuery',
-          'BitsCrunch',
-          'Redbelly',
-          'Walrus'
-        ].includes(selectedNetwork?.title)
-      "
-      v-show="isModalVisible"
-      @close="closeModal"
-      :network="selectedNetwork"
     />
   </div>
 </template>
 
 <script>
-import modal from './Modal.vue'
 import LoadingSpinner from './LoadingSpinner.vue'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, shallowRef } from 'vue'
 import { useContent } from '../composables/useContent.js'
-import SolanaStaking from './stakingViews/SolanaStaking.vue'
-import KavaStaking from './stakingViews/KavaStaking.vue'
-import NearStaking from './stakingViews/NearStaking.vue'
-import SupraStaking from './stakingViews/SupraStaking.vue'
-import AgoricStaking from './stakingViews/AgoricStaking.vue'
-import BandStaking from './stakingViews/BandStaking.vue'
-import StargazeStaking from './stakingViews/StargazeStaking.vue'
-import BitsongStaking from './stakingViews/BitsongStaking.vue'
-import JunoStaking from './stakingViews/JunoStaking.vue'
-import KiStaking from './stakingViews/KiStaking.vue'
-import PolygonStaking from './stakingViews/PolygonStaking.vue'
-import KoiiStaking from './stakingViews/KoiiStaking.vue'
-import ZetaStaking from './stakingViews/ZetaStaking.vue'
-import MoonriverStaking from './stakingViews/MoonriverStaking.vue'
-import GraphStaking from './stakingViews/GraphStaking.vue'
-import CentrifugeStaking from './stakingViews/CentrifugeStaking.vue'
-import AltairStaking from './stakingViews/AltairStaking.vue'
-import StafiStaking from './stakingViews/StafiStaking.vue'
-import AuraStaking from './stakingViews/AuraStaking.vue'
-import QProtocolStaking from './stakingViews/QProtocolStaking.vue'
-import CovalentStaking from './stakingViews/CovalentStaking.vue'
-import SubQueryStaking from './stakingViews/SubQueryStaking.vue'
-import BitsCrunchStaking from './stakingViews/BitsCrunchStaking.vue'
-import RedbellyStaking from './stakingViews/RedbellyStaking.vue'
-import WalrusStaking from './stakingViews/WalrusStaking.vue'
 
 export default {
   name: 'MainnetComponent',
   components: {
-    SolanaStaking,
-    KavaStaking,
-    SupraStaking,
-    NearStaking,
-    KoiiStaking,
-    AgoricStaking,
-    BandStaking,
-    StargazeStaking,
-    BitsongStaking,
-    JunoStaking,
-    ZetaStaking,
-    KiStaking,
-    modal,
-    LoadingSpinner,
-    PolygonStaking,
-    MoonriverStaking,
-    GraphStaking,
-    CentrifugeStaking,
-    AltairStaking,
-    StafiStaking,
-    AuraStaking,
-    QProtocolStaking,
-    CovalentStaking,
-    SubQueryStaking,
-    BitsCrunchStaking,
-    RedbellyStaking,
-    WalrusStaking
+    LoadingSpinner
   },
   setup() {
     const { fetchMainnet, getMainnetNetworks, loading, error } = useContent()
 
     const isModalVisible = ref(false)
     const selectedNetwork = ref(null)
+    const StakingModalsHost = shallowRef(null)
 
-    // Fetch mainnet content on component mount
     onMounted(async () => {
       await fetchMainnet()
+      const mod = await import(/* @vite-ignore */ './StakingModals.vue')
+      StakingModalsHost.value = mod.default
     })
 
     const showModal = (network) => {
@@ -289,7 +77,8 @@ export default {
       isModalVisible,
       closeModal,
       loading,
-      error
+      error,
+      StakingModalsHost
     }
   }
 }

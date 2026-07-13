@@ -1,6 +1,7 @@
 import Content from "../models/Content.js";
 import { body, validationResult } from "express-validator";
 import { deleteFile, ensureUploadsDir } from "../utils/upload.js";
+import { isSafeUrl, escapeRegex } from "../utils/urlValidation.js";
 
 // Get all content with pagination and filtering
 export const getAllContent = async (req, res) => {
@@ -20,9 +21,10 @@ export const getAllContent = async (req, res) => {
     if (type) filter.type = type;
     if (isActive !== undefined) filter.isActive = isActive === "true";
     if (search) {
+      const safeSearch = escapeRegex(search);
       filter.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
+        { title: { $regex: safeSearch, $options: "i" } },
+        { description: { $regex: safeSearch, $options: "i" } },
       ];
     }
 
@@ -479,14 +481,7 @@ export const validateContentCreation = [
   body("link")
     .optional()
     .custom((value) => {
-      // Allow relative URLs (starting with /) or valid URLs
-      if (
-        value.startsWith("/") ||
-        value.startsWith("#") ||
-        /^https?:\/\/.+/.test(value)
-      ) {
-        return true;
-      }
+      if (!value || isSafeUrl(value)) return true;
       throw new Error("Link must be a valid URL or relative path");
     }),
   body("order")
@@ -518,14 +513,7 @@ export const validateContentUpdate = [
   body("link")
     .optional()
     .custom((value) => {
-      // Allow relative URLs (starting with /) or valid URLs
-      if (
-        value.startsWith("/") ||
-        value.startsWith("#") ||
-        /^https?:\/\/.+/.test(value)
-      ) {
-        return true;
-      }
+      if (!value || isSafeUrl(value)) return true;
       throw new Error("Link must be a valid URL or relative path");
     }),
   body("order")

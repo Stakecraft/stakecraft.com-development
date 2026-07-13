@@ -1,5 +1,6 @@
 <template>
-  <div class="admin-container" :class="`van-theme-${theme}`">
+  <AdminLogin v-if="!isAuthenticated" @authenticated="onAuthenticated" />
+  <div v-else class="admin-container" :class="`van-theme-${theme}`">
     <!-- Sidebar -->
     <div class="sidebar" :class="{ 'sidebar-open': sidebarOpen }">
       <div class="sidebar-header">
@@ -725,6 +726,8 @@
 
 <script setup>
 import { ref, onMounted, inject } from 'vue'
+import AdminLogin from '@/components/AdminLogin.vue'
+import { getAuthToken, fetchCurrentUser } from '@/services/authService.js'
 import {
   Menu,
   Bell,
@@ -765,6 +768,12 @@ import {
 
 // Theme injection
 const theme = inject('theme')
+const isAuthenticated = ref(false)
+
+const onAuthenticated = () => {
+  isAuthenticated.value = true
+  loadAllData()
+}
 
 // Reactive data
 const sidebarOpen = ref(false)
@@ -823,7 +832,13 @@ const aboutContent = ref([])
 
 // Load data on component mount
 onMounted(async () => {
-  await loadAllData()
+  if (getAuthToken()) {
+    const user = await fetchCurrentUser()
+    isAuthenticated.value = !!user
+    if (isAuthenticated.value) {
+      await loadAllData()
+    }
+  }
 })
 
 // Load all data from backend

@@ -8,11 +8,11 @@ import {
   StakeProgram
 } from '@solana/web3.js'
 
-const endpoint = 'https://mainnet.helius-rpc.com/?api-key=36e30b3c-0a15-4037-b670-005e3845fcd8'
+const endpoint = import.meta.env.VITE_HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com'
 const connection = new Connection(endpoint, {
   commitment: 'confirmed',
   confirmTransactionInitialTimeout: 60000,
-  wsEndpoint: 'https://mainnet.helius-rpc.com/?api-key=36e30b3c-0a15-4037-b670-005e3845fcd8'
+  wsEndpoint: import.meta.env.VITE_HELIUS_WS_URL || undefined
 })
 
 // Global wallet reference

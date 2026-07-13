@@ -5,12 +5,13 @@ import {
   updateTeamMember,
   deleteTeamMember,
 } from "../controllers/teamCtrl.js";
+import { authenticateToken, requireEditor } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.post("/", createTeamMember);
 router.get("/", getTeamMembers);
-router.put("/:id", updateTeamMember);
-router.delete("/:id", deleteTeamMember);
+router.post("/", authenticateToken, requireEditor, createTeamMember);
+router.put("/:id", authenticateToken, requireEditor, updateTeamMember);
+router.delete("/:id", authenticateToken, requireEditor, deleteTeamMember);
 
 export default router;

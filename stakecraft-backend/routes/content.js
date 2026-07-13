@@ -53,21 +53,25 @@ router.get("/stats", getContentStats);
 router.get("/:type", getContentByType);
 router.get("/:type/:id", getContentById);
 
-// Protected routes (temporarily without authentication for menu management)
+// Protected routes
 router.post(
   "/:type",
+  authenticateToken,
+  requireEditor,
   upload.single("image"),
   validateContentCreation,
   createContent
 );
 router.put(
   "/:type/:id",
+  authenticateToken,
+  requireEditor,
   upload.single("image"),
   validateContentUpdate,
   updateContent
 );
-router.delete("/:type/:id", deleteContent);
-router.patch("/:type/reorder", reorderContent);
-router.post("/:type/bulk", bulkOperation);
+router.delete("/:type/:id", authenticateToken, requireEditor, deleteContent);
+router.patch("/:type/reorder", authenticateToken, requireEditor, reorderContent);
+router.post("/:type/bulk", authenticateToken, requireEditor, bulkOperation);
 
 export default router;

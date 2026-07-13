@@ -34,10 +34,13 @@
 import TERMS from './termsConditions.js'
 import { defineComponent } from 'vue'
 import { useRouter } from 'vue-router'
+import { useSeo } from '../../composables/useSeo.js'
+import { routeSeo } from '../../config/seo.js'
 
 export default defineComponent({
   name: 'Terms',
   setup() {
+    useSeo(routeSeo.terms)
     const myRouter = useRouter()
     const goToMainPage = () => {
       myRouter.push({ name: 'home' })

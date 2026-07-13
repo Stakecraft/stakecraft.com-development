@@ -5,12 +5,13 @@ import {
   updatePartnershipList,
   deletePartnershipList,
 } from "../controllers/partnershipCtrl.js";
+import { authenticateToken, requireEditor } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.post("/", createPartnershipList);
 router.get("/", getPartnershipList);
-router.put("/:id", updatePartnershipList);
-router.delete("/:id", deletePartnershipList);
+router.post("/", authenticateToken, requireEditor, createPartnershipList);
+router.put("/:id", authenticateToken, requireEditor, updatePartnershipList);
+router.delete("/:id", authenticateToken, requireEditor, deletePartnershipList);
 
 export default router;
