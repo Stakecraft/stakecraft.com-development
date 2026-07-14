@@ -160,32 +160,36 @@ button {
 .team-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  gap: 16px;
   width: 100%;
+  align-items: start;
 }
 
 .team-member {
   width: 100%;
-  min-height: 150px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 24px;
-  border-radius: 8px;
+  gap: 12px;
+  padding: 22px;
+  border-radius: 12px;
   background: var(--van-ourCapabilities-wrapper);
+  border: 1px solid rgba(128, 128, 128, 0.15);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   color: var(--van-ourCapabilities-text);
-  transition: 0.3s ease transform;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .team-member:hover {
   transform: translateY(-4px);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.1);
 }
 
 .member-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .ourCapabilities .title {
@@ -243,9 +247,9 @@ button {
 
 .memberTitle {
   font-family: poppins;
-  font-weight: 700;
-  font-size: 18px;
-  line-height: 26px;
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 24px;
   color: var(--van-ourCapabilities-title);
 }
 
@@ -255,30 +259,35 @@ button {
   font-size: 14px;
   line-height: 22px;
   color: var(--van-ourCapabilities-text);
+  opacity: 0.85;
   margin: 0;
 }
 
 .linkedin-link {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   align-self: flex-start;
+  margin-top: auto;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(10, 102, 194, 0.1);
   font-family: poppins;
   font-weight: 600;
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 13px;
+  line-height: 18px;
   color: #0a66c2;
   text-decoration: none;
-  transition: 0.2s ease opacity;
+  transition: 0.2s ease background;
 }
 
 .linkedin-link:hover {
-  opacity: 0.8;
+  background: rgba(10, 102, 194, 0.18);
 }
 
 .linkedin-icon {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
 }
 
