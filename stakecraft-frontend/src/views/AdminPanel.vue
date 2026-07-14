@@ -493,29 +493,28 @@
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Photo</th>
                   <th>Name</th>
                   <th>Position</th>
+                  <th>LinkedIn</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="member in teamMembers" :key="member._id" class="table-row">
-                  <td class="table-cell">
-                    <div class="member-cell">
-                      <img
-                        v-if="member.image"
-                        :src="member.image"
-                        :alt="member.name"
-                        class="member-image"
-                      />
-                      <div v-else class="image-placeholder-small">
-                        <ImageIcon class="placeholder-icon-small" />
-                      </div>
-                    </div>
-                  </td>
                   <td class="table-cell font-medium">{{ member.name }}</td>
                   <td class="table-cell">{{ member.position }}</td>
+                  <td class="table-cell">
+                    <a
+                      v-if="member.linkedin"
+                      :href="member.linkedin"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="linkedin-cell-link"
+                    >
+                      View Profile
+                    </a>
+                    <span v-else class="text-muted">—</span>
+                  </td>
                   <td class="table-cell">
                     <div class="action-buttons">
                       <button @click="editTeamMember(member)" class="action-btn edit-btn">
@@ -2125,6 +2124,20 @@ const migrateTestnetToMainnet = async () => {
 }
 
 /* Team Styles */
+.linkedin-cell-link {
+  color: #0a66c2;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.linkedin-cell-link:hover {
+  text-decoration: underline;
+}
+
+.text-muted {
+  color: #9ca3af;
+}
+
 .team-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

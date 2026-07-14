@@ -2,12 +2,12 @@ import Team from "../models/Team.js";
 
 export const createTeamMember = async (req, res) => {
   try {
-    const { name, position, image } = req.body;
+    const { name, position, linkedin } = req.body;
 
     const teamData = {
       name,
       position,
-      image,
+      linkedin,
     };
 
     const teamMember = new Team(teamData);
@@ -49,12 +49,12 @@ export const getTeamMembers = async (req, res) => {
 export const updateTeamMember = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, position, image } = req.body;
+    const { name, position, linkedin } = req.body;
 
     const updateData = {
       name,
       position,
-      image,
+      linkedin,
     };
 
     const updatedTeamMember = await Team.findByIdAndUpdate(id, updateData, {

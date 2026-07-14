@@ -50,32 +50,29 @@
         <p>Error loading team members: {{ error.team }}</p>
       </div>
       <div v-else class="team-grid">
-        <div
-          v-for="(member, index) in teamMembers"
-          :key="member._id"
-          class="team-member"
-          :class="getMemberClass(index)"
-        >
-          <div class="member-photo">
-            <img
-              v-if="member.image"
-              :src="member.image"
-              :alt="member.name"
-              @error="handleImageError"
-            />
-            <div v-else class="photo-placeholder">
-              <div class="placeholder-icon">👤</div>
-            </div>
-          </div>
-          <div class="member-overlay"></div>
+        <div v-for="member in teamMembers" :key="member._id" class="team-member">
           <div class="member-content">
             <div class="memberTitle">{{ member.name }}</div>
-            <div class="memberTextArea">
-              <div class="memberDescription">
-                {{ member.position }}
-              </div>
+            <div class="memberDescription">
+              {{ member.position }}
             </div>
           </div>
+          <a
+            v-if="member.linkedin"
+            :href="member.linkedin"
+            class="linkedin-link"
+            target="_blank"
+            rel="noopener noreferrer"
+            :aria-label="`${member.name} on LinkedIn`"
+          >
+            <svg class="linkedin-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"
+              />
+            </svg>
+            <span>LinkedIn</span>
+          </a>
         </div>
       </div>
     </div>
@@ -104,33 +101,13 @@ export default {
       }
     }
 
-    const getMemberClass = (index) => {
-      const classes = ['firstRow', 'secondRow', 'thirdRow', 'fourthRow']
-      return classes[index % classes.length]
-    }
-
-    const handleImageError = (event) => {
-      console.error('Image failed to load:', event.target.src)
-      // Hide the broken image and show placeholder
-      event.target.style.display = 'none'
-      const placeholder = event.target.parentElement.querySelector('.photo-placeholder')
-      if (placeholder) {
-        placeholder.style.display = 'flex'
-      }
-    }
-
-    console.log('About content:', getAboutContent.value)
-    console.log('Team members:', getTeamMembers.value)
-
     return {
       showDescription,
       openDescription,
       aboutContent: getAboutContent,
       teamMembers: getTeamMembers,
       loading,
-      error,
-      getMemberClass,
-      handleImageError
+      error
     }
   }
 }
@@ -188,71 +165,27 @@ button {
 }
 
 .team-member {
-  width: 270px;
-  aspect-ratio: 1/1.1;
-  transition: 0.3s linear background-image;
+  width: 100%;
+  min-height: 150px;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  background-size: cover;
-  background-repeat: no-repeat;
-  position: relative;
-  cursor: pointer;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px;
   border-radius: 8px;
-  overflow: hidden;
-  background-color: #f3f4f6;
+  background: var(--van-ourCapabilities-wrapper);
+  color: var(--van-ourCapabilities-text);
+  transition: 0.3s ease transform;
 }
 
-.member-photo {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
-.member-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.photo-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #e5e7eb;
-  color: #9ca3af;
-  font-size: 3rem;
-}
-
-.placeholder-icon {
-  font-size: 4rem;
-}
-
-.member-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0);
-  transition: 0.4s ease-in-out background-color;
-  pointer-events: none;
+.team-member:hover {
+  transform: translateY(-4px);
 }
 
 .member-content {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  color: white;
-  padding: 20px;
-  transform: translateY(0);
-  opacity: 1;
-  transition:
-    0.4s ease-in-out transform,
-    0.4s ease-in-out opacity;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .ourCapabilities .title {
@@ -313,50 +246,40 @@ button {
   font-weight: 700;
   font-size: 18px;
   line-height: 26px;
-  color: #fff;
-  margin-bottom: 8px;
-  transform: translateY(0);
-  opacity: 1;
-  transition:
-    0.4s ease-in-out transform,
-    0.4s ease-in-out opacity;
-}
-
-.memberTextArea {
-  height: 0;
-  overflow: hidden;
-  transition: 0.4s ease-in-out height;
+  color: var(--van-ourCapabilities-title);
 }
 
 .memberDescription {
   font-family: poppins;
   font-weight: 400;
-  font-size: 12px;
-  line-height: 24px;
-  color: #fff;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--van-ourCapabilities-text);
   margin: 0;
-  transform: translateY(20px);
-  opacity: 0;
-  transition:
-    0.4s ease-in-out transform,
-    0.4s ease-in-out opacity;
-  transition-delay: 0.1s;
 }
 
-/* Hover Effects */
-.team-member:hover .member-overlay {
-  background-color: rgba(0, 0, 0, 0.7);
+.linkedin-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  font-family: poppins;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  color: #0a66c2;
+  text-decoration: none;
+  transition: 0.2s ease opacity;
+}
+
+.linkedin-link:hover {
   opacity: 0.8;
 }
 
-.team-member:hover .memberTextArea {
-  height: auto;
-  min-height: 80px;
-}
-
-.team-member:hover .memberDescription {
-  transform: translateY(0);
-  opacity: 1;
+.linkedin-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
 /* Loading and Error Styles */
@@ -437,21 +360,6 @@ button {
   }
   .team-member {
     width: 100%;
-  }
-
-  /* On mobile, show text by default since hover doesn't work well */
-  .memberTextArea {
-    height: auto !important;
-    opacity: 1 !important;
-  }
-
-  .memberDescription {
-    transform: translateY(0) !important;
-    opacity: 1 !important;
-  }
-
-  .member-overlay {
-    background-color: rgba(0, 0, 0, 0.3) !important;
   }
 
   .ourCapabilities .presentation {
