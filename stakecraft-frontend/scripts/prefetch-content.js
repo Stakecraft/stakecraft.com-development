@@ -5,31 +5,15 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import {
+  PRODUCTION_API_BASE_URL,
+  resolveApiBaseUrl
+} from '../src/config/resolveApiBase.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const DEFAULT_API_BASE = 'https://backend.stakecraft.com/api'
-
-function resolveApiBase() {
-  const raw = (process.env.VITE_API_BASE_URL || process.env.API_BASE_URL || '').trim()
-
-  if (!raw) {
-    return DEFAULT_API_BASE
-  }
-
-  const normalized = raw.replace(/\/$/, '')
-
-  // Cloudflare env is sometimes set to the Pages frontend URL by mistake.
-  if (/pages\.dev$/i.test(normalized) || /^https:\/\/(www\.)?stakecraft\.com$/i.test(normalized)) {
-    console.warn(
-      `Ignoring frontend URL "${normalized}" for prefetch; using ${DEFAULT_API_BASE}`
-    )
-    return DEFAULT_API_BASE
-  }
-
-  return normalized.endsWith('/api') ? normalized : `${normalized}/api`
-}
-
-const API_BASE = resolveApiBase()
+const API_BASE =
+  resolveApiBaseUrl(process.env.VITE_API_BASE_URL || process.env.API_BASE_URL) ||
+  PRODUCTION_API_BASE_URL
 const endpoints = ['mainnet', 'testnet', 'partnership', 'about', 'team', 'content/menu']
 const outPath = join(__dirname, '../src/data/prefetched.json')
 
