@@ -2,10 +2,6 @@ import { ref, computed, onMounted } from 'vue'
 import prefetchedData from '../data/prefetched.json'
 import { API_BASE_URL } from '../config/api.js'
 
-const menuItems = ref(getInitialMenuItems())
-const loading = ref(false)
-const error = ref(null)
-
 // Fallback menu items (current hardcoded menu)
 const fallbackMenuItems = [
   { title: 'Mainnet', link: '/#mainnet', metadata: { menuSection: 'center', isExternal: 'false' } },
@@ -47,6 +43,10 @@ function getInitialMenuItems() {
   }
   return fallbackMenuItems
 }
+
+const menuItems = ref(getInitialMenuItems())
+const loading = ref(false)
+const error = ref(null)
 
 export function useMenu() {
   const fetchMenuItems = async () => {
