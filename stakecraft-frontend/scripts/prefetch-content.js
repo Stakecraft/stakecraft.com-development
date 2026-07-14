@@ -10,7 +10,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const API_BASE =
   process.env.VITE_API_BASE_URL ||
   process.env.API_BASE_URL ||
-  'https://api.stakecraft.com/api'
+  'https://backend.stakecraft.com/api'
 
 const endpoints = ['mainnet', 'testnet', 'partnership', 'about', 'team', 'content/menu']
 

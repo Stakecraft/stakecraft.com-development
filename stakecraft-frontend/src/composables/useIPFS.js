@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { API_BASE_URL } from '../config/api.js'
 
 export function useIPFS() {
   const uploading = ref(false)
@@ -58,8 +59,7 @@ export function useIPFS() {
       const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
       const headers = token ? { Authorization: `Bearer ${token}` } : {}
 
-      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
-      const response = await fetch(`${API_BASE}/upload/ipfs`, {
+      const response = await fetch(`${API_BASE_URL}/upload/ipfs`, {
         method: 'POST',
         headers,
         body: formData

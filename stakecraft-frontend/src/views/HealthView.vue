@@ -47,6 +47,8 @@
 </template>
 
 <script>
+import { API_BASE_URL } from '../config/api.js'
+
 export default {
   name: 'HealthView',
   data() {
@@ -65,7 +67,7 @@ export default {
       this.error = null
 
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/health`)
+        const response = await fetch(`${API_BASE_URL}/health`)
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`)
         }

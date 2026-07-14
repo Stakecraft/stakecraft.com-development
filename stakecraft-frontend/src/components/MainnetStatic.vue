@@ -7,7 +7,7 @@
     </div>
     <div v-if="!loading.mainnet && !error.mainnet" class="buttonsArea">
       <div
-        class="networks network-static"
+        class="networks"
         v-for="network in networks"
         :key="network.id || network._id || network.title"
       >
@@ -31,7 +31,9 @@ export default {
   setup() {
     const { fetchMainnet, getMainnetNetworks, loading, error } = useContent()
     onMounted(async () => {
-      await fetchMainnet()
+      if (!getMainnetNetworks.value.length) {
+        await fetchMainnet()
+      }
     })
     return {
       networks: getMainnetNetworks,
@@ -54,26 +56,65 @@ export default {
   justify-content: flex-start;
   border-radius: 20px;
   margin-bottom: 28px;
+  flex: 0 1 auto;
   color: var(--van-mainnet-network-color);
 }
-.network-static {
-  cursor: default;
-}
+
 .buttonsArea {
   padding-bottom: 70px;
+  box-sizing: border-box;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
+  justify-content: flex-start;
 }
+
 .networkName {
   font-family: poppins;
   font-size: 20px;
   font-weight: 700;
+  text-align: left;
   margin-left: 16px;
 }
+
 .networkImg img {
   width: 60px;
   height: 60px;
   object-fit: cover;
+}
+
+@media only screen and (max-width: 1024px) {
+  .buttonsArea {
+    width: 100% !important;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    padding-bottom: 40px;
+  }
+
+  .networks {
+    width: 100%;
+    height: 90px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .networkImg img {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+  }
+
+  .networkName {
+    margin: 0;
+    font-size: 16px;
+  }
+}
+
+@media only screen and (max-width: 450px) {
+  .buttonsArea {
+    padding-bottom: 0;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
 }
 </style>

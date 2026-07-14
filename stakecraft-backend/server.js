@@ -40,6 +40,10 @@ const allowedOrigins =
         process.env.FRONTEND_URL,
         "https://stakecraft.com",
         "https://www.stakecraft.com",
+        ...(process.env.CORS_EXTRA_ORIGINS || "")
+          .split(",")
+          .map((origin) => origin.trim())
+          .filter(Boolean),
       ].filter(Boolean)
     : [
         "http://localhost:3000",
@@ -48,6 +52,20 @@ const allowedOrigins =
         "http://localhost:5174",
         "http://localhost:4173",
       ];
+
+function isAllowedCorsOrigin(origin) {
+  if (allowedOrigins.includes(origin)) {
+    return true;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    return /^https:\/\/([a-f0-9]+\.)?stakecraft-com-development\.pages\.dev$/.test(
+      origin
+    );
+  }
+
+  return false;
+}
 
 app.use(
   cors({
@@ -59,7 +77,7 @@ app.use(
         return callback(null, true);
       }
 
-      if (allowedOrigins.includes(origin)) {
+      if (isAllowedCorsOrigin(origin)) {
         callback(null, true);
       } else {
         console.warn(`CORS blocked origin: ${origin}`);

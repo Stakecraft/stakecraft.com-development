@@ -1,6 +1,8 @@
 import { ref, computed, onMounted } from 'vue'
+import prefetchedData from '../data/prefetched.json'
+import { API_BASE_URL } from '../config/api.js'
 
-const menuItems = ref([])
+const menuItems = ref(getInitialMenuItems())
 const loading = ref(false)
 const error = ref(null)
 
@@ -36,13 +38,22 @@ const fallbackMenuItems = [
   }
 ]
 
+function getInitialMenuItems() {
+  const prefetchedMenu = prefetchedData.menu
+  if (Array.isArray(prefetchedMenu) && prefetchedMenu.length > 0) {
+    return prefetchedMenu
+      .filter((item) => item.isActive !== false)
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
+  }
+  return fallbackMenuItems
+}
+
 export function useMenu() {
   const fetchMenuItems = async () => {
     loading.value = true
     error.value = null
 
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
       const response = await fetch(`${API_BASE_URL}/content/menu`)
 
       if (!response.ok) {

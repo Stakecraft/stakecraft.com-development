@@ -82,7 +82,9 @@ export default {
   margin-bottom: 35px;
 }
 
-.titleArea div {
+.titleArea .titleLvl1,
+.titleArea .titleLvl2 {
+  margin: 0;
   font-size: 90px;
   font-weight: 600;
   line-height: 100px;
@@ -119,7 +121,8 @@ export default {
     height: 420px;
   }
 
-  .titleArea div {
+  .titleArea .titleLvl1,
+  .titleArea .titleLvl2 {
     font-size: 56px;
     line-height: 62px;
   }
