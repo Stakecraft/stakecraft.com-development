@@ -51,6 +51,11 @@ const allowedOrigins =
         "http://127.0.0.1:5173",
         "http://localhost:5174",
         "http://localhost:4173",
+        "https://dev.stakecraft.com",
+        ...(process.env.CORS_EXTRA_ORIGINS || "")
+          .split(",")
+          .map((origin) => origin.trim())
+          .filter(Boolean),
       ];
 
 function isAllowedCorsOrigin(origin) {
@@ -64,7 +69,9 @@ function isAllowedCorsOrigin(origin) {
     );
   }
 
-  return false;
+  return /^https:\/\/([a-f0-9]+\.)?stakecraft-com-development\.pages\.dev$/.test(
+    origin
+  );
 }
 
 app.use(
