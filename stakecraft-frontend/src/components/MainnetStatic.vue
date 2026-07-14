@@ -6,7 +6,13 @@
       <p>Failed to load mainnet networks. Please try again later.</p>
     </div>
     <div v-if="!loading.mainnet && !error.mainnet" class="buttonsArea">
-      <button type="button" class="networks" v-for="network in networks" :key="network.id || network._id || network.title">
+      <button
+        type="button"
+        class="networks"
+        @click="showModal(network)"
+        v-for="network in networks"
+        :key="network.id || network._id || network.title"
+      >
         <div class="networkImg">
           <img v-if="network.image" :src="network.image" :alt="network.title" />
         </div>
@@ -20,12 +26,14 @@
 import LoadingSpinner from './LoadingSpinner.vue'
 import { onMounted } from 'vue'
 import { useContent } from '../composables/useContent.js'
+import { useStakingModal } from '../composables/useStakingModal.js'
 
 export default {
   name: 'MainnetStatic',
   components: { LoadingSpinner },
   setup() {
     const { fetchMainnet, getMainnetNetworks, loading, error } = useContent()
+    const { openModal } = useStakingModal()
 
     onMounted(async () => {
       if (!getMainnetNetworks.value.length) {
@@ -33,8 +41,13 @@ export default {
       }
     })
 
+    const showModal = (network) => {
+      openModal(network)
+    }
+
     return {
       networks: getMainnetNetworks,
+      showModal,
       loading,
       error
     }

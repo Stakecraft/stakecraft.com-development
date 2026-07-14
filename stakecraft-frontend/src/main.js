@@ -18,6 +18,15 @@ export const createApp = ViteSSG(
         }
       })
 
+      // `import.meta.env.SSR` is statically replaced, so this dynamic import (and
+      // the wallet-heavy StakingModals it pulls in) is dead-code-eliminated from
+      // the SSR bundle and only exists in the client build.
+      if (!import.meta.env.SSR) {
+        import('./client/setupMainnetStaking.js').then(({ setupMainnetStaking }) => {
+          setupMainnetStaking()
+        })
+      }
+
       router.beforeEach((to, from, next) => {
         if (to.meta.requiresAuth) {
           const token = localStorage.getItem('auth_token')
