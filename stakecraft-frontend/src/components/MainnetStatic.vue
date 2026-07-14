@@ -6,16 +6,12 @@
       <p>Failed to load mainnet networks. Please try again later.</p>
     </div>
     <div v-if="!loading.mainnet && !error.mainnet" class="buttonsArea">
-      <div
-        class="networks"
-        v-for="network in networks"
-        :key="network.id || network._id || network.title"
-      >
+      <button type="button" class="networks" v-for="network in networks" :key="network.id || network._id || network.title">
         <div class="networkImg">
           <img v-if="network.image" :src="network.image" :alt="network.title" />
         </div>
         <div class="networkName">{{ network.title }}</div>
-      </div>
+      </button>
     </div>
   </div>
 </template>
@@ -30,11 +26,13 @@ export default {
   components: { LoadingSpinner },
   setup() {
     const { fetchMainnet, getMainnetNetworks, loading, error } = useContent()
+
     onMounted(async () => {
       if (!getMainnetNetworks.value.length) {
         await fetchMainnet()
       }
     })
+
     return {
       networks: getMainnetNetworks,
       loading,
@@ -50,6 +48,8 @@ export default {
   padding: 15px 22px;
   box-sizing: border-box;
   width: 100%;
+  border: none;
+  cursor: pointer;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -57,7 +57,12 @@ export default {
   border-radius: 20px;
   margin-bottom: 28px;
   flex: 0 1 auto;
+  transition: padding 0.5s;
   color: var(--van-mainnet-network-color);
+}
+
+.networks:hover {
+  padding-left: 30px;
 }
 
 .buttonsArea {

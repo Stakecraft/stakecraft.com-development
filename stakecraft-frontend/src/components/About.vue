@@ -19,21 +19,25 @@
           <p>Error loading capabilities: {{ error.about }}</p>
         </div>
         <div v-else>
-          <button
+          <div
             v-for="(capability, index) in aboutContent"
             :key="capability._id"
             class="wrapper"
+            role="button"
+            tabindex="0"
             @click="openDescription(index)"
+            @keydown.enter.prevent="openDescription(index)"
+            @keydown.space.prevent="openDescription(index)"
             :class="{ withHeight: showDescription[index] }"
           >
             <div class="presentation">
               <div class="capabilityTitle">{{ capability.title }}</div>
-              <button class="add" :class="{ around: showDescription[index] }">+</button>
+              <span class="add" :class="{ around: showDescription[index] }">+</span>
             </div>
             <div class="capabilityDescription">
               {{ capability.content }}
             </div>
-          </button>
+          </div>
         </div>
       </div>
     </div>
@@ -268,6 +272,7 @@ button {
   transition: 0.3s linear height;
   background: var(--van-ourCapabilities-wrapper);
   color: var(--van-ourCapabilities-text);
+  cursor: pointer;
 }
 
 .ourCapabilities .wrapper.withHeight {

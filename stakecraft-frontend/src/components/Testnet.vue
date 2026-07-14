@@ -28,13 +28,13 @@
             <div class="networkName">
               {{ network.title }}
             </div>
-            <button
+            <span
               class="add"
               :class="{ around: showNetworkDescription[index] }"
               v-if="network.description"
             >
               +
-            </button>
+            </span>
           </div>
           <div class="description" v-if="network.description">
             {{ network.description }}

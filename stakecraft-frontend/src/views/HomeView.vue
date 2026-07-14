@@ -14,8 +14,7 @@
       </div>
       <div class="imageArea" />
     </div>
-    <MainnetStatic v-if="isSSR" />
-    <MainnetInteractive v-else />
+    <MainnetStatic />
     <Testnet />
     <Whychooseus />
     <About />
@@ -31,19 +30,12 @@ import Whychooseus from '../components/Whychooseus.vue'
 import About from '../components/About.vue'
 import CitabilitySection from '../components/CitabilitySection.vue'
 import LetsConnect from '../components/LetsConnect.vue'
-import { defineAsyncComponent } from 'vue'
 import { useSeo } from '../composables/useSeo.js'
 import { routeSeo } from '../config/seo.js'
-
-const isSSR = import.meta.env.SSR
-const MainnetInteractive = isSSR
-  ? null
-  : defineAsyncComponent(() => import('../components/Mainnet.vue'))
 
 export default {
   components: {
     MainnetStatic,
-    MainnetInteractive,
     Testnet,
     Whychooseus,
     About,
@@ -52,7 +44,6 @@ export default {
   },
   setup() {
     useSeo(routeSeo.home)
-    return { isSSR, MainnetInteractive }
   }
 }
 </script>

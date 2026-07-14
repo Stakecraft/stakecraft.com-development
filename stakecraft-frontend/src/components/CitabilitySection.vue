@@ -6,10 +6,10 @@
       non-custodial infrastructure operator — your tokens always remain in your wallet.
     </p>
     <dl class="faq-list">
-      <div v-for="item in faqItems" :key="item.question" class="faq-item">
-        <dt>{{ item.question }}</dt>
-        <dd>{{ item.answer }}</dd>
-      </div>
+      <template v-for="item in faqItems" :key="item.question">
+        <dt class="faq-question">{{ item.question }}</dt>
+        <dd class="faq-answer">{{ item.answer }}</dd>
+      </template>
     </dl>
     <div class="delegation-guide">
       <h3>How to delegate</h3>
@@ -69,18 +69,18 @@ export default {
   margin-bottom: 3rem;
 }
 
-.faq-item dt {
+.faq-question {
   font-family: generalSans, system-ui, sans-serif;
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 0.5rem;
 }
 
-.faq-item dd {
+.faq-answer {
   font-size: 16px;
   line-height: 1.65;
   color: var(--van-text-color-2, #5b666f);
-  margin: 0;
+  margin: 0 0 1.5rem;
 }
 
 .delegation-guide h3 {
