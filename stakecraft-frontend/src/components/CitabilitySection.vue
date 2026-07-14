@@ -26,29 +26,6 @@
         <p class="faq-answer">{{ item.answer }}</p>
       </div>
     </div>
-
-    <div class="delegation-guide">
-      <h3 class="guide-title">How to delegate</h3>
-      <ol>
-        <li>Choose a network from the mainnet section above.</li>
-        <li>
-          Open your network wallet (Phantom for Solana, Keplr for Cosmos, NEAR Wallet for
-          NEAR, etc.).
-        </li>
-        <li>Navigate to the staking or delegation section.</li>
-        <li>
-          Search for <strong>StakeCraft</strong> or paste the validator address shown on our
-          network card.
-        </li>
-        <li>Enter the amount to delegate and confirm the transaction.</li>
-      </ol>
-      <p class="contact-line">
-        Questions? Email
-        <a href="mailto:support@stakecraft.com">support@stakecraft.com</a>
-        or reach us on
-        <a href="https://t.me/stakecraft" rel="noopener noreferrer" target="_blank">Telegram</a>.
-      </p>
-    </div>
   </section>
 </template>
 
@@ -87,7 +64,7 @@ export default {
 }
 
 .faq-list {
-  margin: 0 0 60px 0;
+  margin: 0;
   max-width: 900px;
 }
 
@@ -142,48 +119,6 @@ export default {
   font-size: 16px;
   line-height: 24px;
   color: var(--van-text-color-2, #5b666f);
-}
-
-.delegation-guide {
-  max-width: 740px;
-}
-
-.guide-title {
-  font-family: generalSans;
-  font-size: 26px;
-  line-height: 34px;
-  font-weight: 600;
-  color: var(--van-ourCapabilities-title);
-  margin-bottom: 20px;
-}
-
-.delegation-guide ol {
-  padding-left: 1.25rem;
-  font-family: poppins;
-  font-size: 16px;
-  line-height: 28px;
-  color: var(--van-text-color);
-  margin-bottom: 24px;
-}
-
-.delegation-guide li {
-  margin-bottom: 8px;
-}
-
-.contact-line {
-  font-family: poppins;
-  font-size: 16px;
-  line-height: 24px;
-  color: var(--van-text-color);
-}
-
-.contact-line a {
-  color: var(--van-ourCapabilities-title);
-  text-decoration: none;
-}
-
-.contact-line a:hover {
-  text-decoration: underline;
 }
 
 @media only screen and (max-width: 900px) {
