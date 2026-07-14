@@ -28,6 +28,10 @@ if (process.env.NODE_ENV === "production") {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Behind a reverse proxy (nginx) — trust the first proxy hop so
+// express-rate-limit and req.ip use the real client address.
+app.set("trust proxy", 1);
+
 app.use(
   helmet({
     contentSecurityPolicy: false,
@@ -77,10 +81,10 @@ function isAllowedCorsOrigin(origin) {
 app.use(
   cors({
     origin: function (origin, callback) {
+      // No Origin header means the request is not a cross-origin browser
+      // request (curl, health checks, uptime monitors, server-to-server,
+      // build-time prefetch). CORS only guards browsers, so allow these.
       if (!origin) {
-        if (process.env.NODE_ENV === "production") {
-          return callback(new Error("Origin header required"));
-        }
         return callback(null, true);
       }
 
