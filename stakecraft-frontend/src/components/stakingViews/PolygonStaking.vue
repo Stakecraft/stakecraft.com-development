@@ -381,9 +381,9 @@ export default {
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
-        const { address, signer } = await connectWallet()
+        const { address, signer: walletSigner } = await connectWallet()
         walletAddress.value = address
-        signer.value = signer
+        signer.value = walletSigner
         walletConnected.value = true
         isConnecting.value = false
         refreshStakingInfo()

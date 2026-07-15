@@ -411,14 +411,20 @@ export default {
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
+        walletError.value = false
         const address = await walletConnect()
+        if (!address || typeof address !== 'string') {
+          throw new Error('Wallet connected but no account address was returned')
+        }
         walletAddress.value = address
         walletConnected.value = true
-        isConnecting.value = false
-        refreshStakingInfo()
+        await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         walletError.value = true
+        walletConnected.value = false
+        walletAddress.value = ''
+      } finally {
         isConnecting.value = false
       }
     }
@@ -456,28 +462,33 @@ export default {
     }
 
     const refreshStakingInfo = async () => {
-      if (!walletAddress.value || !validatorAddress.value) return
+      if (!walletAddress.value || typeof walletAddress.value !== 'string') return
 
       try {
         const supraBalance = await getSupraBalance(walletAddress.value)
         totalSupraBalance.value = supraBalance
         availableBalance.value = Number(supraBalance).toFixed(4)
 
-        const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
-        if (stakingInfo[0]) {
-          stakedAmount.value = Number(stakingInfo[0]) / 10 ** 8
-        } else {
-          stakedAmount.value = 0
-        }
-        if (stakingInfo[1]) {
-          inactiveAmount.value = Number(stakingInfo[1]) / 10 ** 8
-        } else {
-          inactiveAmount.value = 0
-        }
-        if (stakingInfo[2]) {
-          pendingAmount.value = Number(stakingInfo[2]) / 10 ** 8
-        } else {
-          pendingAmount.value = 0
+        if (validatorAddress.value) {
+          const stakingInfo = await getTotalStakedAmount(
+            walletAddress.value,
+            validatorAddress.value
+          )
+          if (stakingInfo[0]) {
+            stakedAmount.value = Number(stakingInfo[0]) / 10 ** 8
+          } else {
+            stakedAmount.value = 0
+          }
+          if (stakingInfo[1]) {
+            inactiveAmount.value = Number(stakingInfo[1]) / 10 ** 8
+          } else {
+            inactiveAmount.value = 0
+          }
+          if (stakingInfo[2]) {
+            pendingAmount.value = Number(stakingInfo[2]) / 10 ** 8
+          } else {
+            pendingAmount.value = 0
+          }
         }
 
         lastRewardTime.value = null

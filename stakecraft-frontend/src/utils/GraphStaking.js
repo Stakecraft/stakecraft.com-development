@@ -1,4 +1,4 @@
-import { ethers } from 'ethers'
+import { BrowserProvider, Contract, formatUnits, formatEther, parseEther } from 'ethers'
 
 const ETHEREUM_CHAIN_ID = '0x1' // Ethereum mainnet
 
@@ -19,9 +19,18 @@ const ERC20_ABI = [
 const STAKING_ABI = [
   'function delegate(address indexer, uint256 tokens) returns (bool)',
   'function undelegate(address indexer, uint256 shares) returns (bool)',
-  'function getDelegation(address delegator, address indexer) view returns (uint256)',
+  'function getDelegation(address delegator, address indexer) view returns (uint256 shares, uint256 tokens)',
   'function withdrawDelegation(address indexer, address newIndexer) returns (bool)'
 ]
+
+async function getProviderAndSigner() {
+  if (!window.ethereum) {
+    throw new Error('Please install MetaMask extension')
+  }
+  const provider = new BrowserProvider(window.ethereum)
+  const signer = await provider.getSigner()
+  return { provider, signer }
+}
 
 // Connect MetaMask wallet
 export const connectWallet = async () => {
@@ -30,12 +39,10 @@ export const connectWallet = async () => {
   }
 
   try {
-    // Request account access
     const accounts = await window.ethereum.request({
       method: 'eth_requestAccounts'
     })
 
-    // Switch to Ethereum mainnet
     await switchToEthereum()
 
     return accounts[0]
@@ -52,7 +59,7 @@ const switchToEthereum = async () => {
       method: 'wallet_switchEthereumChain',
       params: [{ chainId: ETHEREUM_CHAIN_ID }]
     })
-  } catch (switchError) {
+  } catch {
     throw new Error('Failed to switch to Ethereum mainnet')
   }
 }
@@ -60,14 +67,13 @@ const switchToEthereum = async () => {
 // Get GRT balance for a wallet address
 export const getGrtBalance = async (walletAddress) => {
   try {
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    const grtContract = new ethers.Contract(GRAPH_TOKEN_ADDRESS, ERC20_ABI, provider)
+    const { provider } = await getProviderAndSigner()
+    const grtContract = new Contract(GRAPH_TOKEN_ADDRESS, ERC20_ABI, provider)
 
     const balance = await grtContract.balanceOf(walletAddress)
     const decimals = await grtContract.decimals()
 
-    // Convert from wei to GRT
-    return parseFloat(ethers.utils.formatUnits(balance, decimals))
+    return parseFloat(formatUnits(balance, decimals))
   } catch (error) {
     console.error('Error getting GRT balance:', error)
     throw new Error(`Failed to get GRT balance: ${error.message}`)
@@ -77,13 +83,13 @@ export const getGrtBalance = async (walletAddress) => {
 // Get delegated amount for a delegator/indexer pair
 export const getDelegatedAmount = async (delegatorAddress, indexerAddress) => {
   try {
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    const stakingContract = new ethers.Contract(STAKING_CONTRACT_ADDRESS, STAKING_ABI, provider)
+    const { provider } = await getProviderAndSigner()
+    const stakingContract = new Contract(STAKING_CONTRACT_ADDRESS, STAKING_ABI, provider)
 
-    const delegatedShares = await stakingContract.getDelegation(delegatorAddress, indexerAddress)
+    const delegation = await stakingContract.getDelegation(delegatorAddress, indexerAddress)
+    const tokens = delegation?.tokens ?? delegation?.[1] ?? delegation
 
-    // Convert shares to GRT amount (simplified calculation)
-    return parseFloat(ethers.utils.formatEther(delegatedShares))
+    return parseFloat(formatEther(tokens))
   } catch (error) {
     console.error('Error getting delegated amount:', error)
     return 0
@@ -93,25 +99,21 @@ export const getDelegatedAmount = async (delegatorAddress, indexerAddress) => {
 // Delegate GRT tokens to indexer
 export const delegateToIndexer = async (walletAddress, indexerAddress, amount) => {
   try {
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    const signer = provider.getSigner()
+    const { signer } = await getProviderAndSigner()
 
-    const grtContract = new ethers.Contract(GRAPH_TOKEN_ADDRESS, ERC20_ABI, signer)
-    const stakingContract = new ethers.Contract(STAKING_CONTRACT_ADDRESS, STAKING_ABI, signer)
+    const grtContract = new Contract(GRAPH_TOKEN_ADDRESS, ERC20_ABI, signer)
+    const stakingContract = new Contract(STAKING_CONTRACT_ADDRESS, STAKING_ABI, signer)
 
-    const amountInWei = ethers.utils.parseEther(amount.toString())
+    const amountInWei = parseEther(amount.toString())
 
-    // Check allowance
     const allowance = await grtContract.allowance(walletAddress, STAKING_CONTRACT_ADDRESS)
 
-    // Approve if needed
-    if (allowance.lt(amountInWei)) {
+    if (allowance < amountInWei) {
       console.log('Approving GRT tokens...')
       const approveTx = await grtContract.approve(STAKING_CONTRACT_ADDRESS, amountInWei)
       await approveTx.wait()
     }
 
-    // Delegate tokens
     console.log('Delegating GRT tokens to indexer:', indexerAddress, 'amount:', amount)
     const delegateTx = await stakingContract.delegate(indexerAddress, amountInWei)
     await delegateTx.wait()
@@ -126,12 +128,11 @@ export const delegateToIndexer = async (walletAddress, indexerAddress, amount) =
 // Undelegate GRT tokens from indexer
 export const undelegateFromIndexer = async (walletAddress, indexerAddress, amount) => {
   try {
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    const signer = provider.getSigner()
+    const { signer } = await getProviderAndSigner()
 
-    const stakingContract = new ethers.Contract(STAKING_CONTRACT_ADDRESS, STAKING_ABI, signer)
+    const stakingContract = new Contract(STAKING_CONTRACT_ADDRESS, STAKING_ABI, signer)
 
-    const sharesInWei = ethers.utils.parseEther(amount.toString())
+    const sharesInWei = parseEther(amount.toString())
 
     console.log('Undelegating GRT tokens from indexer:', indexerAddress, 'amount:', amount)
     const undelegateTx = await stakingContract.undelegate(indexerAddress, sharesInWei)
@@ -147,11 +148,7 @@ export const undelegateFromIndexer = async (walletAddress, indexerAddress, amoun
 // Get query fees earned (simplified for demo)
 export const getQueryFeesEarned = async (walletAddress, indexerAddress) => {
   try {
-    // In a real implementation, this would query The Graph's subgraph
-    // to get the actual query fees earned by the delegator
     console.log('Getting query fees for:', walletAddress, 'from indexer:', indexerAddress)
-
-    // Return mock data for demo
     return 0
   } catch (error) {
     console.error('Error getting query fees:', error)
@@ -159,13 +156,14 @@ export const getQueryFeesEarned = async (walletAddress, indexerAddress) => {
   }
 }
 
+export const WalletDisconnect = async () => {
+  return true
+}
+
 // Get indexer information (simplified for demo)
 export const getIndexerInfo = async (indexerAddress) => {
   try {
-    // In a real implementation, this would query The Graph's subgraph
-    // to get indexer stats like stake, delegation capacity, etc.
     console.log('Getting indexer info for:', indexerAddress)
-
     return {
       stake: 0,
       delegationCapacity: 0,

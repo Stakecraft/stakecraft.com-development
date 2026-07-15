@@ -425,6 +425,7 @@ import {
   getStorageNodeStatus,
   getStakedTotalAccounts
 } from '../../utils/WalrusStaking'
+import { resolveValidatorAddress } from '../../utils/resolveValidator.js'
 
 export default {
   name: 'WalrusStaking',
@@ -472,8 +473,9 @@ export default {
     const withdrawingAccount = ref('')
 
     onMounted(() => {
-      if (props.network?.validator) {
-        validatorAddress.value = props.network.validator
+      const resolved = resolveValidatorAddress(props.network?.validator)
+      if (resolved) {
+        validatorAddress.value = resolved
       }
     })
 
