@@ -349,6 +349,7 @@ import {
   getStarsBalance
 } from '../../utils/StargazeStaking'
 
+import { resolveValidatorAddress } from '../../utils/resolveValidator.js'
 export default {
   name: 'StargazeStaking',
   props: {
@@ -382,8 +383,8 @@ export default {
     const totalStarsBalance = ref(0)
 
     onMounted(() => {
-      if (props.network?.validator?.[0]) {
-        validatorAddress.value = props.network.validator[0]
+      if (resolveValidatorAddress(props.network?.validator)) {
+        validatorAddress.value = resolveValidatorAddress(props.network.validator)
       }
     })
 

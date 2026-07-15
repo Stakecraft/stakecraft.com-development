@@ -8,12 +8,38 @@ import {
   StakeProgram
 } from '@solana/web3.js'
 
-const endpoint = import.meta.env.VITE_HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com'
+const SOLANA_RPC_ENDPOINTS = [
+  import.meta.env.VITE_HELIUS_RPC_URL,
+  'https://solana-rpc.publicnode.com',
+  'https://api.mainnet-beta.solana.com'
+].filter(Boolean)
+
+const endpoint = SOLANA_RPC_ENDPOINTS[0]
 const connection = new Connection(endpoint, {
   commitment: 'confirmed',
   confirmTransactionInitialTimeout: 60000,
   wsEndpoint: import.meta.env.VITE_HELIUS_WS_URL || undefined
 })
+
+async function withSolanaRpcFallback(fn) {
+  let lastError = null
+  for (const rpcUrl of SOLANA_RPC_ENDPOINTS) {
+    try {
+      const conn =
+        rpcUrl === endpoint
+          ? connection
+          : new Connection(rpcUrl, {
+              commitment: 'confirmed',
+              confirmTransactionInitialTimeout: 60000
+            })
+      return await fn(conn)
+    } catch (error) {
+      lastError = error
+      console.warn(`Solana RPC failed (${rpcUrl}):`, error?.message || error)
+    }
+  }
+  throw lastError || new Error('All Solana RPC endpoints failed')
+}
 
 // Global wallet reference
 let currentWallet = null
@@ -563,7 +589,7 @@ export const getSolBalance = async (walletAddress) => {
       throw new Error('Wallet address is required')
     }
     const walletPubkey = new PublicKey(walletAddress)
-    const balance = await connection.getBalance(walletPubkey)
+    const balance = await withSolanaRpcFallback((conn) => conn.getBalance(walletPubkey))
     return balance / LAMPORTS_PER_SOL
   } catch (error) {
     console.error('Error getting SOL balance:', error)

@@ -355,6 +355,7 @@ import {
   getKiUnbonding
 } from '../../utils/KiStaking'
 
+import { resolveValidatorAddress } from '../../utils/resolveValidator.js'
 export default {
   name: 'KiStaking',
   props: {
@@ -393,7 +394,7 @@ export default {
       // Handle both string and array validator formats
       if (props.network?.validator) {
         if (Array.isArray(props.network.validator)) {
-          validatorAddress.value = props.network.validator[0]
+          validatorAddress.value = resolveValidatorAddress(props.network.validator)
         } else {
           validatorAddress.value = props.network.validator
         }

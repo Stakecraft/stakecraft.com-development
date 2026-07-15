@@ -175,7 +175,7 @@
 
                 <div class="form-group">
                   <label class="form-label">Indexer Address</label>
-                  <input :value="network.validator[0]" type="text" class="form-input" readonly />
+                  <input :value="resolveValidatorAddress(network.validator)" type="text" class="form-input" readonly />
                 </div>
 
                 <div v-if="!hasApproval && stakeAmount > 0" class="approval-section">
@@ -327,6 +327,7 @@ import {
   getAllowance
 } from '../../utils/SubQueryStaking'
 
+import { resolveValidatorAddress } from '../../utils/resolveValidator.js'
 export default {
   name: 'SubQueryStaking',
   props: { network: { type: Object, required: true } },
@@ -425,7 +426,7 @@ export default {
       try {
         const balance = await getSQTBalance(walletAddress.value)
         sqtBalance.value = balance.toFixed(4)
-        const stakingInfo = await getStakingInfo(walletAddress.value, props.network.validator[0])
+        const stakingInfo = await getStakingInfo(walletAddress.value, resolveValidatorAddress(props.network.validator))
         stakedAmount.value = stakingInfo.stakedAmount
         stakingRewards.value = stakingInfo.stakingRewards
         await checkApproval()
@@ -470,7 +471,7 @@ export default {
         stakingError.value = null
         const hash = await stakeTokens(
           walletAddress.value,
-          props.network.validator[0],
+          resolveValidatorAddress(props.network.validator),
           stakeAmount.value
         )
         transactionHash.value = hash
@@ -494,7 +495,7 @@ export default {
         unstakingError.value = null
         const hash = await unstakeTokens(
           walletAddress.value,
-          props.network.validator[0],
+          resolveValidatorAddress(props.network.validator),
           unstakeAmount.value
         )
         transactionHash.value = hash
@@ -519,6 +520,7 @@ export default {
     }
 
     return {
+      resolveValidatorAddress,
       walletConnected,
       walletAddress,
       stakeAmount,

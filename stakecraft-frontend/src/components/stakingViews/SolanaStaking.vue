@@ -438,6 +438,7 @@ import {
   getStakeRewards
 } from '../../utils/SolanaStaking'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { resolveValidatorAddress } from '../../utils/resolveValidator.js'
 
 export default {
   name: 'SolanaStaking',
@@ -486,8 +487,8 @@ export default {
     const withdrawingAccount = ref('')
 
     onMounted(() => {
-      if (props.network?.validator?.[0]) {
-        validatorAddress.value = props.network.validator[0]
+      if (resolveValidatorAddress(props.network?.validator)) {
+        validatorAddress.value = resolveValidatorAddress(props.network.validator)
       }
     })
 
@@ -564,7 +565,15 @@ export default {
         const solBalance = await getSolBalance(walletAddress.value)
         totalSolBalance.value = solBalance
         availableBalance.value = Number(solBalance).toFixed(4)
+      } catch (error) {
+        console.error('Failed to refresh SOL balance:', error)
+        stakingError.value = error.message
+        return
+      }
 
+      if (!validatorAddress.value) return
+
+      try {
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
         stakedAmount.value = stakingInfo.totalStaked
         delegatedStakeAccounts.value = stakingInfo.delegatedAccounts || []
@@ -706,7 +715,7 @@ export default {
 
         await new Promise((resolve) => setTimeout(resolve, 1000))
 
-        const validator = props.network?.validator?.[0] || validatorAddress.value
+        const validator = resolveValidatorAddress(props.network?.validator) || validatorAddress.value
         if (!validator) {
           throw new Error('Validator address is required')
         }

@@ -347,6 +347,7 @@ import {
   getZetaBalance
 } from '../../utils/ZetaStaking'
 
+import { resolveValidatorAddress } from '../../utils/resolveValidator.js'
 export default {
   name: 'ZetaStaking',
   props: {
@@ -380,8 +381,8 @@ export default {
     const totalZetaBalance = ref(0)
 
     onMounted(() => {
-      if (props.network?.validator?.[0]) {
-        validatorAddress.value = props.network.validator[0]
+      if (resolveValidatorAddress(props.network?.validator)) {
+        validatorAddress.value = resolveValidatorAddress(props.network.validator)
       }
     })
 
