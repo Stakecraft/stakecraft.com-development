@@ -3,6 +3,7 @@ import './assets/main.css'
 import { ViteSSG } from 'vite-ssg'
 import App from './App.vue'
 import { routes, prerenderRoutes } from './router/routes.js'
+import { clientOnlyRoutes } from './router/clientRoutes.js'
 import { ConfigProvider } from 'vant'
 
 export const createApp = ViteSSG(
@@ -12,11 +13,14 @@ export const createApp = ViteSSG(
     app.use(ConfigProvider)
 
     if (isClient) {
-      import('./router/clientRoutes.js').then(({ clientOnlyRoutes }) => {
-        for (const route of clientOnlyRoutes) {
-          router.addRoute(route)
-        }
-      })
+      // Register client-only routes synchronously so hard-refreshing /notadmin
+      // (and other non-prerendered paths) matches on first navigation.
+      for (const route of clientOnlyRoutes) {
+        router.addRoute(route)
+      }
+      if (router.currentRoute.value.matched.length === 0) {
+        router.replace(router.currentRoute.value.fullPath)
+      }
 
       // `import.meta.env.SSR` is statically replaced, so this dynamic import (and
       // the wallet-heavy StakingModals it pulls in) is dead-code-eliminated from

@@ -53,9 +53,7 @@
         <div v-for="member in teamMembers" :key="member._id" class="team-member">
           <div class="member-content">
             <div class="memberTitle">{{ member.name }}</div>
-            <div class="memberDescription">
-              {{ member.position }}
-            </div>
+            <div class="memberDescription">{{ member.position }}</div>
           </div>
           <a
             v-if="member.linkedin"
@@ -152,44 +150,36 @@ button {
 }
 
 .team {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  flex: 0 0 auto;
+  width: min(560px, 100%);
 }
 
 .team-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 20px;
   width: 100%;
-  align-items: start;
+  align-items: stretch;
 }
 
 .team-member {
   width: 100%;
+  min-height: 200px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 16px;
   padding: 22px;
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--van-ourCapabilities-wrapper);
-  border: 1px solid rgba(128, 128, 128, 0.15);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   color: var(--van-ourCapabilities-text);
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
-}
-
-.team-member:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
 }
 
 .member-content {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
 }
 
 .ourCapabilities .title {
@@ -247,47 +237,44 @@ button {
 
 .memberTitle {
   font-family: poppins;
-  font-weight: 600;
-  font-size: 17px;
-  line-height: 24px;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 26px;
   color: var(--van-ourCapabilities-title);
+  margin: 0;
 }
 
 .memberDescription {
   font-family: poppins;
   font-weight: 400;
-  font-size: 14px;
-  line-height: 22px;
+  font-size: 13px;
+  line-height: 20px;
   color: var(--van-ourCapabilities-text);
-  opacity: 0.85;
   margin: 0;
+  opacity: 0.9;
 }
 
 .linkedin-link {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   align-self: flex-start;
-  margin-top: auto;
-  padding: 6px 12px;
-  border-radius: 8px;
-  background: rgba(10, 102, 194, 0.1);
   font-family: poppins;
   font-weight: 600;
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 14px;
+  line-height: 20px;
   color: #0a66c2;
   text-decoration: none;
-  transition: 0.2s ease background;
+  transition: 0.2s ease opacity;
 }
 
 .linkedin-link:hover {
-  background: rgba(10, 102, 194, 0.18);
+  opacity: 0.8;
 }
 
 .linkedin-icon {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
 }
 
@@ -364,11 +351,12 @@ button {
   }
 
   .team {
-    display: grid;
-    grid-template-columns: repeat(1, 2fr);
+    width: 100%;
   }
+
   .team-member {
     width: 100%;
+    min-height: 0;
   }
 
   .ourCapabilities .presentation {

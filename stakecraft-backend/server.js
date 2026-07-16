@@ -38,39 +38,35 @@ app.use(
   })
 );
 
-const allowedOrigins =
-  process.env.NODE_ENV === "production"
-    ? [
-        process.env.FRONTEND_URL,
-        "https://stakecraft.com",
-        "https://www.stakecraft.com",
-        ...(process.env.CORS_EXTRA_ORIGINS || "")
-          .split(",")
-          .map((origin) => origin.trim())
-          .filter(Boolean),
-      ].filter(Boolean)
-    : [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:5174",
-        "http://localhost:4173",
-        "https://dev.stakecraft.com",
-        ...(process.env.CORS_EXTRA_ORIGINS || "")
-          .split(",")
-          .map((origin) => origin.trim())
-          .filter(Boolean),
-      ];
+// Local Vite origins are always allowed so `npm run start` (NODE_ENV=production)
+// on backend.dev still accepts requests from a laptop running the frontend.
+const LOCAL_DEV_ORIGINS = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5174",
+  "http://localhost:4173",
+  "http://127.0.0.1:4173",
+];
+
+const extraOrigins = (process.env.CORS_EXTRA_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const allowedOrigins = [
+  ...LOCAL_DEV_ORIGINS,
+  process.env.FRONTEND_URL,
+  "https://dev.stakecraft.com",
+  "https://stakecraft.com",
+  "https://www.stakecraft.com",
+  ...extraOrigins,
+].filter(Boolean);
 
 function isAllowedCorsOrigin(origin) {
   if (allowedOrigins.includes(origin)) {
     return true;
-  }
-
-  if (process.env.NODE_ENV === "production") {
-    return /^https:\/\/([a-f0-9]+\.)?stakecraft-com-development\.pages\.dev$/.test(
-      origin
-    );
   }
 
   return /^https:\/\/([a-f0-9]+\.)?stakecraft-com-development\.pages\.dev$/.test(
