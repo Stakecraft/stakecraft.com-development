@@ -4,7 +4,6 @@ import {
   Transaction,
   SystemProgram,
   LAMPORTS_PER_SOL,
-  Keypair,
   StakeProgram
 } from '@solana/web3.js'
 
@@ -169,6 +168,120 @@ export const getCurrentWallet = () => {
 
 // Core staking functions
 
+const FEE_BUFFER_LAMPORTS = 10_000 // leave room for tx fees
+
+async function sendWalletTransaction(wallet, transaction) {
+  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed')
+  transaction.feePayer = wallet.publicKey
+  transaction.recentBlockhash = blockhash
+
+  let signature
+  if (typeof wallet.signAndSendTransaction === 'function') {
+    const result = await wallet.signAndSendTransaction(transaction)
+    signature = typeof result === 'string' ? result : result.signature
+  } else {
+    const signedTransaction = await wallet.signTransaction(transaction)
+    signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
+      skipPreflight: false,
+      preflightCommitment: 'confirmed'
+    })
+  }
+
+  const confirmation = await connection.confirmTransaction(
+    { signature, blockhash, lastValidBlockHeight },
+    'confirmed'
+  )
+
+  if (confirmation.value.err) {
+    throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`)
+  }
+
+  return signature
+}
+
+/**
+ * Create, initialize, and delegate a stake account in a single transaction.
+ * Uses createAccountWithSeed so only the wallet needs to sign (one Phantom popup).
+ */
+export const createAndDelegateStake = async (stakeLamports, validatorAddress) => {
+  try {
+    const wallet = getCurrentWallet()
+    if (!wallet.connected) {
+      await connectWallet()
+    }
+
+    if (!validatorAddress) {
+      throw new Error('Validator address is required')
+    }
+
+    const validatorPubkey = new PublicKey(validatorAddress)
+    const validatorAccount = await connection.getAccountInfo(validatorPubkey)
+    if (!validatorAccount) {
+      throw new Error('Validator account not found')
+    }
+
+    const rentExemptionAmount = await connection.getMinimumBalanceForRentExemption(
+      StakeProgram.space
+    )
+    const totalLamports = stakeLamports + rentExemptionAmount
+    const requiredBalance = totalLamports + FEE_BUFFER_LAMPORTS
+
+    const walletBalance = await connection.getBalance(wallet.publicKey)
+    if (walletBalance < requiredBalance) {
+      throw new Error(
+        `Insufficient balance. Need ${(requiredBalance / LAMPORTS_PER_SOL).toFixed(4)} SOL but wallet has ${(walletBalance / LAMPORTS_PER_SOL).toFixed(4)} SOL`
+      )
+    }
+
+    // Seed must be ≤ 32 bytes; wallet-derived address needs no extra keypair signature
+    const seed = `stake${Date.now()}`
+    const stakeAccountPubkey = await PublicKey.createWithSeed(
+      wallet.publicKey,
+      seed,
+      StakeProgram.programId
+    )
+
+    const transaction = new Transaction()
+      .add(
+        SystemProgram.createAccountWithSeed({
+          fromPubkey: wallet.publicKey,
+          newAccountPubkey: stakeAccountPubkey,
+          basePubkey: wallet.publicKey,
+          seed,
+          lamports: totalLamports,
+          space: StakeProgram.space,
+          programId: StakeProgram.programId
+        })
+      )
+      .add(
+        StakeProgram.initialize({
+          stakePubkey: stakeAccountPubkey,
+          authorized: {
+            staker: wallet.publicKey,
+            withdrawer: wallet.publicKey
+          }
+        })
+      )
+      .add(
+        StakeProgram.delegate({
+          stakePubkey: stakeAccountPubkey,
+          authorizedPubkey: wallet.publicKey,
+          votePubkey: validatorPubkey
+        })
+      )
+
+    const signature = await sendWalletTransaction(wallet, transaction)
+
+    return {
+      signature,
+      stakeAccount: stakeAccountPubkey.toBase58()
+    }
+  } catch (error) {
+    console.error('Error creating and delegating stake:', error)
+    throw error
+  }
+}
+
 export const createAndInitializeStakeAccount = async (stakeLamports) => {
   try {
     const wallet = getCurrentWallet()
@@ -176,68 +289,53 @@ export const createAndInitializeStakeAccount = async (stakeLamports) => {
       await connectWallet()
     }
 
-    const stakeAccountKeypair = Keypair.generate()
-
-    // Calculate rent exemption
     const rentExemptionAmount = await connection.getMinimumBalanceForRentExemption(
       StakeProgram.space
     )
 
     const totalLamports = stakeLamports + rentExemptionAmount
+    const requiredBalance = totalLamports + FEE_BUFFER_LAMPORTS
 
     const walletBalance = await connection.getBalance(wallet.publicKey)
-    if (walletBalance < totalLamports) {
+    if (walletBalance < requiredBalance) {
       throw new Error(
-        `Insufficient balance. Need ${totalLamports / LAMPORTS_PER_SOL} SOL but wallet has ${walletBalance / LAMPORTS_PER_SOL} SOL`
+        `Insufficient balance. Need ${(requiredBalance / LAMPORTS_PER_SOL).toFixed(4)} SOL but wallet has ${(walletBalance / LAMPORTS_PER_SOL).toFixed(4)} SOL`
       )
     }
 
-    const createAccountInstruction = SystemProgram.createAccount({
-      fromPubkey: wallet.publicKey,
-      newAccountPubkey: stakeAccountKeypair.publicKey,
-      lamports: totalLamports,
-      space: StakeProgram.space,
-      programId: StakeProgram.programId
-    })
-
-    const initializeInstruction = StakeProgram.initialize({
-      stakePubkey: stakeAccountKeypair.publicKey,
-      authorized: {
-        staker: wallet.publicKey,
-        withdrawer: wallet.publicKey
-      }
-    })
-
-    const transaction = new Transaction().add(createAccountInstruction).add(initializeInstruction)
-    transaction.feePayer = wallet.publicKey
-
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed')
-    transaction.recentBlockhash = blockhash
-    transaction.lastValidBlockHeight = lastValidBlockHeight
-
-    // Sign with stake account first, then wallet/provider
-    transaction.partialSign(stakeAccountKeypair)
-    const signedTransaction = await wallet.signTransaction(transaction)
-
-    const signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
-      skipPreflight: false,
-      preflightCommitment: 'confirmed'
-    })
-
-    const confirmation = await connection.confirmTransaction(
-      { signature, blockhash, lastValidBlockHeight },
-      'confirmed'
+    const seed = `stake${Date.now()}`
+    const stakeAccountPubkey = await PublicKey.createWithSeed(
+      wallet.publicKey,
+      seed,
+      StakeProgram.programId
     )
 
-    if (confirmation.value.err) {
-      throw new Error(`Transaction failed: ${confirmation.value.err}`)
-    }
+    const transaction = new Transaction()
+      .add(
+        SystemProgram.createAccountWithSeed({
+          fromPubkey: wallet.publicKey,
+          newAccountPubkey: stakeAccountPubkey,
+          basePubkey: wallet.publicKey,
+          seed,
+          lamports: totalLamports,
+          space: StakeProgram.space,
+          programId: StakeProgram.programId
+        })
+      )
+      .add(
+        StakeProgram.initialize({
+          stakePubkey: stakeAccountPubkey,
+          authorized: {
+            staker: wallet.publicKey,
+            withdrawer: wallet.publicKey
+          }
+        })
+      )
 
-    // Give the network a brief moment to register the account
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    await sendWalletTransaction(wallet, transaction)
 
     return {
-      stakeAccount: stakeAccountKeypair.publicKey.toBase58()
+      stakeAccount: stakeAccountPubkey.toBase58()
     }
   } catch (error) {
     console.error('Error creating and initializing stake account:', error)
@@ -259,51 +357,25 @@ export const delegateStake = async (stakeAccountAddress, validatorAddress) => {
     const stakeAccountPubkey = new PublicKey(stakeAccountAddress)
     const validatorPubkey = new PublicKey(validatorAddress)
 
-    // Verify stake account exists and is initialized
     const stakeAccount = await connection.getAccountInfo(stakeAccountPubkey)
     if (!stakeAccount) {
       throw new Error('Stake account not found')
     }
 
-    // Verify validator account exists
     const validatorAccount = await connection.getAccountInfo(validatorPubkey)
     if (!validatorAccount) {
       throw new Error('Validator account not found')
     }
 
-    const delegateInstruction = StakeProgram.delegate({
-      stakePubkey: stakeAccountPubkey,
-      authorizedPubkey: wallet.publicKey,
-      votePubkey: validatorPubkey
-    })
-
-    const transaction = new Transaction().add(delegateInstruction)
-    transaction.feePayer = wallet.publicKey
-
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed')
-    transaction.recentBlockhash = blockhash
-    transaction.lastValidBlockHeight = lastValidBlockHeight
-
-    const signedTransaction = await wallet.signTransaction(transaction)
-    const signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
-      skipPreflight: false,
-      preflightCommitment: 'confirmed'
-    })
-
-    const confirmation = await connection.confirmTransaction(
-      {
-        signature,
-        blockhash,
-        lastValidBlockHeight
-      },
-      'confirmed'
+    const transaction = new Transaction().add(
+      StakeProgram.delegate({
+        stakePubkey: stakeAccountPubkey,
+        authorizedPubkey: wallet.publicKey,
+        votePubkey: validatorPubkey
+      })
     )
 
-    if (confirmation.value.err) {
-      throw new Error(`Transaction failed: ${confirmation.value.err}`)
-    }
-
-    return signature
+    return await sendWalletTransaction(wallet, transaction)
   } catch (error) {
     console.error('Error delegating stake:', error)
     throw error
@@ -323,38 +395,14 @@ export const undelegateStake = async (stakeAccountAddress) => {
 
     const stakeAccountPubkey = new PublicKey(stakeAccountAddress)
 
-    const deactivateInstruction = StakeProgram.deactivate({
-      stakePubkey: stakeAccountPubkey,
-      authorizedPubkey: wallet.publicKey
-    })
-
-    const transaction = new Transaction().add(deactivateInstruction)
-    transaction.feePayer = wallet.publicKey
-
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed')
-    transaction.recentBlockhash = blockhash
-    transaction.lastValidBlockHeight = lastValidBlockHeight
-
-    const signedTransaction = await wallet.signTransaction(transaction)
-    const signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
-      skipPreflight: false,
-      preflightCommitment: 'confirmed'
-    })
-
-    const confirmation = await connection.confirmTransaction(
-      {
-        signature,
-        blockhash,
-        lastValidBlockHeight
-      },
-      'confirmed'
+    const transaction = new Transaction().add(
+      StakeProgram.deactivate({
+        stakePubkey: stakeAccountPubkey,
+        authorizedPubkey: wallet.publicKey
+      })
     )
 
-    if (confirmation.value.err) {
-      throw new Error(`Transaction failed: ${confirmation.value.err}`)
-    }
-
-    return signature
+    return await sendWalletTransaction(wallet, transaction)
   } catch (error) {
     console.error('Error undelegating stake:', error)
     throw error
