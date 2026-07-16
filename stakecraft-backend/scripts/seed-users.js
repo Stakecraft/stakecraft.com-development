@@ -11,8 +11,8 @@ const MONGODB_URI =
 // Sample users data
 const users = [
   {
-    username: "admin",
-    email: "admin@stakecraft.com",
+    username: "mahavira",
+    email: "mahavira@stakecraft.com",
     password: "admin123",
     role: "admin",
     isActive: true,
@@ -54,18 +54,20 @@ async function seedUsers() {
     await mongoose.connect(MONGODB_URI);
     console.log("✅ Connected to MongoDB");
 
-    // Clear existing users (except admin)
+    // Clear existing users (except primary admin)
     console.log("🧹 Clearing existing users...");
-    await User.deleteMany({ username: { $ne: "admin" } });
+    await User.deleteMany({ username: { $nin: ["mahavira", "admin"] } });
 
     // Create users
     console.log("👥 Creating users...");
     const createdUsers = [];
 
     for (const userData of users) {
-      // Skip if admin already exists
-      if (userData.username === "admin") {
-        const existingAdmin = await User.findOne({ username: "admin" });
+      // Skip if primary admin already exists
+      if (userData.username === "mahavira") {
+        const existingAdmin = await User.findOne({
+          $or: [{ username: "mahavira" }, { username: "admin" }, { role: "admin" }],
+        });
         if (existingAdmin) {
           console.log("⚠️  Admin user already exists, skipping...");
           continue;
