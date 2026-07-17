@@ -1,17 +1,20 @@
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import User from "../models/User.js";
+import { getMongoUri, loadEnv } from "../config/loadEnv.js";
 
-dotenv.config();
+loadEnv();
 
-const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/stakecraft";
+const MONGODB_URI = getMongoUri();
 const targetUsername = process.env.ADMIN_USERNAME || "mahavira";
 const newPassword = process.env.NEW_PASSWORD;
 const fromUsername = process.env.FROM_USERNAME || "admin";
 
 async function resetAdminPassword() {
   try {
+    console.log(
+      "Database URI:",
+      MONGODB_URI.replace(/\/\/.*@/, "//***:***@")
+    );
     await mongoose.connect(MONGODB_URI);
 
     let user =

@@ -1,11 +1,10 @@
-import dotenv from "dotenv";
 import mongoose from "mongoose";
 import Faq from "../models/Faq.js";
+import { getMongoUri, loadEnv } from "../config/loadEnv.js";
 
-dotenv.config();
+loadEnv();
 
-const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/stakecraft";
+const MONGODB_URI = getMongoUri();
 
 const defaultFaqs = [
   {
