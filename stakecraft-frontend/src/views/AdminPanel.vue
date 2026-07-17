@@ -495,6 +495,7 @@
                 <tr>
                   <th>Name</th>
                   <th>Position</th>
+                  <th>Tags</th>
                   <th>LinkedIn</th>
                   <th>Actions</th>
                 </tr>
@@ -503,6 +504,10 @@
                 <tr v-for="member in teamMembers" :key="member._id" class="table-row">
                   <td class="table-cell font-medium">{{ member.name }}</td>
                   <td class="table-cell">{{ member.position }}</td>
+                  <td class="table-cell">
+                    <span v-if="member.tags?.length">{{ member.tags.join(', ') }}</span>
+                    <span v-else class="text-muted">—</span>
+                  </td>
                   <td class="table-cell">
                     <a
                       v-if="member.linkedin"
@@ -754,6 +759,7 @@ import TestnetModal from '@/components/TestnetModal.vue'
 import PartnershipModal from '@/components/PartnershipModal.vue'
 import TeamModal from '@/components/TeamModal.vue'
 import AboutModal from '@/components/AboutModal.vue'
+import { parseTagsInput } from '@/utils/parseTags.js'
 
 // Import API services
 import {
@@ -1149,17 +1155,29 @@ const closeTeamModal = () => {
 
 const saveTeamMember = async (memberData) => {
   try {
+    const payload = {
+      ...memberData,
+      tags: parseTagsInput(memberData.tags)
+    }
+
     if (editingTeamMember.value) {
-      const updatedMember = await teamService.update(editingTeamMember.value._id, memberData)
+      const updatedMember = await teamService.update(editingTeamMember.value._id, payload)
+      const saved = updatedMember.data
       const index = teamMembers.value.findIndex((m) => m._id === editingTeamMember.value._id)
       if (index !== -1) {
-        teamMembers.value[index] = updatedMember.data || {
+        teamMembers.value[index] = saved || {
           ...editingTeamMember.value,
-          ...memberData
+          ...payload
         }
       }
+
+      if (payload.tags.length && !parseTagsInput(saved?.tags).length) {
+        alert(
+          'Member saved, but tags were not stored. Restart the backend after pulling the latest code.'
+        )
+      }
     } else {
-      const newMember = await teamService.create(memberData)
+      const newMember = await teamService.create(payload)
       // Ensure teamMembers.value is an array
       if (!Array.isArray(teamMembers.value)) {
         teamMembers.value = []

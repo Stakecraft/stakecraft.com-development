@@ -1,29 +1,31 @@
 <template>
   <section class="citability mainAreas" id="faq" aria-labelledby="faq-heading">
-    <h2 id="faq-heading" class="titleHeader">Staking FAQ</h2>
-    <p class="citability-intro">
-      Answers to common questions about delegating to StakeCraft validators. StakeCraft is a
-      non-custodial infrastructure operator — your tokens always remain in your wallet.
-    </p>
+    <div class="faq-content">
+      <h2 id="faq-heading" class="titleHeader">Staking FAQ</h2>
+      <p class="faq-intro">
+        Answers to common questions about delegating to StakeCraft validators. StakeCraft is a
+        non-custodial infrastructure operator — your tokens always remain in your wallet.
+      </p>
 
-    <div class="faq-list">
-      <div
-        v-for="(item, index) in faqItems"
-        :key="item.question"
-        class="wrapper"
-        :class="{ withHeight: openItems[index] }"
-        role="button"
-        tabindex="0"
-        :aria-expanded="openItems[index] ? 'true' : 'false'"
-        @click="toggle(index)"
-        @keydown.enter.prevent="toggle(index)"
-        @keydown.space.prevent="toggle(index)"
-      >
-        <div class="presentation">
-          <h3 class="faq-question">{{ item.question }}</h3>
-          <span class="add" :class="{ around: openItems[index] }">+</span>
+      <div class="faq-panels">
+        <div
+          v-for="(item, index) in faqItems"
+          :key="item.question"
+          class="wrapper"
+          :class="{ withHeight: openItems[index] }"
+          role="button"
+          tabindex="0"
+          :aria-expanded="openItems[index] ? 'true' : 'false'"
+          @click="toggle(index)"
+          @keydown.enter.prevent="toggle(index)"
+          @keydown.space.prevent="toggle(index)"
+        >
+          <div class="presentation">
+            <div class="panel-title">{{ item.question }}</div>
+            <span class="add" :class="{ around: openItems[index] }">+</span>
+          </div>
+          <div class="panel-description">{{ item.answer }}</div>
         </div>
-        <p class="faq-answer">{{ item.answer }}</p>
       </div>
     </div>
   </section>
@@ -50,61 +52,75 @@ export default {
 <style scoped>
 .citability {
   background: var(--van-about-us-background);
-  padding-top: 96px;
+  padding-top: 100px;
   padding-bottom: 100px;
 }
 
-.citability-intro {
+.faq-content {
+  width: 100%;
+  max-width: none;
+}
+
+.faq-intro {
+  line-height: 24px;
   font-family: poppins;
   font-size: 16px;
-  line-height: 24px;
-  max-width: 740px;
-  margin-bottom: 45px;
+  font-weight: 400;
+  margin: 0 0 45px 0;
   color: var(--van-text-color);
 }
 
-.faq-list {
-  margin: 0;
-  max-width: 900px;
+.faq-panels {
+  width: 100%;
 }
 
 .wrapper {
+  max-height: 62px;
+  width: 100%;
   overflow: hidden;
   margin-bottom: 18px;
-  max-height: 62px;
-  transition: max-height 0.35s ease;
+  transition: 0.3s linear max-height;
   background: var(--van-ourCapabilities-wrapper);
   color: var(--van-ourCapabilities-text);
-  border-radius: 8px;
   cursor: pointer;
+  border-radius: 8px;
 }
 
 .wrapper.withHeight {
-  max-height: 400px;
+  max-height: 320px;
 }
 
 .presentation {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
+  padding: 16px 20px 11px 20px;
   font-family: poppins;
   font-size: 20px;
   line-height: 30px;
+  justify-content: space-between;
 }
 
-.faq-question {
+.panel-title {
   font-family: poppins;
-  font-weight: 600;
+  font-size: 20px;
+  line-height: 30px;
+  font-weight: 400;
+  margin: 0;
+}
+
+.panel-description {
+  text-align: left;
+  padding: 0 20px 15px 20px;
+  font-size: 16px;
+  line-height: 24px;
+  font-family: poppins;
   margin: 0;
 }
 
 .add {
   font-size: 24px;
-  line-height: 1;
-  flex-shrink: 0;
+  align-self: flex-end;
   transition: 0.3s linear transform;
+  background: var(--van-ourCapabilities-wrapper);
   color: var(--van-ourCapabilities-text);
 }
 
@@ -112,37 +128,36 @@ export default {
   transform: rotate(45deg);
 }
 
-.faq-answer {
-  margin: 0;
-  padding: 0 20px 18px 20px;
-  font-family: poppins;
-  font-size: 16px;
-  line-height: 24px;
-  color: var(--van-text-color-2, #5b666f);
-}
-
-@media only screen and (max-width: 900px) {
+@media only screen and (max-width: 1208px) {
   .citability {
-    padding-top: 56px;
-    padding-bottom: 56px;
+    padding-top: 0;
+    padding-bottom: 100px;
   }
 
   .presentation {
     font-size: 16px;
     line-height: 24px;
     padding: 16px 15px;
+    align-items: center;
+  }
+
+  .panel-title {
+    font-size: 16px;
+    line-height: 24px;
   }
 
   .wrapper {
-    max-height: 60px;
+    padding: 0;
+    margin: 0 0 15px 0;
+    box-sizing: border-box;
   }
 
   .wrapper.withHeight {
-    max-height: 500px;
+    max-height: 420px;
   }
 
-  .faq-answer {
-    padding: 0 15px 16px 15px;
+  .panel-description {
+    padding: 0 15px 15px 15px;
   }
 }
 </style>

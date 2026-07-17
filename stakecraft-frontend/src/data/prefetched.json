@@ -248,6 +248,7 @@
       "_id": "688be38b9bb643b09ba7777d",
       "name": "Vasily Istomin",
       "position": "Project manager, business analysis, business planning, and customer relations. Crypto enthusiast.",
+      "tags": ["Project Management", "Business", "Client Relations"],
       "image": "https://ipfs.io/ipfs/QmSEJqcZwxzuZcPpfJC3LyL3pY3Mxw5VKdswarrqhbpjkH",
       "createdAt": "2025-07-31T21:43:39.663Z",
       "updatedAt": "2025-07-31T21:43:39.663Z",
@@ -257,6 +258,7 @@
       "_id": "688be3f89bb643b09ba77780",
       "name": "Alexander Lysenko",
       "position": "CEO at Hubcap SRL. Over 15 years of UNIX software system administration and Devops experience.",
+      "tags": ["DevOps", "Infrastructure", "Leadership"],
       "image": "https://ipfs.io/ipfs/QmWz6xTYQFDPDnYajgcHUY7SZ4wHpAjhwpSh9DjkfkDzSj",
       "createdAt": "2025-07-31T21:45:28.973Z",
       "updatedAt": "2025-07-31T21:45:28.973Z",
@@ -266,6 +268,7 @@
       "_id": "688be43d9bb643b09ba77783",
       "name": "Stanislav Culcitchi",
       "position": "Network engineer with 11 years of experience, automatization and scripting specialist.",
+      "tags": ["Networking", "Automation", "Security"],
       "image": "https://ipfs.io/ipfs/QmUxL5GQ7x7mAFCya16m7JmqgQxSkiWTkabLWca3zmDcMb",
       "createdAt": "2025-07-31T21:46:37.648Z",
       "updatedAt": "2025-12-17T03:16:18.236Z",
@@ -275,6 +278,7 @@
       "_id": "688be4749bb643b09ba77786",
       "name": "Alex Novacovschi",
       "position": "DevOps engineer, blockchain expert, crypto enthusiast.",
+      "tags": ["DevOps", "Blockchain", "Validator Ops"],
       "image": "https://ipfs.io/ipfs/QmU7nukGvTGXhG3Z3eruhZS93gYFk56XPdSHKLr2VJkrTB",
       "createdAt": "2025-07-31T21:47:32.788Z",
       "updatedAt": "2025-07-31T21:47:45.194Z",
@@ -313,11 +317,23 @@
       "__v": 0
     },
     {
+      "_id": "67f8a1b2c3d4e5f6a7b8c9d0",
+      "type": "menu",
+      "title": "FAQ",
+      "link": "/#faq",
+      "order": 3,
+      "isActive": true,
+      "metadata": {
+        "menuSection": "center",
+        "isExternal": "false"
+      }
+    },
+    {
       "_id": "6895682d1a14b2bea47ea288",
       "type": "menu",
       "title": "Partnerships",
       "link": "/#partnership",
-      "order": 3,
+      "order": 4,
       "isActive": true,
       "metadata": {
         "menuSection": "center",
@@ -332,7 +348,7 @@
       "type": "menu",
       "title": "Projects",
       "link": "/#products",
-      "order": 4,
+      "order": 5,
       "isActive": true,
       "metadata": {
         "menuSection": "center",
@@ -347,7 +363,7 @@
       "type": "menu",
       "title": "About Us",
       "link": "/#aboutUs",
-      "order": 5,
+      "order": 6,
       "isActive": true,
       "metadata": {
         "menuSection": "center",
@@ -362,7 +378,7 @@
       "type": "menu",
       "title": "Contacts",
       "link": "/#contacts",
-      "order": 6,
+      "order": 7,
       "isActive": true,
       "metadata": {
         "menuSection": "center",
@@ -377,7 +393,7 @@
       "type": "menu",
       "title": "Swap",
       "link": "/swap",
-      "order": 7,
+      "order": 8,
       "isActive": true,
       "metadata": {
         "menuSection": "center",
@@ -392,7 +408,7 @@
       "type": "menu",
       "title": "Services",
       "link": "https://services.stakecraft.com/",
-      "order": 8,
+      "order": 9,
       "isActive": true,
       "metadata": {
         "menuSection": "right",
@@ -407,7 +423,7 @@
       "type": "menu",
       "title": "Blog",
       "link": "https://stakecraft.medium.com/",
-      "order": 9,
+      "order": 10,
       "isActive": true,
       "metadata": {
         "menuSection": "right",

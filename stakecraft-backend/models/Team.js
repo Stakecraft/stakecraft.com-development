@@ -16,6 +16,10 @@ const teamSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    tags: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,

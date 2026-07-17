@@ -43,9 +43,20 @@ const seedMenuItems = async () => {
       },
       {
         type: "menu",
+        title: "FAQ",
+        link: "/#faq",
+        order: 3,
+        isActive: true,
+        metadata: {
+          menuSection: "center",
+          isExternal: "false",
+        },
+      },
+      {
+        type: "menu",
         title: "Partnership",
         link: "/#partnership",
-        order: 3,
+        order: 4,
         isActive: true,
         metadata: {
           menuSection: "center",
@@ -56,7 +67,7 @@ const seedMenuItems = async () => {
         type: "menu",
         title: "Swap",
         link: "/swap",
-        order: 4,
+        order: 5,
         isActive: true,
         metadata: {
           menuSection: "center",
@@ -67,7 +78,7 @@ const seedMenuItems = async () => {
         type: "menu",
         title: "About Us",
         link: "/#aboutUs",
-        order: 5,
+        order: 6,
         isActive: true,
         metadata: {
           menuSection: "center",
@@ -78,7 +89,7 @@ const seedMenuItems = async () => {
         type: "menu",
         title: "Contacts",
         link: "/#contacts",
-        order: 6,
+        order: 7,
         isActive: true,
         metadata: {
           menuSection: "center",
@@ -89,7 +100,7 @@ const seedMenuItems = async () => {
         type: "menu",
         title: "Services",
         link: "https://services.stakecraft.com/",
-        order: 7,
+        order: 8,
         isActive: true,
         metadata: {
           menuSection: "right",
@@ -100,7 +111,7 @@ const seedMenuItems = async () => {
         type: "menu",
         title: "Blog",
         link: "https://stakecraft.medium.com/",
-        order: 8,
+        order: 9,
         isActive: true,
         metadata: {
           menuSection: "right",

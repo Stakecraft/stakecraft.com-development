@@ -30,7 +30,7 @@
               <p>Examples:</p>
               <ul>
                 <li class="form-hint-li">
-                  Internal links: <code>/#mainnet</code>, <code>/swap</code>, <code>/#aboutUs</code>
+                  Internal links: <code>/#mainnet</code>, <code>/#faq</code>, <code>/swap</code>, <code>/#aboutUs</code>
                 </li>
                 <li class="form-hint-li">
                   External links: <code>https://services.stakecraft.com/</code>,

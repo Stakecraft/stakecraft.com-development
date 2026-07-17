@@ -17,6 +17,17 @@
           </div>
 
           <div class="form-group">
+            <label class="form-label">Tags</label>
+            <input
+              v-model="form.tags"
+              type="text"
+              class="form-input"
+              placeholder="DevOps, Infrastructure, Security"
+            />
+            <p class="form-hint">Comma-separated specialties (max 4 recommended)</p>
+          </div>
+
+          <div class="form-group">
             <label class="form-label">LinkedIn Profile URL</label>
             <input
               v-model="form.linkedin"
@@ -38,6 +49,7 @@
 
 <script setup>
 import { ref, reactive, watch, inject } from 'vue'
+import { parseTagsInput } from '../utils/parseTags.js'
 
 const props = defineProps({
   show: {
@@ -62,6 +74,7 @@ const theme = inject('theme', ref('light'))
 const form = reactive({
   name: '',
   position: '',
+  tags: '',
   linkedin: ''
 })
 
@@ -71,10 +84,14 @@ watch(
     if (newTeamMember && Object.keys(newTeamMember).length > 0) {
       form.name = newTeamMember.name || ''
       form.position = newTeamMember.position || ''
+      form.tags = Array.isArray(newTeamMember.tags)
+        ? newTeamMember.tags.join(', ')
+        : newTeamMember.tags || ''
       form.linkedin = newTeamMember.linkedin || ''
     } else {
       form.name = ''
       form.position = ''
+      form.tags = ''
       form.linkedin = ''
     }
   },
@@ -87,9 +104,10 @@ const closeModal = () => {
 
 const saveTeamMember = () => {
   const teamMemberData = {
-    name: form.name,
-    position: form.position,
-    linkedin: form.linkedin
+    name: form.name.trim(),
+    position: form.position.trim(),
+    tags: parseTagsInput(form.tags),
+    linkedin: form.linkedin.trim()
   }
 
   emit('save', teamMemberData)
@@ -221,6 +239,12 @@ const saveTeamMember = () => {
   font-size: 0.875rem;
   font-weight: 600;
   color: #374151;
+}
+
+.form-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #6b7280;
 }
 
 .form-input,

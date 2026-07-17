@@ -55,6 +55,9 @@
             <div class="memberTitle">{{ member.name }}</div>
             <div class="memberDescription">{{ member.position }}</div>
           </div>
+          <div v-if="memberTags(member).length" class="member-tags">
+            <span v-for="tag in memberTags(member)" :key="tag" class="member-tag">{{ tag }}</span>
+          </div>
           <a
             v-if="member.linkedin"
             :href="member.linkedin"
@@ -80,6 +83,7 @@
 <script>
 import { ref, onMounted } from 'vue'
 import { useContent } from '../composables/useContent.js'
+import { parseTagsInput } from '../utils/parseTags.js'
 
 export default {
   name: 'AboutSection',
@@ -99,9 +103,12 @@ export default {
       }
     }
 
+    const memberTags = (member) => parseTagsInput(member?.tags)
+
     return {
       showDescription,
       openDescription,
+      memberTags,
       aboutContent: getAboutContent,
       teamMembers: getTeamMembers,
       loading,
@@ -151,20 +158,21 @@ button {
 
 .team {
   flex: 0 0 auto;
-  width: min(560px, 100%);
+  width: min(568px, 100%);
 }
 
 .team-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, 274px);
   gap: 20px;
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
   align-items: stretch;
 }
 
 .team-member {
-  width: 100%;
-  min-height: 200px;
+  width: 274px;
+  height: 274px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -174,6 +182,7 @@ button {
   background: var(--van-ourCapabilities-wrapper);
   color: var(--van-ourCapabilities-text);
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .member-content {
@@ -200,6 +209,7 @@ button {
   background: var(--van-ourCapabilities-wrapper);
   color: var(--van-ourCapabilities-text);
   cursor: pointer;
+  border-radius: 8px;
 }
 
 .ourCapabilities .wrapper.withHeight {
@@ -252,6 +262,24 @@ button {
   color: var(--van-ourCapabilities-text);
   margin: 0;
   opacity: 0.9;
+}
+
+.member-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+}
+
+.member-tag {
+  font-family: poppins;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--van-ourCapabilities-text) 12%, transparent);
+  color: var(--van-ourCapabilities-title);
 }
 
 .linkedin-link {
@@ -347,7 +375,8 @@ button {
   } */
 
   .team-grid {
-    grid-template-columns: repeat(2, 2fr);
+    grid-template-columns: repeat(2, 274px);
+    justify-content: center;
   }
 
   .team {
@@ -355,8 +384,8 @@ button {
   }
 
   .team-member {
-    width: 100%;
-    min-height: 0;
+    width: 274px;
+    height: 274px;
   }
 
   .ourCapabilities .presentation {
@@ -383,11 +412,8 @@ button {
 
 @media screen and (max-width: 425px) {
   .team-grid {
-    grid-template-columns: repeat(1, 1fr);
-  }
-
-  .team {
-    grid-template-columns: repeat(1, 1fr);
+    grid-template-columns: 274px;
+    justify-content: center;
   }
 }
 </style>

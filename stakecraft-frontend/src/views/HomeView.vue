@@ -16,9 +16,9 @@
     </div>
     <MainnetStatic />
     <Testnet />
+    <CitabilitySection />
     <Whychooseus />
     <About />
-    <CitabilitySection />
     <LetsConnect />
   </div>
 </template>
