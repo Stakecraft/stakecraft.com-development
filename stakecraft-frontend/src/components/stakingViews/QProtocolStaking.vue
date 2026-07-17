@@ -192,7 +192,7 @@
                 <div class="form-group">
                   <label class="form-label">Validator Address</label>
                   <input
-                    :value="network.validator[0]"
+                    :value="resolveValidatorAddress(network.validator)"
                     type="text"
                     class="form-input"
                     placeholder="Enter validator address"
@@ -355,6 +355,7 @@ import {
   getStakingInfo
 } from '../../utils/QProtocolStaking'
 
+import { resolveValidatorAddress } from '../../utils/resolveValidator.js'
 export default {
   name: 'QProtocolStaking',
   props: {
@@ -458,7 +459,7 @@ export default {
         const balance = await getQBalance(walletAddress.value)
         qBalance.value = balance.toFixed(4)
 
-        const stakingInfo = await getStakingInfo(walletAddress.value, props.network.validator[0])
+        const stakingInfo = await getStakingInfo(walletAddress.value, resolveValidatorAddress(props.network.validator))
         stakedAmount.value = stakingInfo.stakedAmount
         stakingRewards.value = stakingInfo.stakingRewards
       } catch (error) {
@@ -476,7 +477,7 @@ export default {
 
         const hash = await stakeTokens(
           walletAddress.value,
-          props.network.validator[0],
+          resolveValidatorAddress(props.network.validator),
           stakeAmount.value
         )
 
@@ -502,7 +503,7 @@ export default {
 
         const hash = await unstakeTokens(
           walletAddress.value,
-          props.network.validator[0],
+          resolveValidatorAddress(props.network.validator),
           unstakeAmount.value
         )
 
@@ -529,6 +530,7 @@ export default {
     }
 
     return {
+      resolveValidatorAddress,
       walletConnected,
       walletAddress,
       stakeAmount,

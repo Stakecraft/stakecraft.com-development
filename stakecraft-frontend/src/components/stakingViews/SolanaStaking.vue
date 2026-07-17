@@ -428,8 +428,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import {
   connectWallet,
   WalletDisconnect,
-  delegateStake,
-  createAndInitializeStakeAccount,
+  createAndDelegateStake,
   getTotalStakedAmount,
   undelegateStake,
   withdrawStake,
@@ -438,6 +437,7 @@ import {
   getStakeRewards
 } from '../../utils/SolanaStaking'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { resolveValidatorAddress } from '../../utils/resolveValidator.js'
 
 export default {
   name: 'SolanaStaking',
@@ -486,8 +486,8 @@ export default {
     const withdrawingAccount = ref('')
 
     onMounted(() => {
-      if (props.network?.validator?.[0]) {
-        validatorAddress.value = props.network.validator[0]
+      if (resolveValidatorAddress(props.network?.validator)) {
+        validatorAddress.value = resolveValidatorAddress(props.network.validator)
       }
     })
 
@@ -502,11 +502,13 @@ export default {
 
     const isValidStake = computed(() => {
       const amount = parseFloat(stakeAmount.value)
+      // Reserve rent (~0.0023 SOL) + tx fees so full-balance stakes don't fail
+      const maxStakeable = Math.max(0, Number(totalSolBalance.value) - 0.003)
       return (
         !isNaN(amount) &&
         amount >= minimumStake &&
         validatorAddress.value &&
-        amount <= Number(totalSolBalance.value)
+        amount <= maxStakeable
       )
     })
 
@@ -564,7 +566,15 @@ export default {
         const solBalance = await getSolBalance(walletAddress.value)
         totalSolBalance.value = solBalance
         availableBalance.value = Number(solBalance).toFixed(4)
+      } catch (error) {
+        console.error('Failed to refresh SOL balance:', error)
+        stakingError.value = error.message
+        return
+      }
 
+      if (!validatorAddress.value) return
+
+      try {
         const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
         stakedAmount.value = stakingInfo.totalStaked
         delegatedStakeAccounts.value = stakingInfo.delegatedAccounts || []
@@ -696,42 +706,44 @@ export default {
         unstakingSuccess.value = false
         unstakingError.value = null
 
-        const { stakeAccount } = await createAndInitializeStakeAccount(
-          stakeAmount.value * LAMPORTS_PER_SOL
-        )
-
-        if (!stakeAccount) {
-          throw new Error('Failed to create stake account')
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-
-        const validator = props.network?.validator?.[0] || validatorAddress.value
+        const validator = resolveValidatorAddress(props.network?.validator) || validatorAddress.value
         if (!validator) {
           throw new Error('Validator address is required')
         }
 
-        const signature = await delegateStake(stakeAccount, validator)
+        const { signature, stakeAccount } = await createAndDelegateStake(
+          stakeAmount.value * LAMPORTS_PER_SOL,
+          validator
+        )
+
+        if (!signature || !stakeAccount) {
+          throw new Error('Failed to create and delegate stake account')
+        }
+
         transactionSignature.value = signature
 
         rewards.value = await getStakeRewards(stakeAccount)
         await refreshStakingInfo()
+        await loadStakingAccounts()
 
         stakingSuccess.value = true
         stakeAmount.value = 0
       } catch (error) {
         console.error('Failed to delegate stake:', error)
+        const msg = error?.message || String(error) || ''
         let errorMessage = 'Failed to delegate stake'
-        if (error.message.includes('Insufficient balance')) {
-          errorMessage = 'Insufficient SOL balance in your wallet'
-        } else if (error.message.includes('already delegated')) {
+        if (/user rejected|User rejected|cancelled|denied/i.test(msg)) {
+          errorMessage = 'Transaction rejected in wallet'
+        } else if (msg.includes('Insufficient balance') || /insufficient/i.test(msg)) {
+          errorMessage = 'Insufficient SOL balance in your wallet (need stake amount + rent + fees)'
+        } else if (msg.includes('already delegated')) {
           errorMessage = 'This stake account is already delegated'
-        } else if (error.message.includes('Validator account not found')) {
+        } else if (msg.includes('Validator account not found')) {
           errorMessage = 'Invalid validator address'
-        } else if (error.message.includes('Stake account not found')) {
-          errorMessage = 'Stake account creation failed'
-        } else if (error.message.includes('0x1902')) {
+        } else if (msg.includes('0x1902')) {
           errorMessage = 'Stake account is not properly initialized. Please try again.'
+        } else if (msg) {
+          errorMessage = msg.length > 160 ? `${msg.slice(0, 160)}…` : msg
         }
 
         stakingError.value = errorMessage

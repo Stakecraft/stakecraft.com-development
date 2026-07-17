@@ -3,9 +3,8 @@ import { SigningStargateClient, GasPrice } from '@cosmjs/stargate'
 const BAND_CHAIN_ID = 'laozi-mainnet'
 
 const RPC_ENDPOINTS = [
-  'http://rpc.laozi1.bandchain.org',
-  'https://rpc-bandchain.cosmostation.io',
-  'https://band-protocol-rpc.publicnode.com'
+  'https://rpc.cosmos.directory/bandchain',
+  'https://band-rpc.polkachu.com'
 ]
 
 // Connect wallet

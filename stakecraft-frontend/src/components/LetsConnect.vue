@@ -9,9 +9,9 @@
       </div>
       <div class="socialMedia">
         <a href="tg://resolve?domain=stakecraft"><img src="../assets/telegram.svg" /></a>
-        <a href="https://x.com/stakecraft"><img src="../assets/twitter.svg" /></a>
-        <a href="https://discord.gg/xkYnNYV4qH"><img src="../assets/discord.svg" /></a>
-        <a href="https://stakecraft.medium.com/"><img src="../assets/medium.svg" /></a>
+        <a href="https://x.com/stakecraft" rel="noopener noreferrer" target="_blank"><img src="../assets/twitter.svg" /></a>
+        <a href="https://discord.gg/xkYnNYV4qH" rel="noopener noreferrer" target="_blank"><img src="../assets/discord.svg" /></a>
+        <a href="https://stakecraft.medium.com/" rel="noopener noreferrer" target="_blank"><img src="../assets/medium.svg" /></a>
       </div>
     </div>
     <div class="lastInfo">

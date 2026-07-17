@@ -1,5 +1,6 @@
 <template>
-  <div class="admin-container" :class="`van-theme-${theme}`">
+  <AdminLogin v-if="!isAuthenticated" @authenticated="onAuthenticated" />
+  <div v-else class="admin-container" :class="`van-theme-${theme}`">
     <!-- Sidebar -->
     <div class="sidebar" :class="{ 'sidebar-open': sidebarOpen }">
       <div class="sidebar-header">
@@ -492,29 +493,33 @@
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Photo</th>
                   <th>Name</th>
                   <th>Position</th>
+                  <th>Tags</th>
+                  <th>LinkedIn</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="member in teamMembers" :key="member._id" class="table-row">
-                  <td class="table-cell">
-                    <div class="member-cell">
-                      <img
-                        v-if="member.image"
-                        :src="member.image"
-                        :alt="member.name"
-                        class="member-image"
-                      />
-                      <div v-else class="image-placeholder-small">
-                        <ImageIcon class="placeholder-icon-small" />
-                      </div>
-                    </div>
-                  </td>
                   <td class="table-cell font-medium">{{ member.name }}</td>
                   <td class="table-cell">{{ member.position }}</td>
+                  <td class="table-cell">
+                    <span v-if="member.tags?.length">{{ member.tags.join(', ') }}</span>
+                    <span v-else class="text-muted">—</span>
+                  </td>
+                  <td class="table-cell">
+                    <a
+                      v-if="member.linkedin"
+                      :href="member.linkedin"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="linkedin-cell-link"
+                    >
+                      View Profile
+                    </a>
+                    <span v-else class="text-muted">—</span>
+                  </td>
                   <td class="table-cell">
                     <div class="action-buttons">
                       <button @click="editTeamMember(member)" class="action-btn edit-btn">
@@ -725,6 +730,8 @@
 
 <script setup>
 import { ref, onMounted, inject } from 'vue'
+import AdminLogin from '@/components/AdminLogin.vue'
+import { getAuthToken, fetchCurrentUser } from '@/services/authService.js'
 import {
   Menu,
   Bell,
@@ -752,6 +759,7 @@ import TestnetModal from '@/components/TestnetModal.vue'
 import PartnershipModal from '@/components/PartnershipModal.vue'
 import TeamModal from '@/components/TeamModal.vue'
 import AboutModal from '@/components/AboutModal.vue'
+import { parseTagsInput } from '@/utils/parseTags.js'
 
 // Import API services
 import {
@@ -765,6 +773,12 @@ import {
 
 // Theme injection
 const theme = inject('theme')
+const isAuthenticated = ref(false)
+
+const onAuthenticated = () => {
+  isAuthenticated.value = true
+  loadAllData()
+}
 
 // Reactive data
 const sidebarOpen = ref(false)
@@ -823,7 +837,13 @@ const aboutContent = ref([])
 
 // Load data on component mount
 onMounted(async () => {
-  await loadAllData()
+  if (getAuthToken()) {
+    const user = await fetchCurrentUser()
+    isAuthenticated.value = !!user
+    if (isAuthenticated.value) {
+      await loadAllData()
+    }
+  }
 })
 
 // Load all data from backend
@@ -1135,17 +1155,29 @@ const closeTeamModal = () => {
 
 const saveTeamMember = async (memberData) => {
   try {
+    const payload = {
+      ...memberData,
+      tags: parseTagsInput(memberData.tags)
+    }
+
     if (editingTeamMember.value) {
-      const updatedMember = await teamService.update(editingTeamMember.value._id, memberData)
+      const updatedMember = await teamService.update(editingTeamMember.value._id, payload)
+      const saved = updatedMember.data
       const index = teamMembers.value.findIndex((m) => m._id === editingTeamMember.value._id)
       if (index !== -1) {
-        teamMembers.value[index] = updatedMember.data || {
+        teamMembers.value[index] = saved || {
           ...editingTeamMember.value,
-          ...memberData
+          ...payload
         }
       }
+
+      if (payload.tags.length && !parseTagsInput(saved?.tags).length) {
+        alert(
+          'Member saved, but tags were not stored. Restart the backend after pulling the latest code.'
+        )
+      }
     } else {
-      const newMember = await teamService.create(memberData)
+      const newMember = await teamService.create(payload)
       // Ensure teamMembers.value is an array
       if (!Array.isArray(teamMembers.value)) {
         teamMembers.value = []
@@ -2110,6 +2142,20 @@ const migrateTestnetToMainnet = async () => {
 }
 
 /* Team Styles */
+.linkedin-cell-link {
+  color: #0a66c2;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.linkedin-cell-link:hover {
+  text-decoration: underline;
+}
+
+.text-muted {
+  color: #9ca3af;
+}
+
 .team-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

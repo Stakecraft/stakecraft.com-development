@@ -349,6 +349,7 @@ import {
   getMovrBalance
 } from '../../utils/MoonriverStaking'
 
+import { resolveValidatorAddress } from '../../utils/resolveValidator.js'
 export default {
   name: 'MoonriverStaking',
   props: {
@@ -382,8 +383,8 @@ export default {
     const totalMovrBalance = ref(0)
 
     onMounted(() => {
-      if (props.network?.validator?.[0]) {
-        validatorAddress.value = props.network.validator[0]
+      if (resolveValidatorAddress(props.network?.validator)) {
+        validatorAddress.value = resolveValidatorAddress(props.network.validator)
       }
     })
 

@@ -7,66 +7,6 @@
         </h3>
         <form @submit.prevent="saveTeamMember" class="modal-form">
           <div class="form-group">
-            <label class="form-label">Profile Photo</label>
-            <div class="image-upload-container">
-              <div v-if="imagePreview || form.avatar" class="image-preview">
-                <img
-                  :src="imagePreview || form.avatar"
-                  :alt="form.name || 'Team member photo'"
-                  class="preview-image"
-                />
-                <button
-                  type="button"
-                  @click="removeImage"
-                  class="remove-image-btn"
-                  title="Remove image"
-                >
-                  ×
-                </button>
-              </div>
-              <div
-                v-else
-                class="upload-area"
-                @click="triggerFileInput"
-                @drop="handleDrop"
-                @dragover.prevent
-                @dragenter.prevent
-              >
-                <input
-                  ref="fileInput"
-                  type="file"
-                  accept="image/*"
-                  @change="handleFileSelect"
-                  class="file-input"
-                  style="display: none"
-                />
-                <div class="upload-content">
-                  <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                    ></path>
-                  </svg>
-                  <p class="upload-text">Click to upload or drag and drop</p>
-                  <p class="upload-hint">PNG, JPG, GIF up to 10MB</p>
-                </div>
-              </div>
-              <div v-if="uploading" class="upload-progress">
-                <div class="progress-bar">
-                  <div class="progress-fill"></div>
-                </div>
-                <p class="progress-text">Uploading to IPFS...</p>
-              </div>
-              <div v-if="uploadError" class="upload-error">
-                <p class="error-text">{{ uploadError }}</p>
-                <button type="button" @click="retryUpload" class="retry-btn">Retry Upload</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-group">
             <label class="form-label">Full Name</label>
             <input v-model="form.name" type="text" class="form-input" required />
           </div>
@@ -76,19 +16,30 @@
             <textarea v-model="form.position" type="text" class="form-input" required />
           </div>
 
+          <div class="form-group">
+            <label class="form-label">Tags</label>
+            <input
+              v-model="form.tags"
+              type="text"
+              class="form-input"
+              placeholder="DevOps, Infrastructure, Security"
+            />
+            <p class="form-hint">Comma-separated specialties (max 4 recommended)</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">LinkedIn Profile URL</label>
+            <input
+              v-model="form.linkedin"
+              type="url"
+              class="form-input"
+              placeholder="https://www.linkedin.com/in/username"
+            />
+          </div>
+
           <div class="modal-actions">
-            <button
-              type="button"
-              @click="closeModal"
-              class="btn btn-secondary"
-              :disabled="uploading"
-            >
-              Cancel
-            </button>
-            <button type="submit" class="btn btn-primary" :disabled="uploading">
-              <span v-if="uploading" class="loading-spinner-small"></span>
-              {{ uploading ? 'Saving...' : 'Save' }}
-            </button>
+            <button type="button" @click="closeModal" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
           </div>
         </form>
       </div>
@@ -98,7 +49,7 @@
 
 <script setup>
 import { ref, reactive, watch, inject } from 'vue'
-import { useIPFS } from '@/composables/useIPFS'
+import { parseTagsInput } from '../utils/parseTags.js'
 
 const props = defineProps({
   show: {
@@ -119,15 +70,12 @@ const emit = defineEmits(['close', 'save'])
 
 // Theme injection
 const theme = inject('theme', ref('light'))
-const { uploading, uploadError, uploadToIPFS } = useIPFS()
-const fileInput = ref(null)
-const imagePreview = ref(null)
-const selectedFile = ref(null)
 
 const form = reactive({
   name: '',
   position: '',
-  image: ''
+  tags: '',
+  linkedin: ''
 })
 
 watch(
@@ -136,14 +84,15 @@ watch(
     if (newTeamMember && Object.keys(newTeamMember).length > 0) {
       form.name = newTeamMember.name || ''
       form.position = newTeamMember.position || ''
-      form.image = newTeamMember.image || ''
-      imagePreview.value = newTeamMember.image || null
+      form.tags = Array.isArray(newTeamMember.tags)
+        ? newTeamMember.tags.join(', ')
+        : newTeamMember.tags || ''
+      form.linkedin = newTeamMember.linkedin || ''
     } else {
       form.name = ''
       form.position = ''
-      form.image = ''
-      imagePreview.value = null
-      selectedFile.value = null
+      form.tags = ''
+      form.linkedin = ''
     }
   },
   { immediate: true }
@@ -153,83 +102,12 @@ const closeModal = () => {
   emit('close')
 }
 
-const triggerFileInput = () => {
-  fileInput.value?.click()
-}
-
-const handleFileSelect = (event) => {
-  const file = event.target.files[0]
-  if (file) {
-    handleFile(file)
-  }
-}
-
-const handleDrop = (event) => {
-  event.preventDefault()
-  const file = event.dataTransfer.files[0]
-  if (file && file.type.startsWith('image/')) {
-    handleFile(file)
-  }
-}
-
-const handleFile = async (file) => {
-  if (file.size > 10 * 1024 * 1024) {
-    alert('File size must be less than 10MB')
-    return
-  }
-
-  if (!file.type.startsWith('image/')) {
-    alert('Please select an image file')
-    return
-  }
-
-  selectedFile.value = file
-
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    imagePreview.value = e.target.result
-  }
-  reader.readAsDataURL(file)
-
-  await uploadToIPFSAndSave(file)
-}
-
-const uploadToIPFSAndSave = async (file) => {
-  try {
-    const result = await uploadToIPFS(file)
-
-    if (result.success) {
-      form.image = result.url
-    } else {
-      console.error('IPFS upload failed:', result.error)
-      alert('Failed to upload image to IPFS. Please try again.')
-    }
-  } catch (error) {
-    console.error('Upload error:', error)
-    alert('Failed to upload image. Please try again.')
-  }
-}
-
-const removeImage = () => {
-  imagePreview.value = null
-  selectedFile.value = null
-  form.image = ''
-  if (fileInput.value) {
-    fileInput.value.value = ''
-  }
-}
-
-const retryUpload = async () => {
-  if (selectedFile.value) {
-    await uploadToIPFSAndSave(selectedFile.value)
-  }
-}
-
 const saveTeamMember = () => {
   const teamMemberData = {
-    name: form.name,
-    position: form.position,
-    image: form.image
+    name: form.name.trim(),
+    position: form.position.trim(),
+    tags: parseTagsInput(form.tags),
+    linkedin: form.linkedin.trim()
   }
 
   emit('save', teamMemberData)
@@ -361,6 +239,12 @@ const saveTeamMember = () => {
   font-size: 0.875rem;
   font-weight: 600;
   color: #374151;
+}
+
+.form-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #6b7280;
 }
 
 .form-input,

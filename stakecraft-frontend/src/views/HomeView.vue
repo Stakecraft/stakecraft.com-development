@@ -3,8 +3,8 @@
     <div class="homeView">
       <div class="presentation">
         <div class="titleArea">
-          <div class="titleLvl1">Trustworthy</div>
-          <div class="titleLvl2">Validator</div>
+          <h1 class="titleLvl1">Trustworthy</h1>
+          <div class="titleLvl2" aria-hidden="true">Validator</div>
         </div>
         <div class="websiteDescription">
           Stakecraft validator offers services to make profit to users from staking their digital
@@ -14,8 +14,9 @@
       </div>
       <div class="imageArea" />
     </div>
-    <Mainnet />
+    <MainnetStatic />
     <Testnet />
+    <CitabilitySection />
     <Whychooseus />
     <About />
     <LetsConnect />
@@ -23,15 +24,27 @@
 </template>
 
 <script>
-import Mainnet from '../components/Mainnet.vue'
+import MainnetStatic from '../components/MainnetStatic.vue'
 import Testnet from '../components/Testnet.vue'
 import Whychooseus from '../components/Whychooseus.vue'
 import About from '../components/About.vue'
+import CitabilitySection from '../components/CitabilitySection.vue'
 import LetsConnect from '../components/LetsConnect.vue'
+import { useSeo } from '../composables/useSeo.js'
+import { routeSeo } from '../config/seo.js'
 
 export default {
-  components: { Mainnet, Testnet, Whychooseus, About, LetsConnect },
-  setup() {}
+  components: {
+    MainnetStatic,
+    Testnet,
+    Whychooseus,
+    About,
+    CitabilitySection,
+    LetsConnect
+  },
+  setup() {
+    useSeo(routeSeo.home)
+  }
 }
 </script>
 
@@ -60,7 +73,9 @@ export default {
   margin-bottom: 35px;
 }
 
-.titleArea div {
+.titleArea .titleLvl1,
+.titleArea .titleLvl2 {
+  margin: 0;
   font-size: 90px;
   font-weight: 600;
   line-height: 100px;
@@ -97,7 +112,8 @@ export default {
     height: 420px;
   }
 
-  .titleArea div {
+  .titleArea .titleLvl1,
+  .titleArea .titleLvl2 {
     font-size: 56px;
     line-height: 62px;
   }

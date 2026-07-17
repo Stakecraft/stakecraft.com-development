@@ -318,6 +318,7 @@ import {
   WalletDisconnect
 } from '../../utils/PolygonStaking'
 
+import { resolveValidatorAddress } from '../../utils/resolveValidator.js'
 export default {
   name: 'PolygonStaking',
   props: {
@@ -349,8 +350,8 @@ export default {
     const availableBalance = ref(0)
     const signer = ref(null)
     onMounted(() => {
-      if (props.network?.validator?.[0]) {
-        validatorAddress.value = props.network.validator[0]
+      if (resolveValidatorAddress(props.network?.validator)) {
+        validatorAddress.value = resolveValidatorAddress(props.network.validator)
       }
     })
 
@@ -380,9 +381,9 @@ export default {
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
-        const { address, signer } = await connectWallet()
+        const { address, signer: walletSigner } = await connectWallet()
         walletAddress.value = address
-        signer.value = signer
+        signer.value = walletSigner
         walletConnected.value = true
         isConnecting.value = false
         refreshStakingInfo()

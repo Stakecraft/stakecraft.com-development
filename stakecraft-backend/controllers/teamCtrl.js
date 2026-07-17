@@ -1,16 +1,32 @@
 import Team from "../models/Team.js";
 
+export function normalizeTags(tags) {
+  if (!tags) return [];
+  if (Array.isArray(tags)) {
+    return tags.map((tag) => String(tag).trim()).filter(Boolean);
+  }
+  if (typeof tags === "string") {
+    return tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+function buildTeamPayload(body) {
+  const { name, position, linkedin, tags } = body;
+  return {
+    name,
+    position,
+    linkedin: linkedin || "",
+    tags: normalizeTags(tags),
+  };
+}
+
 export const createTeamMember = async (req, res) => {
   try {
-    const { name, position, image } = req.body;
-
-    const teamData = {
-      name,
-      position,
-      image,
-    };
-
-    const teamMember = new Team(teamData);
+    const teamMember = new Team(buildTeamPayload(req.body));
     await teamMember.save();
 
     res.status(201).json({
@@ -49,18 +65,16 @@ export const getTeamMembers = async (req, res) => {
 export const updateTeamMember = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, position, image } = req.body;
+    const updateData = buildTeamPayload(req.body);
 
-    const updateData = {
-      name,
-      position,
-      image,
-    };
-
-    const updatedTeamMember = await Team.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    });
+    const updatedTeamMember = await Team.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     if (!updatedTeamMember) {
       return res.status(404).json({

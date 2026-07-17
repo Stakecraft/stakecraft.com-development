@@ -12,8 +12,13 @@ const teamSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    image: {
+    linkedin: {
       type: String,
+      trim: true,
+    },
+    tags: {
+      type: [String],
+      default: [],
     },
   },
   {

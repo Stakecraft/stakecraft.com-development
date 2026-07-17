@@ -6,8 +6,9 @@ import { ref, provide, onMounted, watch } from 'vue'
 export default {
   components: { RouterView, AppHeader },
   setup() {
-    // Initialize theme from localStorage or default to 'light'
-    const theme = ref(localStorage.getItem('theme') || 'light')
+    const theme = ref(
+      typeof window !== 'undefined' ? localStorage.getItem('theme') || 'light' : 'light'
+    )
     const isModalOpen = ref(false)
 
     // Apply theme class to document body on mount and when theme changes
@@ -18,15 +19,15 @@ export default {
       document.body.classList.add(`van-theme-${themeValue}`)
     }
 
-    // Apply theme on mount
     onMounted(() => {
       applyThemeToBody(theme.value)
     })
 
-    // Watch for theme changes and apply to body + save to localStorage
     watch(theme, (newTheme) => {
       applyThemeToBody(newTheme)
-      localStorage.setItem('theme', newTheme)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('theme', newTheme)
+      }
     })
 
     // Enhanced setTheme function that updates both reactive state and localStorage

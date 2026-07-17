@@ -30,16 +30,22 @@ export const walletConnect = async () => {
 
     const wallet = await selector.wallet('meteor-wallet')
     const state = selector.store.getState()
-    const hasAccount = state.accounts.some((account) => account.active)
+    const activeAccount = state.accounts.find((account) => account.active)
 
-    if (!hasAccount) {
+    if (!activeAccount?.accountId) {
       await wallet.signIn({
         contractId: config.contractName,
         methodNames: []
       })
-      return
+      // signIn typically redirects; if it resolves in-place, re-read the account id
+      const nextState = selector.store.getState()
+      const nextAccount = nextState.accounts.find((account) => account.active)
+      if (!nextAccount?.accountId) {
+        return null
+      }
+      return nextAccount.accountId
     }
-    return wallet
+    return activeAccount.accountId
   } catch (error) {
     console.error('Error connecting wallet:', error)
     if (error.message.includes('not found')) {

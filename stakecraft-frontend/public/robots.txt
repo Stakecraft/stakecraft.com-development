@@ -1,0 +1,59 @@
+User-agent: *
+Allow: /
+Disallow: /health
+Disallow: /notadmin
+
+# --- AI / LLM crawlers ---
+# StakeCraft is a validator. People increasingly pick validators by asking an
+# assistant "who should I stake SOL / ATOM / DOT with". These directives are
+# what let those systems read the site at all.
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: bingbot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: MistralAI-User
+Allow: /
+
+Sitemap: https://stakecraft.com/sitemap.xml

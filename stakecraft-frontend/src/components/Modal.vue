@@ -22,98 +22,100 @@
             </svg>
           </button>
         </header>
-        asas
-        <!-- <div class="modal-body">
-          {{ network.description }}
+
+        <div class="modal-body">
+          <p class="modal-description">{{ network.description }}</p>
         </div>
 
         <footer class="modal-footer">
-          <div v-if="network.validator.length > 0" >
-            <ul>
-              <li v-for="(validator, index) in network.validator" v-bind:key="validator">
-                <div class="validatorArea">
-                  <input type="text" :value="validator" class="validatorInput" readonly />
-                  <button @click="copyText(validator)">Copy</button>
-                </div>
-                <div class="externalLinks">
-                  <a
-                    v-if="network.explorer && network.explorer[index]"
-                    class="explorerLink"
-                    :href="network.explorer[index]"
-                    target="_blank"
-                  >
-                    <span>Check validator info in Explorer</span>
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 14 14"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M0.845215 6.99996H12.5119M12.5119 6.99996L6.67855 1.16663M12.5119 6.99996L6.67855 12.8333"
-                        stroke="var(--modal-right-arrow)"
-                        stroke-width="1.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-                  </a>
-                  <a
-                    class="howToStake"
-                    :href="network.howToStake"
-                    target="_blank"
-                    v-if="network.howToStake"
-                  >
-                    <svg
-                      width="16"
-                      height="20"
-                      viewBox="0 0 16 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M8.51221 1.66663H2.67887C2.23685 1.66663 1.81292 1.84222 1.50036 2.15478C1.1878 2.46734 1.01221 2.89127 1.01221 3.33329V16.6666C1.01221 17.1087 1.1878 17.5326 1.50036 17.8451C1.81292 18.1577 2.23685 18.3333 2.67887 18.3333H12.6789C13.1209 18.3333 13.5448 18.1577 13.8574 17.8451C14.1699 17.5326 14.3455 17.1087 14.3455 16.6666V7.49996M8.51221 1.66663L14.3455 7.49996M8.51221 1.66663V7.49996H14.3455"
-                        stroke="var(--modal-right-arrow)"
-                        stroke-width="1.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-                    <span>How to stake</span></a
-                  >
-                </div>
-              </li>
-            </ul>
+          <div v-if="network.validator" class="validatorArea">
+            <input type="text" :value="network.validator" class="validatorInput" readonly />
+            <button type="button" @click="copyText(network.validator)">
+              {{ copied ? 'Copied' : 'Copy' }}
+            </button>
           </div>
-        </footer> -->
+          <div class="externalLinks">
+            <a
+              v-if="network.explorer"
+              class="explorerLink"
+              :href="network.explorer"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span>Check validator info in Explorer</span>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M0.845215 6.99996H12.5119M12.5119 6.99996L6.67855 1.16663M12.5119 6.99996L6.67855 12.8333"
+                  stroke="var(--modal-right-arrow)"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </a>
+            <a
+              class="howToStake"
+              :href="network.howToStake"
+              target="_blank"
+              rel="noopener noreferrer"
+              v-if="network.howToStake"
+            >
+              <svg
+                width="16"
+                height="20"
+                viewBox="0 0 16 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M8.51221 1.66663H2.67887C2.23685 1.66663 1.81292 1.84222 1.50036 2.15478C1.1878 2.46734 1.01221 2.89127 1.01221 3.33329V16.6666C1.01221 17.1087 1.1878 17.5326 1.50036 17.8451C1.81292 18.1577 2.23685 18.3333 2.67887 18.3333H12.6789C13.1209 18.3333 13.5448 18.1577 13.8574 17.8451C14.1699 17.5326 14.3455 17.1087 14.3455 16.6666V7.49996M8.51221 1.66663L14.3455 7.49996M8.51221 1.66663V7.49996H14.3455"
+                  stroke="var(--modal-right-arrow)"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <span>How to stake</span></a
+            >
+          </div>
+        </footer>
       </div>
     </div>
   </transition>
 </template>
 
 <script>
-import { ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 
 export default {
   props: ['network'],
+  emits: ['close'],
   setup(props, context) {
-    const network = ref(null)
+    const network = computed(() => props.network)
+    const copied = ref(false)
 
     const copyText = async (validator) => {
-      await navigator.clipboard.writeText(validator)
+      if (!validator) return
+      try {
+        await navigator.clipboard.writeText(validator)
+        copied.value = true
+        setTimeout(() => (copied.value = false), 1500)
+      } catch {
+        // Clipboard access can fail (e.g. insecure context); ignore silently.
+      }
     }
 
-    watch(
-      () => props.network,
-      (newValue) => {
-        network.value = newValue.selectedNetwork
-      }
-    )
     const close = () => {
       context.emit('close')
     }
-    return { close, network, copyText }
+
+    return { close, network, copyText, copied }
   }
 }
 </script>
@@ -172,6 +174,21 @@ export default {
 
 .modal-body {
   width: 576px;
+  max-width: 90%;
+}
+
+.modal-description {
+  font-family: poppins;
+  font-size: 18px;
+  line-height: 28px;
+  text-align: center;
+  color: var(--modal-header-title);
+  margin: 0;
+}
+
+.modal-footer {
+  width: 576px;
+  max-width: 90%;
 }
 
 .modal-fade-enter,

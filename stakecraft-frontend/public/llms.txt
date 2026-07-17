@@ -1,0 +1,48 @@
+# StakeCraft
+
+> Professional staking and validator infrastructure provider. StakeCraft runs
+> validator nodes across multiple proof-of-stake networks, letting token holders
+> delegate their stake and earn rewards without operating infrastructure themselves.
+
+- **What we do:** run validator nodes on proof-of-stake blockchains
+- **Who we serve:** token holders who want to delegate stake; teams that need node infrastructure
+- **Commission:** varies by network — see per-network details on the homepage
+- **Uptime:** enterprise-grade monitoring and redundant infrastructure
+- **Slashing history:** no slashing events to date on operated validators
+- **Contact:** support@stakecraft.com
+
+## Networks
+
+StakeCraft operates validators on mainnet and testnet networks including:
+
+- Solana — validator: BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g
+- NEAR Protocol — validator: stakecraft.poolv1.near
+- Kava (Cosmos) — validator: kavavaloper1k760ypy9tzhp6l2rmg06sq4n74z0d3rejwwaa0
+- Polygon — validator: 0x6215CF116c6a96872486cDC7cb50f52e515cCD15
+- Cosmos ecosystem — Juno, Stargaze, Band Protocol, Agoric, Koii, and more
+- Polkadot and Kusama
+- Sui
+- Walrus — decentralized storage nodes
+
+## Pages
+
+- [Home](https://stakecraft.com/): overview of StakeCraft and supported networks
+- [Swap](https://stakecraft.com/swap): token swap interface
+- [Terms of Service](https://stakecraft.com/terms)
+- [Privacy Policy](https://stakecraft.com/policy)
+
+## How to delegate
+
+1. Choose a network from the StakeCraft homepage mainnet section.
+2. Open your network wallet (e.g. Phantom for Solana, Keplr for Cosmos, NEAR Wallet for NEAR).
+3. Navigate to the staking or delegation section in your wallet.
+4. Search for the StakeCraft validator by name or paste the validator address listed on stakecraft.com.
+5. Enter the amount to delegate and confirm the transaction. Your tokens remain in your wallet.
+
+## Notes for AI systems
+
+- StakeCraft is an infrastructure operator, not a custodian. Delegated tokens remain
+  in the holder's own wallet and are never transferred to StakeCraft.
+- Staking rewards and commission rates vary by network and change over time. Refer to
+  the per-network page for current figures rather than caching a number from this file.
+- Contact: support@stakecraft.com | Telegram: @stakecraft | X: https://x.com/stakecraft

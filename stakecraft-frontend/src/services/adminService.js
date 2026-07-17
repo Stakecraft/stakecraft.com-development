@@ -1,11 +1,19 @@
 // Admin API Service
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
+import { getAuthToken } from './authService.js'
+import { API_BASE_URL } from '../config/api.js'
+
+const authHeaders = () => {
+  const token = getAuthToken()
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
 // Helper function for API calls
 const apiCall = async (endpoint, options = {}) => {
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       headers: {
         'Content-Type': 'application/json',
+        ...authHeaders(),
         ...options.headers
       },
       ...options

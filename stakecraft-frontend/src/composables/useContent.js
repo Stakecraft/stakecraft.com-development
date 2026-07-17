@@ -1,17 +1,18 @@
 import { ref, computed } from 'vue'
 import axios from 'axios'
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
+import prefetchedData from '../data/prefetched.json'
+import { API_BASE_URL } from '../config/api.js'
 
 // IPFS Gateway URL
 const IPFS_GATEWAY = 'https://ipfs.io/ipfs/'
 
 export function useContent() {
-  const mainnet = ref([])
-  const testnet = ref([])
-  const partnerships = ref([])
-  const about = ref([])
-  const team = ref([])
-  const menu = ref([])
+  const mainnet = ref(prefetchedData.mainnet || [])
+  const testnet = ref(prefetchedData.testnet || [])
+  const partnerships = ref(prefetchedData.partnership || [])
+  const about = ref(prefetchedData.about || [])
+  const team = ref(prefetchedData.team || [])
+  const menu = ref(prefetchedData.menu || [])
 
   // Individual loading states for each section
   const loading = ref({
@@ -51,22 +52,32 @@ export function useContent() {
         ...item,
         image: item.image ? getIPFSURL(item.image) : null
       }))
-    } else {
-      return {
-        ...content,
-        image: content.image ? getIPFSURL(content.image) : null
-      }
     }
+
+    return content
+  }
+
+  const extractListPayload = (responseData) => {
+    const payload = responseData?.data ?? responseData
+    if (!Array.isArray(payload)) {
+      throw new Error('API returned non-array payload')
+    }
+    return payload
   }
 
   const fetchMainnet = async () => {
+    const hasCachedData = Array.isArray(mainnet.value) && mainnet.value.length > 0
     try {
-      loading.value.mainnet = true
+      if (!hasCachedData) {
+        loading.value.mainnet = true
+      }
       error.value.mainnet = null
       const response = await axios.get(`${API_BASE_URL}/mainnet/`)
-      mainnet.value = processContentWithIPFS(response.data?.data || response.data)
+      mainnet.value = processContentWithIPFS(extractListPayload(response.data))
     } catch (err) {
-      error.value.mainnet = err.message
+      if (!hasCachedData) {
+        error.value.mainnet = err.message
+      }
       console.error('Error fetching mainnet:', err)
     } finally {
       loading.value.mainnet = false
@@ -74,13 +85,18 @@ export function useContent() {
   }
 
   const fetchTestnet = async () => {
+    const hasCachedData = Array.isArray(testnet.value) && testnet.value.length > 0
     try {
-      loading.value.testnet = true
+      if (!hasCachedData) {
+        loading.value.testnet = true
+      }
       error.value.testnet = null
       const response = await axios.get(`${API_BASE_URL}/testnet/`)
-      testnet.value = processContentWithIPFS(response.data?.data || response.data)
+      testnet.value = processContentWithIPFS(extractListPayload(response.data))
     } catch (err) {
-      error.value.testnet = err.message
+      if (!hasCachedData) {
+        error.value.testnet = err.message
+      }
       console.error('Error fetching testnet:', err)
     } finally {
       loading.value.testnet = false
@@ -88,13 +104,18 @@ export function useContent() {
   }
 
   const fetchPartnerships = async () => {
+    const hasCachedData = Array.isArray(partnerships.value) && partnerships.value.length > 0
     try {
-      loading.value.partnerships = true
+      if (!hasCachedData) {
+        loading.value.partnerships = true
+      }
       error.value.partnerships = null
       const response = await axios.get(`${API_BASE_URL}/partnership/`)
-      partnerships.value = processContentWithIPFS(response.data?.data || response.data)
+      partnerships.value = processContentWithIPFS(extractListPayload(response.data))
     } catch (err) {
-      error.value.partnerships = err.message
+      if (!hasCachedData) {
+        error.value.partnerships = err.message
+      }
       console.error('Error fetching partnerships:', err)
     } finally {
       loading.value.partnerships = false
@@ -102,13 +123,18 @@ export function useContent() {
   }
 
   const fetchAbout = async () => {
+    const hasCachedData = Array.isArray(about.value) && about.value.length > 0
     try {
-      loading.value.about = true
+      if (!hasCachedData) {
+        loading.value.about = true
+      }
       error.value.about = null
       const response = await axios.get(`${API_BASE_URL}/about/`)
-      about.value = processContentWithIPFS(response.data?.data || response.data)
+      about.value = processContentWithIPFS(extractListPayload(response.data))
     } catch (err) {
-      error.value.about = err.message
+      if (!hasCachedData) {
+        error.value.about = err.message
+      }
       console.error('Error fetching about:', err)
     } finally {
       loading.value.about = false
@@ -116,13 +142,18 @@ export function useContent() {
   }
 
   const fetchTeam = async () => {
+    const hasCachedData = Array.isArray(team.value) && team.value.length > 0
     try {
-      loading.value.team = true
+      if (!hasCachedData) {
+        loading.value.team = true
+      }
       error.value.team = null
       const response = await axios.get(`${API_BASE_URL}/team/`)
-      team.value = processContentWithIPFS(response.data?.data || response.data)
+      team.value = processContentWithIPFS(extractListPayload(response.data))
     } catch (err) {
-      error.value.team = err.message
+      if (!hasCachedData) {
+        error.value.team = err.message
+      }
       console.error('Error fetching team:', err)
     } finally {
       loading.value.team = false

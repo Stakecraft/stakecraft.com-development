@@ -13,16 +13,15 @@ jobs:
         env:
           SERVER_ENV:  ${{ secrets.SERVER_ENV }}
           AUTH_CONFIG: ${{ secrets.AUTH_CONFIG }}
-        uses: fifsky/ssh-action@master
+        uses: fifsky/ssh-action@v0.0.35
         with:
           command: |
             cd ~/stakecraft.com-development
             git pull
-            cd stakecraftFE/
+            cd stakecraft-frontend/
             npm install --legacy-peer-deps
             npm run build
           host: ${{ secrets.HOST }}
           user: ${{ secrets.USER }}
           port: ${{ secrets.PORT }}
           key:  ${{ secrets.PRIVATE_KEY }}
-          args: "-o StrictHostKeyChecking=no"

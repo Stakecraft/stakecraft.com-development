@@ -361,6 +361,7 @@ import {
   getQueryFeesEarned
 } from '../../utils/GraphStaking'
 
+import { resolveValidatorAddress } from '../../utils/resolveValidator.js'
 export default {
   name: 'GraphStaking',
   props: {
@@ -394,8 +395,8 @@ export default {
     const totalGrtBalance = ref(0)
 
     onMounted(() => {
-      if (props.network?.validator?.[0]) {
-        indexerAddress.value = props.network.validator[0]
+      if (resolveValidatorAddress(props.network?.validator)) {
+        indexerAddress.value = resolveValidatorAddress(props.network.validator)
       }
     })
 

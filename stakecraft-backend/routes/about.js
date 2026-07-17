@@ -5,12 +5,13 @@ import {
   updateAboutContent,
   deleteAboutContent,
 } from "../controllers/aboutCtrl.js";
+import { authenticateToken, requireEditor } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.post("/", createAboutContent);
 router.get("/", getAboutContent);
-router.put("/:id", updateAboutContent);
-router.delete("/:id", deleteAboutContent);
+router.post("/", authenticateToken, requireEditor, createAboutContent);
+router.put("/:id", authenticateToken, requireEditor, updateAboutContent);
+router.delete("/:id", authenticateToken, requireEditor, deleteAboutContent);
 
 export default router;

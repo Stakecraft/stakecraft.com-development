@@ -48,12 +48,14 @@
 </template>
 
 <script setup>
-// Component name for Vue DevTools
+import { useSeo } from '../composables/useSeo.js'
+import { routeSeo } from '../config/seo.js'
+
 defineOptions({
   name: 'SwapPage'
 })
 
-// No additional script logic needed for static widget
+useSeo(routeSeo.swap)
 </script>
 
 <style scoped>

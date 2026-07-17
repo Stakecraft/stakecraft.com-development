@@ -14,21 +14,18 @@ import {
 import {
   authenticateToken,
   requireAdmin,
-  requireEditor,
 } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Public routes (for current user)
-router.get("/me", getCurrentUser);
-router.put("/me", updateCurrentUser);
+router.get("/me", authenticateToken, getCurrentUser);
+router.put("/me", authenticateToken, updateCurrentUser);
 
-// Admin only routes
-router.get("/", getAllUsers);
-router.get("/:id", getUserById);
-router.post("/", createUser);
-router.put("/:id", updateUser);
-router.delete("/:id", deleteUser);
-router.put("/:id/password", changePassword);
+router.get("/", authenticateToken, requireAdmin, getAllUsers);
+router.get("/:id", authenticateToken, requireAdmin, getUserById);
+router.post("/", authenticateToken, requireAdmin, validateUserCreation, createUser);
+router.put("/:id", authenticateToken, requireAdmin, validateUserUpdate, updateUser);
+router.delete("/:id", authenticateToken, requireAdmin, deleteUser);
+router.put("/:id/password", authenticateToken, requireAdmin, changePassword);
 
 export default router;

@@ -347,6 +347,7 @@ import {
   getNearBalance
 } from '../../utils/NearStaking'
 import { utils } from 'near-api-js'
+import { resolveValidatorAddress } from '../../utils/resolveValidator.js'
 
 export default {
   name: 'NearStaking',
@@ -380,8 +381,8 @@ export default {
     const totalNearBalance = ref(0)
 
     onMounted(() => {
-      if (props.network?.validator?.[0]) {
-        validatorAddress.value = props.network.validator[0]
+      if (resolveValidatorAddress(props.network?.validator)) {
+        validatorAddress.value = resolveValidatorAddress(props.network.validator)
       }
     })
 
@@ -412,31 +413,44 @@ export default {
     const handleConnectWallet = async () => {
       try {
         isConnecting.value = true
-        const address = await walletConnect()
+        walletError.value = false
+        const address = (await walletConnect()) || (await getAccountId())
+        if (!address || typeof address !== 'string') {
+          throw new Error('Wallet connected but no account id was returned. Please try again.')
+        }
         walletAddress.value = address
         walletConnected.value = true
-        isConnecting.value = false
-        refreshStakingInfo()
+        await refreshStakingInfo()
       } catch (error) {
         console.error('Failed to connect wallet:', error)
         walletError.value = true
+        walletConnected.value = false
+        walletAddress.value = ''
+      } finally {
         isConnecting.value = false
       }
     }
 
     const refreshStakingInfo = async () => {
-      if (!walletAddress.value || !validatorAddress.value) return
+      if (!walletAddress.value || typeof walletAddress.value !== 'string') return
 
       try {
         const nearBalance = await getNearBalance(walletAddress.value)
         totalNearBalance.value = nearBalance
         availableBalance.value = Number(nearBalance).toFixed(4)
 
-        const stakingInfo = await getTotalStakedAmount(walletAddress.value, validatorAddress.value)
-        if (stakingInfo.amount) {
-          stakedAmount.value = Number(utils.format.formatNearAmount(stakingInfo.amount)).toFixed(3)
-        } else {
-          stakedAmount.value = 0.0
+        if (validatorAddress.value) {
+          const stakingInfo = await getTotalStakedAmount(
+            walletAddress.value,
+            validatorAddress.value
+          )
+          if (stakingInfo.amount) {
+            stakedAmount.value = Number(utils.format.formatNearAmount(stakingInfo.amount)).toFixed(
+              3
+            )
+          } else {
+            stakedAmount.value = 0.0
+          }
         }
         rewardsEarned.value = '0'
         lastRewardTime.value = null

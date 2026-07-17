@@ -8,7 +8,11 @@
       </div>
       <ul class="centerItems" :class="!dropdownVisible ? '' : 'hideMenu'">
         <li v-for="item in centerMenuItems" :key="item._id || item.title">
-          <a :href="item.link" :target="item.metadata?.isExternal === 'true' ? '_blank' : '_self'">
+          <a
+            :href="safeHref(item.link)"
+            :target="item.metadata?.isExternal === 'true' ? '_blank' : '_self'"
+            :rel="externalRel(item.metadata?.isExternal === 'true')"
+          >
             {{ item.title }}
             <img v-if="item.metadata?.isExternal === 'true'" src="../assets/externalLink.png" />
           </a>
@@ -16,7 +20,11 @@
       </ul>
       <ul class="rightItems" :class="!dropdownVisible ? '' : 'hideMenu'">
         <li v-for="item in rightMenuItems" :key="item._id || item.title" class="externalLink">
-          <a :href="item.link" :target="item.metadata?.isExternal === 'true' ? '_blank' : '_self'">
+          <a
+            :href="safeHref(item.link)"
+            :target="item.metadata?.isExternal === 'true' ? '_blank' : '_self'"
+            :rel="externalRel(item.metadata?.isExternal === 'true')"
+          >
             {{ item.title }}
             <img v-if="item.metadata?.isExternal === 'true'" src="../assets/externalLink.png" />
           </a>
@@ -50,8 +58,9 @@
             :class="item.metadata?.isExternal === 'true' ? 'externalLink' : ''"
           >
             <a
-              :href="item.link"
+              :href="safeHref(item.link)"
               :target="item.metadata?.isExternal === 'true' ? '_blank' : '_self'"
+              :rel="externalRel(item.metadata?.isExternal === 'true')"
               @click="toggleDropdown"
             >
               {{ item.title }}
@@ -68,6 +77,7 @@
 import { inject, onMounted, onBeforeUnmount, ref } from 'vue'
 import ToggleTheme from './ToggleTheme.vue'
 import { useMenu } from '../composables/useMenu.js'
+import { safeHref, externalRel } from '../composables/useSeo.js'
 
 export default {
   name: 'AppHeader',
@@ -122,7 +132,9 @@ export default {
       selectedItem,
       isModalOpen,
       centerMenuItems,
-      rightMenuItems
+      rightMenuItems,
+      safeHref,
+      externalRel
     }
   }
 }

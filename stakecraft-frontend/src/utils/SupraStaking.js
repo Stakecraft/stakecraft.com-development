@@ -19,14 +19,13 @@ export const walletConnect = async () => {
       throw new Error('No accounts returned from wallet')
     }
     const address = accounts[0]
+    if (!address || typeof address !== 'string') {
+      throw new Error('Wallet connected but no account address was returned')
+    }
     return address
   } catch (error) {
     console.error('Wallet connection error:', error)
-    return {
-      address: null,
-      status: 'error',
-      error: error.message || 'Failed to connect wallet'
-    }
+    throw new Error(error.message || 'Failed to connect wallet')
   }
 }
 
