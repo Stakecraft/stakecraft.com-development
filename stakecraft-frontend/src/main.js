@@ -2,24 +2,25 @@ import './assets/main.css'
 
 import { ViteSSG } from 'vite-ssg'
 import App from './App.vue'
-import { routes, prerenderRoutes } from './router/routes.js'
+import { routes } from './router/routes.js'
 import { clientOnlyRoutes } from './router/clientRoutes.js'
 import { ConfigProvider } from 'vant'
 
+// Client-only routes must be in the initial router table. Adding them after
+// ViteSSG hydrates the homepage HTML for /notadmin leaves the app on `/`.
+const allRoutes = [...routes, ...clientOnlyRoutes]
+
 export const createApp = ViteSSG(
   App,
-  { routes },
+  { routes: allRoutes },
   ({ app, router, isClient }) => {
     app.use(ConfigProvider)
 
     if (isClient) {
-      // Register client-only routes synchronously so hard-refreshing /notadmin
-      // (and other non-prerendered paths) matches on first navigation.
-      for (const route of clientOnlyRoutes) {
-        router.addRoute(route)
-      }
-      if (router.currentRoute.value.matched.length === 0) {
-        router.replace(router.currentRoute.value.fullPath)
+      const target =
+        window.location.pathname + window.location.search + window.location.hash
+      if (router.currentRoute.value.fullPath !== target) {
+        router.replace(target)
       }
 
       // `import.meta.env.SSR` is statically replaced, so this dynamic import (and
@@ -30,20 +31,6 @@ export const createApp = ViteSSG(
           setupMainnetStaking()
         })
       }
-
-      router.beforeEach((to, from, next) => {
-        if (to.meta.requiresAuth) {
-          const token = localStorage.getItem('auth_token')
-          if (!token) {
-            next()
-            return
-          }
-        }
-        next()
-      })
     }
-  },
-  {
-    includedRoutes: () => prerenderRoutes
   }
 )

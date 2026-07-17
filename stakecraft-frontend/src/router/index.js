@@ -5,8 +5,10 @@ import { clientOnlyRoutes } from './clientRoutes.js'
 export { routes, prerenderRoutes } from './routes.js'
 export { clientOnlyRoutes } from './clientRoutes.js'
 
+/** Same route table ViteSSG uses — client-only paths are always registered. */
+export const allRoutes = [...routes, ...clientOnlyRoutes]
+
 export function createAppRouter(isSSR = false) {
-  const allRoutes = isSSR ? routes : [...routes, ...clientOnlyRoutes]
   return createRouter({
     history: isSSR ? createMemoryHistory(import.meta.env.BASE_URL) : createWebHistory(import.meta.env.BASE_URL),
     routes: allRoutes,

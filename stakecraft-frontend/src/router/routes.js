@@ -28,4 +28,4 @@ export const routes = [
   }
 ]
 
-export const prerenderRoutes = ['/', '/terms', '/policy', '/swap']
+export const prerenderRoutes = ['/', '/terms', '/policy', '/swap', '/notadmin', '/health']
