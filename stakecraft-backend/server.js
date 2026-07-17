@@ -16,6 +16,7 @@ import mainnetRouter from "./routes/mainnet.js";
 import testnetRouter from "./routes/testnet.js";
 import partnershipRouter from "./routes/partnership.js";
 import aboutRouter from "./routes/about.js";
+import faqRouter from "./routes/faq.js";
 import teamRouter from "./routes/team.js";
 import authRoutes from "./routes/auth.js";
 import adminRoutes from "./routes/admin.js";
@@ -124,6 +125,7 @@ app.use("/api/mainnet", mainnetRouter);
 app.use("/api/testnet", testnetRouter);
 app.use("/api/partnership", partnershipRouter);
 app.use("/api/about", aboutRouter);
+app.use("/api/faq", faqRouter);
 app.use("/api/team", teamRouter);
 
 app.use((err, req, res, next) => {

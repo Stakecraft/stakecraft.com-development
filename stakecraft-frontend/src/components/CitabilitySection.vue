@@ -10,7 +10,7 @@
       <div class="faq-panels">
         <div
           v-for="(item, index) in faqItems"
-          :key="item.question"
+          :key="item._id || item.question"
           class="wrapper"
           :class="{ withHeight: openItems[index] }"
           role="button"
@@ -32,13 +32,21 @@
 </template>
 
 <script>
-import { ref } from 'vue'
-import { faqItems } from '../config/seo.js'
+import { ref, computed, onMounted } from 'vue'
+import { useContent } from '../composables/useContent.js'
+import { resolveFaqItems } from '../config/seo.js'
 
 export default {
   name: 'CitabilitySection',
   setup() {
+    const { fetchFaq, getFaqItems } = useContent()
     const openItems = ref({})
+
+    onMounted(() => {
+      fetchFaq()
+    })
+
+    const faqItems = computed(() => resolveFaqItems(getFaqItems.value))
 
     const toggle = (index) => {
       openItems.value[index] = !openItems.value[index]

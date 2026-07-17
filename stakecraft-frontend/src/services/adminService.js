@@ -256,3 +256,30 @@ export const aboutService = {
     })
   }
 }
+
+// FAQ API
+export const faqService = {
+  async getAll() {
+    return apiCall('/faq')
+  },
+
+  async create(faqData) {
+    return apiCall('/faq', {
+      method: 'POST',
+      body: JSON.stringify(faqData)
+    })
+  },
+
+  async update(id, faqData) {
+    return apiCall(`/faq/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(faqData)
+    })
+  },
+
+  async delete(id) {
+    return apiCall(`/faq/${id}`, {
+      method: 'DELETE'
+    })
+  }
+}

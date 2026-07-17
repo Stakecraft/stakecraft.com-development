@@ -41,7 +41,8 @@ export const routeSeo = {
   }
 }
 
-export const faqItems = [
+/** Fallback FAQ copy when CMS / prefetch has no items yet. */
+export const DEFAULT_FAQ_ITEMS = [
   {
     question: 'How do I delegate to StakeCraft?',
     answer:
@@ -65,9 +66,30 @@ export const faqItems = [
   {
     question: 'Is my stake safe? Does StakeCraft hold my tokens?',
     answer:
-      'Delegated tokens remain in your own wallet at all times. StakeCraft is a non-custodial infrastructure operator and never takes possession of your assets. You retain full control and can undelegate according to each network\'s unbonding rules.'
+      "Delegated tokens remain in your own wallet at all times. StakeCraft is a non-custodial infrastructure operator and never takes possession of your assets. You retain full control and can undelegate according to each network's unbonding rules."
   }
 ]
+
+/** @deprecated use resolveFaqItems() — kept for older imports */
+export const faqItems = DEFAULT_FAQ_ITEMS
+
+export function normalizeFaqItems(items) {
+  if (!Array.isArray(items) || items.length === 0) return []
+  return items
+    .filter((item) => item && item.isActive !== false && item.question && item.answer)
+    .sort((a, b) => (a.order || 0) - (b.order || 0))
+    .map((item) => ({
+      question: item.question,
+      answer: item.answer,
+      _id: item._id,
+      order: item.order
+    }))
+}
+
+export function resolveFaqItems(items) {
+  const normalized = normalizeFaqItems(items)
+  return normalized.length > 0 ? normalized : DEFAULT_FAQ_ITEMS
+}
 
 export function buildOrganizationSchema() {
   return {
@@ -105,11 +127,12 @@ export function buildServiceSchema() {
   }
 }
 
-export function buildFaqSchema() {
+export function buildFaqSchema(items = DEFAULT_FAQ_ITEMS) {
+  const faqList = resolveFaqItems(items)
   return {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: faqItems.map((item) => ({
+    mainEntity: faqList.map((item) => ({
       '@type': 'Question',
       name: item.question,
       acceptedAnswer: {
@@ -120,10 +143,10 @@ export function buildFaqSchema() {
   }
 }
 
-export function getJsonLdBlocks(types = []) {
+export function getJsonLdBlocks(types = [], options = {}) {
   const blocks = []
   if (types.includes('organization')) blocks.push(buildOrganizationSchema())
   if (types.includes('service')) blocks.push(buildServiceSchema())
-  if (types.includes('faq')) blocks.push(buildFaqSchema())
+  if (types.includes('faq')) blocks.push(buildFaqSchema(options.faqItems))
   return blocks
 }

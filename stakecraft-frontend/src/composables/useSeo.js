@@ -1,6 +1,7 @@
 import { ref, onMounted } from 'vue'
 import { useHead } from '@unhead/vue'
 import { SITE_URL, getJsonLdBlocks } from '../config/seo.js'
+import prefetchedData from '../data/prefetched.json'
 
 /**
  * Apply per-route SEO meta tags and JSON-LD structured data.
@@ -8,7 +9,9 @@ import { SITE_URL, getJsonLdBlocks } from '../config/seo.js'
  */
 export function useSeo(seo) {
   const canonical = `${SITE_URL}${seo.path || '/'}`
-  const jsonLdBlocks = getJsonLdBlocks(seo.jsonLd || [])
+  const jsonLdBlocks = getJsonLdBlocks(seo.jsonLd || [], {
+    faqItems: prefetchedData.faq
+  })
 
   useHead({
     title: seo.title,

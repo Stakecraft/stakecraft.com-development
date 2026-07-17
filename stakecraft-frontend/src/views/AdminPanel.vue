@@ -475,6 +475,62 @@
           </div>
         </div>
 
+        <div v-if="activeSection === 'faq'" class="section">
+          <div class="section-header">
+            <h3 class="section-title">FAQ</h3>
+            <button @click="showFaqModal = true" class="btn btn-primary">
+              <Plus class="btn-icon" />
+              Add FAQ
+            </button>
+          </div>
+
+          <div v-if="loading.faq" class="loading-container">
+            <div class="loading-spinner"></div>
+            <p>Loading FAQ items...</p>
+          </div>
+
+          <div v-else class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>Question</th>
+                  <th>Answer</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in faqItems" :key="item._id" class="table-row">
+                  <td class="table-cell">{{ item.order ?? 0 }}</td>
+                  <td class="table-cell font-medium">{{ item.question }}</td>
+                  <td class="table-cell">{{ item.answer }}</td>
+                  <td class="table-cell">
+                    <span
+                      :class="[
+                        'status-badge',
+                        item.isActive !== false ? 'status-active' : 'status-inactive'
+                      ]"
+                    >
+                      {{ item.isActive !== false ? 'Active' : 'Inactive' }}
+                    </span>
+                  </td>
+                  <td class="table-cell">
+                    <div class="action-buttons">
+                      <button @click="editFaqItem(item)" class="action-btn edit-btn">
+                        <Edit class="action-icon" />
+                      </button>
+                      <button @click="deleteFaqItem(item._id)" class="action-btn delete-btn">
+                        <Trash2 class="action-icon" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <div v-if="activeSection === 'team'" class="section">
           <div class="section-header">
             <h3 class="section-title">Team Members</h3>
@@ -585,6 +641,14 @@
       :aboutContent="editingAboutContent || {}"
       @close="closeAboutModal"
       @save="saveAboutContent"
+    />
+
+    <FaqModal
+      :show="showFaqModal"
+      :editing="!!editingFaqItem"
+      :faqItem="editingFaqItem || {}"
+      @close="closeFaqModal"
+      @save="saveFaqItem"
     />
 
     <MenuModal
@@ -749,7 +813,8 @@ import {
   ArrowLeftRight,
   ArrowRight,
   ArrowLeft,
-  CheckSquare
+  CheckSquare,
+  HelpCircle
 } from 'lucide-vue-next'
 
 // Import modal components
@@ -759,6 +824,7 @@ import TestnetModal from '@/components/TestnetModal.vue'
 import PartnershipModal from '@/components/PartnershipModal.vue'
 import TeamModal from '@/components/TeamModal.vue'
 import AboutModal from '@/components/AboutModal.vue'
+import FaqModal from '@/components/FaqModal.vue'
 import { parseTagsInput } from '@/utils/parseTags.js'
 
 // Import API services
@@ -768,7 +834,8 @@ import {
   testnetService,
   partnershipService,
   teamService,
-  aboutService
+  aboutService,
+  faqService
 } from '@/services/adminService'
 
 // Theme injection
@@ -791,7 +858,8 @@ const loading = ref({
   testnet: false,
   partnerships: false,
   team: false,
-  about: false
+  about: false,
+  faq: false
 })
 
 // Modal states
@@ -801,6 +869,7 @@ const showTestnetModal = ref(false)
 const showPartnershipModal = ref(false)
 const showTeamModal = ref(false)
 const showAboutModal = ref(false)
+const showFaqModal = ref(false)
 const showMainnetPositionManager = ref(false)
 const showTestnetPositionManager = ref(false)
 // Editing states
@@ -811,6 +880,7 @@ const editingTestnet = ref(null)
 const editingPartnership = ref(null)
 const editingTeamMember = ref(null)
 const editingAboutContent = ref(null)
+const editingFaqItem = ref(null)
 
 // Migration states
 const selectedMainnetForMigration = ref([])
@@ -824,7 +894,8 @@ const menuItems = [
   { id: 'migration', name: 'Network Migration', icon: ArrowLeftRight },
   { id: 'partnerships', name: 'Partnerships', icon: Building },
   { id: 'team', name: 'Team Members', icon: User },
-  { id: 'about', name: 'About Content', icon: FileText }
+  { id: 'about', name: 'About Content', icon: FileText },
+  { id: 'faq', name: 'FAQ', icon: HelpCircle }
 ]
 
 // Data from backend
@@ -834,6 +905,7 @@ const testnetCards = ref([])
 const partnerships = ref([])
 const teamMembers = ref([])
 const aboutContent = ref([])
+const faqItems = ref([])
 
 // Load data on component mount
 onMounted(async () => {
@@ -855,7 +927,8 @@ const loadAllData = async () => {
       loadTestnetData(),
       loadPartnershipsData(),
       loadTeamData(),
-      loadAboutData()
+      loadAboutData(),
+      loadFaqData()
     ])
   } catch (error) {
     console.error('Failed to load data:', error)
@@ -1249,6 +1322,62 @@ const deleteAboutContent = async (id) => {
     } catch (error) {
       console.error('Failed to delete about content:', error)
       alert('Failed to delete about content. Please try again.')
+    }
+  }
+}
+
+// FAQ Modal Methods
+const loadFaqData = async () => {
+  loading.value.faq = true
+  try {
+    const data = await faqService.getAll()
+    faqItems.value = (data?.data || []).sort((a, b) => (a.order || 0) - (b.order || 0))
+  } catch (error) {
+    console.error('Failed to load FAQ data:', error)
+    faqItems.value = []
+  } finally {
+    loading.value.faq = false
+  }
+}
+
+const editFaqItem = (item) => {
+  editingFaqItem.value = item
+  showFaqModal.value = true
+}
+
+const closeFaqModal = () => {
+  showFaqModal.value = false
+  editingFaqItem.value = null
+}
+
+const saveFaqItem = async (itemData) => {
+  try {
+    if (editingFaqItem.value) {
+      const updated = await faqService.update(editingFaqItem.value._id, itemData)
+      const index = faqItems.value.findIndex((f) => f._id === editingFaqItem.value._id)
+      if (index !== -1) {
+        faqItems.value[index] = updated.data || { ...editingFaqItem.value, ...itemData }
+      }
+    } else {
+      const created = await faqService.create(itemData)
+      faqItems.value.push(created.data || created)
+    }
+    closeFaqModal()
+    await loadFaqData()
+  } catch (error) {
+    console.error('Failed to save FAQ item:', error)
+    alert('Failed to save FAQ item. Please try again.')
+  }
+}
+
+const deleteFaqItem = async (id) => {
+  if (confirm('Are you sure you want to delete this FAQ item?')) {
+    try {
+      await faqService.delete(id)
+      faqItems.value = faqItems.value.filter((f) => f._id !== id)
+    } catch (error) {
+      console.error('Failed to delete FAQ item:', error)
+      alert('Failed to delete FAQ item. Please try again.')
     }
   }
 }

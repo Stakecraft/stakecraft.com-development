@@ -12,6 +12,7 @@ export function useContent() {
   const partnerships = ref(prefetchedData.partnership || [])
   const about = ref(prefetchedData.about || [])
   const team = ref(prefetchedData.team || [])
+  const faq = ref(prefetchedData.faq || [])
   const menu = ref(prefetchedData.menu || [])
 
   // Individual loading states for each section
@@ -21,6 +22,7 @@ export function useContent() {
     partnerships: false,
     about: false,
     team: false,
+    faq: false,
     menu: false
   })
 
@@ -31,6 +33,7 @@ export function useContent() {
     partnerships: null,
     about: null,
     team: null,
+    faq: null,
     menu: null
   })
 
@@ -160,6 +163,25 @@ export function useContent() {
     }
   }
 
+  const fetchFaq = async () => {
+    const hasCachedData = Array.isArray(faq.value) && faq.value.length > 0
+    try {
+      if (!hasCachedData) {
+        loading.value.faq = true
+      }
+      error.value.faq = null
+      const response = await axios.get(`${API_BASE_URL}/faq/`)
+      faq.value = extractListPayload(response.data)
+    } catch (err) {
+      if (!hasCachedData) {
+        error.value.faq = err.message
+      }
+      console.error('Error fetching FAQ:', err)
+    } finally {
+      loading.value.faq = false
+    }
+  }
+
   // Get mainnet networks
   const getMainnetNetworks = computed(() => {
     if (!mainnet.value || !Array.isArray(mainnet.value)) return []
@@ -183,6 +205,13 @@ export function useContent() {
     return team.value
   })
 
+  const getFaqItems = computed(() => {
+    if (!Array.isArray(faq.value)) return []
+    return [...faq.value]
+      .filter((item) => item.isActive !== false)
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
+  })
+
   const getMenuItems = computed(() => {
     return menu.value
   })
@@ -194,6 +223,7 @@ export function useContent() {
     partnerships,
     about,
     team,
+    faq,
     menu,
     loading,
     error,
@@ -202,11 +232,13 @@ export function useContent() {
     fetchPartnerships,
     fetchAbout,
     fetchTeam,
+    fetchFaq,
     getMainnetNetworks,
     getTestnetNetworks,
     getPartnerships,
     getAboutContent,
     getTeamMembers,
+    getFaqItems,
     getMenuItems,
     getIPFSURL,
     processContentWithIPFS

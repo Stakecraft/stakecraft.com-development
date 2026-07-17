@@ -14,7 +14,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const API_BASE =
   resolveApiBaseUrl(process.env.VITE_API_BASE_URL || process.env.API_BASE_URL) ||
   PRODUCTION_API_BASE_URL
-const endpoints = ['mainnet', 'testnet', 'partnership', 'about', 'team', 'content/menu']
+const endpoints = ['mainnet', 'testnet', 'partnership', 'about', 'team', 'faq', 'content/menu']
 const outPath = join(__dirname, '../src/data/prefetched.json')
 
 function loadExistingData() {
