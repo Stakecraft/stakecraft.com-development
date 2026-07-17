@@ -1,3 +1,6 @@
-/health     /index.html  200
-/notadmin   /index.html  200
-/*          /404.html    404
+# Client-only routes are emitted as real HTML files by scripts/copy-client-routes.js
+# (notadmin.html, health.html). Do NOT rewrite them to /index.html — Pages then
+# redirects /index.html → / with 308, which breaks /notadmin and /health.
+#
+# Unknown paths keep a proper 404 for SEO (we ship public/404.html).
+/*    /404.html   404

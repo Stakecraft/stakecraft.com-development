@@ -7,7 +7,7 @@
     "dev": "vite --mode development",
     "prefetch": "node scripts/prefetch-content.js",
     "sitemap": "node scripts/generate-sitemap.js",
-    "build": "npm run sitemap && npm run prefetch && vite-ssg build --mode production",
+    "build": "npm run sitemap && npm run prefetch && vite-ssg build --mode production && node scripts/copy-client-routes.js",
     "build:dev": "npm run sitemap && vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
