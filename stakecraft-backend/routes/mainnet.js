@@ -7,14 +7,21 @@ import {
   updateMainnetPositions,
   migrateToTestnet,
 } from "../controllers/mainnetCtrl.js";
+import { authenticateToken, requireEditor } from "../middleware/auth.js";
+import { sanitizeContent } from "../middleware/sanitize.js";
 
 const router = express.Router();
 
-router.post("/", createMainnetList);
+// Public read - the marketing site renders this list anonymously.
 router.get("/", getMainnetList);
-router.put("/:id", updateMainnetList);
-router.delete("/:id", deleteMainnetList);
-router.put("/positions/update", updateMainnetPositions);
-router.post("/migrate-to-testnet", migrateToTestnet);
+
+// Writes require an authenticated editor or admin.
+const write = [authenticateToken, requireEditor];
+
+router.post("/", ...write, sanitizeContent, createMainnetList);
+router.put("/:id", ...write, sanitizeContent, updateMainnetList);
+router.delete("/:id", ...write, deleteMainnetList);
+router.put("/positions/update", ...write, updateMainnetPositions);
+router.post("/migrate-to-testnet", ...write, migrateToTestnet);
 
 export default router;

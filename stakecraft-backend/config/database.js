@@ -1,26 +1,17 @@
 import mongoose from "mongoose";
-import dotenv from "dotenv";
+import config from "./env.js";
 
-// Ensure environment variables are loaded
-// dotenv.config();
-
-// Load the appropriate .env file based on NODE_ENV
-const envFile = process.env.NODE_ENV === 'production' 
-  ? '.env.production' 
-  : '.env.development';
-dotenv.config({ path: envFile });
-
-const mongoUri =
-  process.env.MONGODB_URI ||
-  process.env.MONGODB_URI_PRODUCTION ||
-  "mongodb://localhost:27017/stakecraft";
+// Environment loading and validation happen once, in config/env.js.
+const mongoUri = config.mongoUri;
 
 console.log("🔗 Connecting to MongoDB...");
 console.log("Database URI:", mongoUri.replace(/\/\/.*@/, "//***:***@")); // Hide credentials in logs
 
-const clientOptions = {
-  serverApi: { version: "1", strict: true, deprecationErrors: true },
-};
+// serverApi strict mode is only valid against Atlas; a local mongod rejects it.
+const isAtlas = /mongodb\+srv:\/\//.test(mongoUri);
+const clientOptions = isAtlas
+  ? { serverApi: { version: "1", strict: true, deprecationErrors: true } }
+  : {};
 
 export const connectDB = async () => {
   try {

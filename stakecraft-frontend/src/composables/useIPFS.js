@@ -1,4 +1,7 @@
 import { ref } from 'vue'
+import { authHeaders } from '../services/authService'
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
 
 export function useIPFS() {
   const uploading = ref(false)
@@ -46,37 +49,45 @@ export function useIPFS() {
     return null
   }
 
-  // Upload file to IPFS using a service like Pinata, Infura, or your own IPFS node
+  /**
+   * Uploads an image to IPFS through the backend.
+   *
+   * This used to call api.pinata.cloud directly from the browser using
+   * VITE_PINATA_API_KEY and VITE_PINATA_SECRET_KEY. Vite inlines every VITE_
+   * variable into the production bundle, so those credentials were readable by
+   * anyone who opened the site and could be used to pin arbitrary content to
+   * the account. The keys now live only on the server, which authenticates the
+   * uploader before forwarding the file to Pinata.
+   */
   const uploadToIPFS = async (file) => {
     uploading.value = true
     uploadError.value = null
 
     try {
-      // Create FormData for the file upload
       const formData = new FormData()
       formData.append('file', file)
 
-      const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+      const response = await fetch(`${API_BASE_URL}/upload/ipfs`, {
         method: 'POST',
-        headers: {
-          // Add your Pinata API key here
-          pinata_api_key: import.meta.env.VITE_PINATA_API_KEY || '',
-          pinata_secret_api_key: import.meta.env.VITE_PINATA_SECRET_KEY || ''
-        },
+        // No Content-Type header: the browser sets it with the multipart
+        // boundary. Only the auth header is added.
+        headers: { ...authHeaders() },
         body: formData
       })
 
-      if (!response.ok) {
-        throw new Error(`IPFS upload failed: ${response.statusText}`)
-      }
+      const result = await response.json().catch(() => ({}))
 
-      const result = await response.json()
-      const ipfsHash = result.IpfsHash
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Your session has expired. Please sign in again.')
+        }
+        throw new Error(result.message || `IPFS upload failed (${response.status})`)
+      }
 
       return {
         success: true,
-        hash: ipfsHash,
-        url: `${IPFS_GATEWAY}${ipfsHash}`
+        hash: result.hash,
+        url: result.url || `${IPFS_GATEWAY}${result.hash}`
       }
     } catch (error) {
       console.error('IPFS upload error:', error)

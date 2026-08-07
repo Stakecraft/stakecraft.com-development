@@ -37,7 +37,14 @@
             <button class="notification-btn">
               <Bell class="bell-icon" />
             </button>
+            <span v-if="currentUser" class="current-user">
+              {{ currentUser.username }}
+              <span class="user-role">{{ currentUser.role }}</span>
+            </span>
             <div class="user-avatar"></div>
+            <button class="logout-btn" title="Sign out" @click="handleLogout">
+              <LogOut class="logout-icon" />
+            </button>
           </div>
         </div>
       </header>
@@ -882,8 +889,11 @@ import {
   CheckSquare,
   Package,
   Eye,
-  EyeOff
+  EyeOff,
+  LogOut
 } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
+import { currentUser, logout } from '@/services/authService'
 
 // Import modal components
 import MenuModal from '@/components/MenuModal.vue'
@@ -907,6 +917,15 @@ import {
 
 // Theme injection
 const theme = inject('theme')
+
+const router = useRouter()
+
+// Ends the session and returns to the sign-in screen. Because the token is
+// stateless, discarding it client-side is what actually ends the session.
+const handleLogout = async () => {
+  await logout()
+  router.replace({ name: 'admin-login' })
+}
 
 // Reactive data
 const sidebarOpen = ref(false)
@@ -1901,6 +1920,61 @@ const migrateTestnetToMainnet = async () => {
   height: 2rem;
   background: linear-gradient(135deg, #3b82f6, #8b5cf6);
   border-radius: 50%;
+}
+
+.current-user {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.user-role {
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  background: #e5e7eb;
+  color: #4b5563;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 50%;
+  color: #6b7280;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.logout-btn:hover {
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+.logout-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.van-theme-dark .current-user {
+  color: #e5e7eb;
+}
+
+.van-theme-dark .user-role {
+  background: #374151;
+  color: #d1d5db;
+}
+
+.van-theme-dark .logout-btn:hover {
+  color: #fca5a5;
+  background: rgba(185, 28, 28, 0.2);
 }
 
 .theme-toggle-wrapper {

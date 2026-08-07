@@ -5,12 +5,19 @@ import {
   updateProduct,
   deleteProduct,
 } from "../controllers/productCtrl.js";
+import { authenticateToken, requireEditor } from "../middleware/auth.js";
+import { sanitizeContent } from "../middleware/sanitize.js";
 
 const router = express.Router();
 
-router.post("/", createProduct);
+// Public read - the marketing site renders the product list anonymously.
 router.get("/", getProductList);
-router.put("/:id", updateProduct);
-router.delete("/:id", deleteProduct);
+
+// Writes require an authenticated editor or admin.
+const write = [authenticateToken, requireEditor];
+
+router.post("/", ...write, sanitizeContent, createProduct);
+router.put("/:id", ...write, sanitizeContent, updateProduct);
+router.delete("/:id", ...write, deleteProduct);
 
 export default router;

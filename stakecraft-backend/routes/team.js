@@ -5,12 +5,19 @@ import {
   updateTeamMember,
   deleteTeamMember,
 } from "../controllers/teamCtrl.js";
+import { authenticateToken, requireEditor } from "../middleware/auth.js";
+import { sanitizeContent } from "../middleware/sanitize.js";
 
 const router = express.Router();
 
-router.post("/", createTeamMember);
+// Public read - the marketing site renders the team list anonymously.
 router.get("/", getTeamMembers);
-router.put("/:id", updateTeamMember);
-router.delete("/:id", deleteTeamMember);
+
+// Writes require an authenticated editor or admin.
+const write = [authenticateToken, requireEditor];
+
+router.post("/", ...write, sanitizeContent, createTeamMember);
+router.put("/:id", ...write, sanitizeContent, updateTeamMember);
+router.delete("/:id", ...write, deleteTeamMember);
 
 export default router;

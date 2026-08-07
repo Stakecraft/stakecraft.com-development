@@ -1,33 +1,54 @@
 // Admin API Service
+import { authHeaders, clearSession } from './authService'
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
+
+// Broadcast rather than importing the router here: the router imports the
+// views, the views import this service, and closing that loop would create a
+// circular import.
+const notifyUnauthorized = () => {
+  window.dispatchEvent(new CustomEvent('auth:unauthorized'))
+}
+
 // Helper function for API calls
 const apiCall = async (endpoint, options = {}) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
-      ...options
-    })
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      // Every write endpoint now requires a bearer token. Reads are still
+      // public, so sending the header unconditionally is harmless.
+      ...authHeaders(),
+      ...options.headers
+    }
+  })
 
-    if (!response.ok) {
-      // Try to extract error message from response
-      try {
-        const errorData = await response.json()
-        const errorMessage =
-          errorData.message || errorData.msg || `HTTP error! status: ${response.status}`
-        throw new Error(errorMessage)
-      } catch (parseError) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
+  if (!response.ok) {
+    // An expired or rejected token must end the session, otherwise the panel
+    // keeps showing an admin UI that cannot save anything.
+    if (response.status === 401) {
+      clearSession()
+      notifyUnauthorized()
+      throw new Error('Your session has expired. Please sign in again.')
+    }
+    if (response.status === 403) {
+      throw new Error('You do not have permission to perform this action.')
+    }
+    if (response.status === 429) {
+      throw new Error('Too many requests. Please slow down and try again shortly.')
     }
 
-    return await response.json()
-  } catch (error) {
-    console.error('API call failed:', error)
-    throw error
+    // Read the body once. The previous version threw inside its own try block,
+    // so the specific server message was swallowed by the surrounding catch
+    // and every failure surfaced as a bare status code.
+    const errorData = await response.json().catch(() => null)
+    const errorMessage =
+      errorData?.message || errorData?.error || `HTTP error! status: ${response.status}`
+    console.error('API call failed:', endpoint, response.status, errorMessage)
+    throw new Error(errorMessage)
   }
+
+  return await response.json()
 }
 
 // Menu Items API

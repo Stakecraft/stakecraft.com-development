@@ -14,7 +14,10 @@
     "seed:menu": "node scripts/seed-menu.js",
     "seed:all": "npm run seed && npm run seed:users && npm run seed:menu",
     "fix:orders": "node scripts/fix-duplicate-orders.js",
-    "test:api": "node scripts/test-api.js"
+    "test:api": "node scripts/test-api.js",
+    "create-admin": "node scripts/create-admin.js",
+    "test:security": "node scripts/security-check.js",
+    "audit:routes": "NODE_ENV=test node scripts/audit-routes.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
