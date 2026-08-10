@@ -15,7 +15,7 @@ export default {
       title: 'Page Not Found — StakeCraft',
       description: 'The requested page was not found on StakeCraft.',
       path: '/404',
-      ogImage: 'https://stakecraft.com/og-image.png',
+      ogImage: 'https://stakecraft.com/og-image.png?v=2',
       jsonLd: []
     })
   }

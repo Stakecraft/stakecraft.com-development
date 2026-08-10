@@ -4,7 +4,8 @@ export const defaultSeo = {
   title: 'StakeCraft — Staking & Validator Infrastructure for Proof-of-Stake Networks',
   description:
     'StakeCraft runs validator nodes across Cosmos, Solana, Polkadot, NEAR, Sui and more. Delegate your stake, keep custody of your tokens, and earn rewards on infrastructure built for uptime.',
-  ogImage: `${SITE_URL}/og-image.png`,
+  // Cache-bust when replacing public/og-image.png so Telegram/etc. refetch
+  ogImage: `${SITE_URL}/og-image.png?v=2`,
   ogType: 'website'
 }
 
@@ -19,7 +20,7 @@ export const routeSeo = {
     title: 'Token Swap — StakeCraft',
     description:
       'Swap tokens securely via the StakeCraft swap interface. Exchange assets across supported networks.',
-    ogImage: `${SITE_URL}/og-image.png`,
+    ogImage: `${SITE_URL}/og-image.png?v=2`,
     ogType: 'website',
     jsonLd: ['organization']
   },
@@ -27,7 +28,7 @@ export const routeSeo = {
     path: '/terms',
     title: 'Terms and Conditions — StakeCraft',
     description: 'Terms and conditions for using StakeCraft staking and validator services.',
-    ogImage: `${SITE_URL}/og-image.png`,
+    ogImage: `${SITE_URL}/og-image.png?v=2`,
     ogType: 'website',
     jsonLd: ['organization']
   },
@@ -35,7 +36,7 @@ export const routeSeo = {
     path: '/policy',
     title: 'Privacy Policy — StakeCraft',
     description: 'Privacy policy describing how StakeCraft collects and uses your information.',
-    ogImage: `${SITE_URL}/og-image.png`,
+    ogImage: `${SITE_URL}/og-image.png?v=2`,
     ogType: 'website',
     jsonLd: ['organization']
   }
