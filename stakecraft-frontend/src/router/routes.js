@@ -25,7 +25,35 @@ export const routes = [
     name: 'swap',
     component: () => import('../views/Swap.vue'),
     meta: { seoKey: 'swap' }
+  },
+  {
+    path: '/solana-staking',
+    name: 'solana-staking',
+    component: () => import('../views/NetworkStakingView.vue'),
+    meta: { seoKey: 'solanaStaking', networkSlug: 'solana' }
+  },
+  {
+    path: '/near-staking',
+    name: 'near-staking',
+    component: () => import('../views/NetworkStakingView.vue'),
+    meta: { seoKey: 'nearStaking', networkSlug: 'near' }
+  },
+  {
+    path: '/monad-staking',
+    name: 'monad-staking',
+    component: () => import('../views/NetworkStakingView.vue'),
+    meta: { seoKey: 'monadStaking', networkSlug: 'monad' }
   }
 ]
 
-export const prerenderRoutes = ['/', '/terms', '/policy', '/swap', '/notadmin', '/health']
+export const prerenderRoutes = [
+  '/',
+  '/terms',
+  '/policy',
+  '/swap',
+  '/solana-staking',
+  '/near-staking',
+  '/monad-staking',
+  '/notadmin',
+  '/health'
+]

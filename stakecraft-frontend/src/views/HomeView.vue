@@ -2,14 +2,14 @@
   <div>
     <div class="homeView">
       <div class="presentation">
-        <div class="titleArea">
-          <h1 class="titleLvl1">Trustworthy</h1>
-          <div class="titleLvl2" aria-hidden="true">Validator</div>
-        </div>
+        <h1 class="titleArea">
+          <span class="titleLvl1">StakeCraft</span>
+          <span class="titleLvl2">Staking</span>
+        </h1>
         <div class="websiteDescription">
-          Stakecraft validator offers services to make profit to users from staking their digital
-          assets, providing high reliability, security of user funds, transparent monitoring, and
-          advanced technical support.
+          StakeCraft is a non-custodial staking provider building staking infrastructure across
+          Solana, NEAR, Monad, Cosmos, Polkadot, and more. Delegate to our validators, keep custody
+          of your tokens, and earn rewards on infrastructure built for uptime.
         </div>
       </div>
       <div class="imageArea" />
@@ -78,6 +78,7 @@ export default {
 
 .titleArea .titleLvl1,
 .titleArea .titleLvl2 {
+  display: block;
   margin: 0;
   font-size: 90px;
   font-weight: 600;

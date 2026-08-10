@@ -1,9 +1,9 @@
 export const SITE_URL = 'https://stakecraft.com'
 
 export const defaultSeo = {
-  title: 'StakeCraft — Staking & Validator Infrastructure for Proof-of-Stake Networks',
+  title: 'StakeCraft — Staking Provider & Staking Infrastructure',
   description:
-    'StakeCraft runs validator nodes across Cosmos, Solana, Polkadot, NEAR, Sui and more. Delegate your stake, keep custody of your tokens, and earn rewards on infrastructure built for uptime.',
+    'StakeCraft is a non-custodial staking provider running validator staking infrastructure across Solana, NEAR, Monad, Cosmos, Polkadot, and more. Delegate your stake, keep custody of your tokens, and earn rewards.',
   // Cache-bust when replacing public/og-image.png so Telegram/etc. refetch
   ogImage: `${SITE_URL}/og-image.png?v=2`,
   ogType: 'website'
@@ -39,6 +39,33 @@ export const routeSeo = {
     ogImage: `${SITE_URL}/og-image.png?v=2`,
     ogType: 'website',
     jsonLd: ['organization']
+  },
+  solanaStaking: {
+    path: '/solana-staking',
+    title: 'Solana Staking — StakeCraft Validator & Staking Provider',
+    description:
+      'Stake SOL with StakeCraft, a non-custodial Solana staking provider. Delegate to our Solana validator, keep custody of your tokens, and earn staking rewards.',
+    ogImage: `${SITE_URL}/og-image.png?v=2`,
+    ogType: 'website',
+    jsonLd: ['organization', 'service', 'faq']
+  },
+  nearStaking: {
+    path: '/near-staking',
+    title: 'NEAR Staking — StakeCraft Validator & Staking Provider',
+    description:
+      'Stake NEAR with StakeCraft, a non-custodial NEAR staking provider. Delegate to stakecraft.poolv1.near, keep custody of your tokens, and earn staking rewards.',
+    ogImage: `${SITE_URL}/og-image.png?v=2`,
+    ogType: 'website',
+    jsonLd: ['organization', 'service', 'faq']
+  },
+  monadStaking: {
+    path: '/monad-staking',
+    title: 'Monad Staking — StakeCraft Validator & Staking Provider',
+    description:
+      'Stake MON with StakeCraft, a non-custodial Monad staking provider. Delegate to our Monad validator, keep custody of your tokens, and earn staking rewards.',
+    ogImage: `${SITE_URL}/og-image.png?v=2`,
+    ogType: 'website',
+    jsonLd: ['organization', 'service', 'faq']
   }
 }
 
@@ -52,7 +79,22 @@ export const DEFAULT_FAQ_ITEMS = [
   {
     question: 'Which networks does StakeCraft validate?',
     answer:
-      'StakeCraft operates validators on Solana, NEAR, Kava, Polygon, and additional Cosmos ecosystem chains including Juno, Stargaze, and Band Protocol, plus Polkadot, Sui, and Walrus storage nodes. See the mainnet section on stakecraft.com for the full live list.'
+      'StakeCraft operates validators on Solana, NEAR, Monad, Kava, Polygon, and additional Cosmos ecosystem chains including Juno, Stargaze, and Band Protocol, plus Polkadot, Sui, and Walrus storage nodes. See dedicated pages for Solana staking, NEAR staking, and Monad staking, or the mainnet section on stakecraft.com for the full live list.'
+  },
+  {
+    question: 'What is a staking provider?',
+    answer:
+      'A staking provider runs validator nodes so token holders can delegate stake and earn rewards without operating infrastructure themselves. StakeCraft is a non-custodial staking provider: you keep your tokens in your own wallet while we run the staking infrastructure.'
+  },
+  {
+    question: 'What is staking infrastructure?',
+    answer:
+      'Staking infrastructure is the validator hardware, networking, monitoring, and operations that secure a proof-of-stake network. StakeCraft builds and runs that infrastructure across multiple chains so delegators can stake with high uptime and without giving up custody.'
+  },
+  {
+    question: 'Can I stake Solana, NEAR, or Monad with StakeCraft?',
+    answer:
+      'Yes. StakeCraft runs validators for Solana staking, NEAR staking, and Monad staking. Open the matching network page or the homepage mainnet section, then delegate with your wallet while keeping custody of your tokens.'
   },
   {
     question: 'What commission does StakeCraft charge?',
@@ -101,7 +143,7 @@ export function buildOrganizationSchema() {
     url: `${SITE_URL}/`,
     logo: `${SITE_URL}/headerLogo.svg`,
     description:
-      'Staking and validator infrastructure provider operating nodes across multiple proof-of-stake networks.',
+      'Non-custodial staking provider and staking infrastructure operator running validator nodes across multiple proof-of-stake networks.',
     email: 'support@stakecraft.com',
     sameAs: [
       'https://x.com/stakecraft',
@@ -111,16 +153,17 @@ export function buildOrganizationSchema() {
   }
 }
 
-export function buildServiceSchema() {
+export function buildServiceSchema(service = {}) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Service',
-    name: 'Staking Delegation',
-    serviceType: 'Proof-of-stake validator delegation',
+    name: service.name || 'Staking Provider & Staking Infrastructure',
+    serviceType: service.serviceType || 'Proof-of-stake validator staking infrastructure',
     provider: { '@id': `${SITE_URL}/#organization` },
     areaServed: 'Worldwide',
     description:
-      'Delegate tokens to StakeCraft validator nodes and earn staking rewards while retaining custody of your assets.',
+      service.description ||
+      'StakeCraft provides non-custodial staking infrastructure so you can delegate tokens to our validators, earn staking rewards, and retain custody of your assets.',
     offers: {
       '@type': 'Offer',
       description: 'Validator delegation with network-specific commission rates.'
@@ -147,7 +190,7 @@ export function buildFaqSchema(items = DEFAULT_FAQ_ITEMS) {
 export function getJsonLdBlocks(types = [], options = {}) {
   const blocks = []
   if (types.includes('organization')) blocks.push(buildOrganizationSchema())
-  if (types.includes('service')) blocks.push(buildServiceSchema())
+  if (types.includes('service')) blocks.push(buildServiceSchema(options.service))
   if (types.includes('faq')) blocks.push(buildFaqSchema(options.faqItems))
   return blocks
 }
