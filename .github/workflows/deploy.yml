@@ -13,7 +13,7 @@ jobs:
         env:
           SERVER_ENV:  ${{ secrets.SERVER_ENV }}
           AUTH_CONFIG: ${{ secrets.AUTH_CONFIG }}
-        uses: fifsky/ssh-action@v0.0.35
+        uses: fifsky/ssh-action@v0.0.6
         with:
           command: |
             cd ~/stakecraft.com-development
