@@ -30,6 +30,41 @@
       <div class="imageArea" />
     </div>
 
+    <div v-if="page.stakingOptions" class="mainAreas optionsSection">
+      <div class="titleHeader">Ways to stake {{ page.token }}</div>
+      <div class="optionsGrid">
+        <div v-for="option in page.stakingOptions" :key="option.id" class="optionCard">
+          <div class="optionTag">{{ option.tag }}</div>
+          <h3 class="optionTitle">{{ option.title }}</h3>
+          <p class="optionDescription">{{ option.description }}</p>
+          <button
+            v-if="option.action === 'modal' && stakingNetwork"
+            class="ctaPrimary optionCta"
+            type="button"
+            @click="stakeNow"
+          >
+            {{ option.ctaLabel }}
+          </button>
+          <router-link
+            v-else-if="option.action === 'modal'"
+            class="ctaPrimary optionCta"
+            to="/#mainnet"
+          >
+            {{ option.ctaLabel }}
+          </router-link>
+          <a
+            v-else
+            class="ctaSecondary optionCta"
+            :href="option.url"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ option.ctaLabel }}
+          </a>
+        </div>
+      </div>
+    </div>
+
     <div class="mainAreas stakeSection" :id="`how-to-stake-${page.slug}`">
       <div class="titleHeader">How to stake {{ page.token }}</div>
       <div class="stepsArea">
@@ -253,6 +288,57 @@ export default {
 .ctaSecondary:hover {
   padding-left: 34px;
   padding-right: 34px;
+}
+
+/* Ways to stake — cards like the mainnet network buttons */
+.optionsSection {
+  padding-bottom: 70px;
+}
+
+.optionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.optionCard {
+  background: var(--van-mainnet-network-background);
+  color: var(--van-mainnet-color);
+  border-radius: 20px;
+  padding: 26px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.optionTag {
+  font-family: poppins;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--van-seconday-color);
+  margin-bottom: 12px;
+}
+
+.optionTitle {
+  margin: 0 0 12px;
+  font-family: generalSans;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.optionDescription {
+  margin: 0 0 22px;
+  font-family: poppins;
+  font-size: 15px;
+  line-height: 25px;
+  flex-grow: 1;
+}
+
+.optionCta {
+  font-size: 16px;
+  padding: 12px 22px;
 }
 
 /* How to stake — cards like the mainnet network buttons */
