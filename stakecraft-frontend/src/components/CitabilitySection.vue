@@ -3,8 +3,11 @@
     <div class="faq-content">
       <h2 id="faq-heading" class="titleHeader">Staking FAQ</h2>
       <p class="faq-intro">
-        Answers to common questions about delegating to StakeCraft validators. StakeCraft is a
-        non-custodial infrastructure operator — your tokens always remain in your wallet.
+        Answers about StakeCraft as a staking provider and our staking infrastructure. Your tokens
+        always remain in your wallet. Learn more:
+        <router-link to="/solana-staking">Solana staking</router-link>,
+        <router-link to="/near-staking">NEAR staking</router-link>, and
+        <router-link to="/monad-staking">Monad staking</router-link>.
       </p>
 
       <div class="faq-panels">
@@ -76,6 +79,11 @@ export default {
   font-weight: 400;
   margin: 0 0 45px 0;
   color: var(--van-text-color);
+}
+
+.faq-intro a {
+  color: var(--van-text-color);
+  text-decoration: underline;
 }
 
 .faq-panels {

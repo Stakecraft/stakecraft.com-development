@@ -4,7 +4,17 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
-const prerenderRoutes = ['/', '/terms', '/policy', '/swap', '/notadmin', '/health']
+const prerenderRoutes = [
+  '/',
+  '/terms',
+  '/policy',
+  '/swap',
+  '/solana-staking',
+  '/near-staking',
+  '/monad-staking',
+  '/notadmin',
+  '/health'
+]
 
 export default defineConfig({
   plugins: [

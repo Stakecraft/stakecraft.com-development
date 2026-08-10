@@ -23,6 +23,9 @@
         </div>
       </div>
       <div class="terms">
+        <a href="/solana-staking">Solana staking</a>
+        <a href="/near-staking">NEAR staking</a>
+        <a href="/monad-staking">Monad staking</a>
         <a href="/terms">Terms and conditions</a>
         <a href="/policy">Privacy policy</a>
       </div>
@@ -125,14 +128,18 @@ export default {
   margin-left: -68px;
 }
 
+.terms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  justify-content: flex-end;
+  max-width: 520px;
+}
+
 .terms a {
   font-family: poppins;
   font-size: 16px;
   color: #d9d9d9;
-}
-
-.terms a:first-child {
-  margin-right: 59px;
 }
 
 @media only screen and (max-width: 900px) {

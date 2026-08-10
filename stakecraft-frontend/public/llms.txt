@@ -1,10 +1,10 @@
 # StakeCraft
 
-> Professional staking and validator infrastructure provider. StakeCraft runs
-> validator nodes across multiple proof-of-stake networks, letting token holders
+> Non-custodial staking provider and staking infrastructure operator. StakeCraft
+> runs validator nodes across multiple proof-of-stake networks, letting token holders
 > delegate their stake and earn rewards without operating infrastructure themselves.
 
-- **What we do:** run validator nodes on proof-of-stake blockchains
+- **What we do:** staking provider / staking infrastructure across PoS chains
 - **Who we serve:** token holders who want to delegate stake; teams that need node infrastructure
 - **Commission:** varies by network — see per-network details on the homepage
 - **Uptime:** enterprise-grade monitoring and redundant infrastructure
@@ -26,7 +26,10 @@ StakeCraft operates validators on mainnet and testnet networks including:
 
 ## Pages
 
-- [Home](https://stakecraft.com/): overview of StakeCraft and supported networks
+- [Home](https://stakecraft.com/): staking provider overview and supported networks
+- [Solana Staking](https://stakecraft.com/solana-staking): how to stake SOL with StakeCraft
+- [NEAR Staking](https://stakecraft.com/near-staking): how to stake NEAR with StakeCraft
+- [Monad Staking](https://stakecraft.com/monad-staking): how to stake on Monad with StakeCraft
 - [Swap](https://stakecraft.com/swap): token swap interface
 - [Terms of Service](https://stakecraft.com/terms)
 - [Privacy Policy](https://stakecraft.com/policy)

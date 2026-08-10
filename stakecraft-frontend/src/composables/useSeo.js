@@ -10,7 +10,8 @@ import prefetchedData from '../data/prefetched.json'
 export function useSeo(seo) {
   const canonical = `${SITE_URL}${seo.path || '/'}`
   const jsonLdBlocks = getJsonLdBlocks(seo.jsonLd || [], {
-    faqItems: prefetchedData.faq
+    faqItems: seo.faqItems || prefetchedData.faq,
+    service: seo.service
   })
 
   useHead({

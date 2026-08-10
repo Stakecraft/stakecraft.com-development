@@ -24,6 +24,21 @@ const fallbackMenuItems = [
   },
   { title: 'Swap', link: '/swap', metadata: { menuSection: 'center', isExternal: 'false' } },
   {
+    title: 'Solana',
+    link: '/solana-staking',
+    metadata: { menuSection: 'center', isExternal: 'false' }
+  },
+  {
+    title: 'NEAR',
+    link: '/near-staking',
+    metadata: { menuSection: 'center', isExternal: 'false' }
+  },
+  {
+    title: 'Monad',
+    link: '/monad-staking',
+    metadata: { menuSection: 'center', isExternal: 'false' }
+  },
+  {
     title: 'About Us',
     link: '/#aboutUs',
     metadata: { menuSection: 'center', isExternal: 'false' }

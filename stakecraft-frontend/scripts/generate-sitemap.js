@@ -13,6 +13,9 @@ const lastmod = new Date().toISOString().split('T')[0]
 
 const routes = [
   { loc: '/', changefreq: 'weekly', priority: '1.0' },
+  { loc: '/solana-staking', changefreq: 'weekly', priority: '0.8' },
+  { loc: '/near-staking', changefreq: 'weekly', priority: '0.8' },
+  { loc: '/monad-staking', changefreq: 'weekly', priority: '0.8' },
   { loc: '/swap', changefreq: 'monthly', priority: '0.7' },
   { loc: '/terms', changefreq: 'yearly', priority: '0.3' },
   { loc: '/policy', changefreq: 'yearly', priority: '0.3' }
