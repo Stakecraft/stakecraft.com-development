@@ -1,57 +1,86 @@
 <template>
-  <div v-if="page" class="network-staking">
-    <section class="hero mainAreas">
-      <p class="brand">{{ page.brandLine }}</p>
-      <h1 class="headline">{{ page.h1 }}</h1>
-      <p class="intro">{{ page.intro }}</p>
-      <div class="cta-group">
-        <router-link class="cta cta-primary" to="/#mainnet">Stake on StakeCraft</router-link>
-        <a
-          v-if="page.explorer"
-          class="cta cta-secondary"
-          :href="page.explorer"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          View validator
-        </a>
+  <div v-if="page">
+    <div class="networkHero">
+      <div class="presentation">
+        <h1 class="titleArea">
+          <span class="titleLvl1">{{ page.networkName }}</span>
+          <span class="titleLvl2">Staking</span>
+        </h1>
+        <div class="websiteDescription">
+          {{ page.intro }}
+        </div>
+        <div class="ctaGroup">
+          <router-link class="ctaPrimary" to="/#mainnet">Stake with StakeCraft</router-link>
+          <a
+            v-if="page.explorer"
+            class="ctaSecondary"
+            :href="page.explorer"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View validator
+          </a>
+        </div>
       </div>
-    </section>
+      <div class="imageArea" />
+    </div>
 
-    <section class="section mainAreas" aria-labelledby="how-heading">
-      <h2 id="how-heading" class="titleHeader">How to stake {{ page.token }}</h2>
-      <ol class="steps">
-        <li v-for="(step, index) in page.steps" :key="index">{{ step }}</li>
-      </ol>
-      <p class="validator-line">
-        Validator:
-        <code>{{ page.validator }}</code>
-      </p>
-      <p v-if="page.howToStake" class="guide-link">
+    <div class="mainAreas stakeSection" :id="`how-to-stake-${page.slug}`">
+      <div class="titleHeader">How to stake {{ page.token }}</div>
+      <div class="stepsArea">
+        <div v-for="(step, index) in page.steps" :key="index" class="stepCard">
+          <div class="stepNumber">{{ index + 1 }}</div>
+          <div class="stepText">{{ step }}</div>
+        </div>
+      </div>
+      <div class="validatorCard">
+        <div class="validatorLabel">Validator address</div>
+        <code class="validatorValue">{{ page.validator }}</code>
+      </div>
+      <p v-if="page.howToStake" class="guideLink">
         <a :href="page.howToStake" target="_blank" rel="noopener noreferrer">
-          {{ page.networkName }} staking guide
+          Read the full {{ page.networkName }} staking guide
         </a>
       </p>
-    </section>
+    </div>
 
-    <section class="section mainAreas" aria-labelledby="why-heading">
-      <h2 id="why-heading" class="titleHeader">Why StakeCraft for {{ page.networkName }}</h2>
-      <ul class="why-list">
-        <li v-for="(item, index) in page.why" :key="index">{{ item }}</li>
-      </ul>
-    </section>
-
-    <section class="section mainAreas faq" aria-labelledby="network-faq-heading">
-      <h2 id="network-faq-heading" class="titleHeader">{{ page.networkName }} staking FAQ</h2>
-      <div v-for="(item, index) in page.faqItems" :key="item.question" class="faq-item">
-        <h3 class="faq-q">{{ item.question }}</h3>
-        <p class="faq-a">{{ item.answer }}</p>
+    <div class="whySection">
+      <div class="mainAreas">
+        <div class="titleHeader">Why StakeCraft for {{ page.networkName }}?</div>
+        <div class="whyGrid">
+          <div v-for="(item, index) in page.why" :key="index" class="whyCard">
+            {{ item }}
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
 
-    <section class="section mainAreas related" aria-labelledby="related-heading">
-      <h2 id="related-heading" class="titleHeader">More staking networks</h2>
-      <p class="related-links">
+    <section class="faqSection mainAreas" :aria-labelledby="`faq-heading-${page.slug}`">
+      <h2 :id="`faq-heading-${page.slug}`" class="titleHeader">
+        {{ page.networkName }} staking FAQ
+      </h2>
+      <div class="faq-panels">
+        <div
+          v-for="(item, index) in page.faqItems"
+          :key="item.question"
+          class="wrapper"
+          :class="{ withHeight: openItems[index] }"
+          role="button"
+          tabindex="0"
+          :aria-expanded="openItems[index] ? 'true' : 'false'"
+          @click="toggle(index)"
+          @keydown.enter.prevent="toggle(index)"
+          @keydown.space.prevent="toggle(index)"
+        >
+          <div class="presentationRow">
+            <div class="panel-title">{{ item.question }}</div>
+            <span class="add" :class="{ around: openItems[index] }">+</span>
+          </div>
+          <div class="panel-description">{{ item.answer }}</div>
+        </div>
+      </div>
+      <p class="relatedLinks">
+        More staking networks:
         <router-link to="/">Home</router-link>
         <template v-for="link in page.related" :key="link.path">
           ·
@@ -65,7 +94,7 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import LetsConnect from '../components/LetsConnect.vue'
 import { useSeo } from '../composables/useSeo.js'
@@ -80,6 +109,7 @@ export default {
     const pageData = getNetworkStakingPage(route.meta.networkSlug)
     const page = computed(() => pageData)
     const seoBase = routeSeo[route.meta.seoKey] || routeSeo.home
+    const openItems = ref({})
 
     useSeo({
       ...seoBase,
@@ -87,157 +117,328 @@ export default {
       service: pageData?.service
     })
 
-    return { page }
+    const toggle = (index) => {
+      openItems.value[index] = !openItems.value[index]
+    }
+
+    return { page, openItems, toggle }
   }
 }
 </script>
 
 <style scoped>
-.network-staking {
+/* Hero — mirrors HomeView */
+.networkHero {
   margin-top: 80px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  background: url('../assets/bg img.svg');
+  background-repeat: no-repeat;
+  background-position: right;
+  padding: 28px 72px 94px 72px;
+  gap: 20px;
 }
 
-.hero {
-  padding-top: 48px;
-  padding-bottom: 64px;
+.presentation {
+  display: flex;
+  flex-direction: column;
+  width: 608px;
 }
 
-.brand {
-  margin: 0 0 12px;
-  font-family: generalSans;
-  font-size: 18px;
+.titleArea {
+  margin-bottom: 35px;
+}
+
+.titleArea .titleLvl1,
+.titleArea .titleLvl2 {
+  display: block;
+  margin: 0;
+  font-size: 90px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.headline {
-  margin: 0 0 20px;
+  line-height: 100px;
   font-family: generalSans;
-  font-size: 64px;
-  font-weight: 600;
-  line-height: 1.1;
 }
 
-.intro {
-  max-width: 720px;
-  margin: 0 0 32px;
+.websiteDescription {
   font-size: 20px;
   line-height: 30px;
 }
 
-.cta-group {
+.imageArea {
+  background-image: url('../assets/mainImage.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 630px;
+  height: 629.88px;
+}
+
+.ctaGroup {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
+  margin-top: 40px;
 }
 
-.cta {
+.ctaPrimary,
+.ctaSecondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
-  padding: 12px 24px;
+  padding: 14px 28px;
+  border-radius: 20px;
   font-family: poppins;
-  font-size: 16px;
+  font-size: 18px;
+  font-weight: 700;
   text-decoration: none;
-  border: 1px solid currentColor;
+  transition: padding 0.5s;
 }
 
-.cta-primary {
-  background: var(--van-text-color);
-  color: var(--van-background);
-  border-color: var(--van-text-color);
+.ctaPrimary {
+  background: var(--van-seconday-color);
+  color: #111217;
 }
 
-.cta-secondary {
+.ctaSecondary {
+  background: var(--van-mainnet-network-background);
   color: var(--van-text-color);
+  border: 1px solid var(--van-border-color);
 }
 
-.section {
-  padding-top: 72px;
-  padding-bottom: 72px;
+.ctaPrimary:hover,
+.ctaSecondary:hover {
+  padding-left: 34px;
+  padding-right: 34px;
 }
 
-.steps,
-.why-list {
-  max-width: 720px;
-  margin: 0;
-  padding-left: 1.25rem;
-  font-family: poppins;
-  font-size: 16px;
-  line-height: 28px;
+/* How to stake — cards like the mainnet network buttons */
+.stakeSection {
+  padding-bottom: 70px;
 }
 
-.steps li + li,
-.why-list li + li {
-  margin-top: 10px;
+.stepsArea {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
 }
 
-.validator-line {
-  margin: 28px 0 0;
-  font-family: poppins;
-  font-size: 15px;
-  line-height: 24px;
-  word-break: break-all;
+.stepCard {
+  background: var(--van-mainnet-network-background);
+  color: var(--van-mainnet-color);
+  padding: 22px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  border-radius: 20px;
 }
 
-.validator-line code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 14px;
-}
-
-.guide-link {
-  margin: 16px 0 0;
-  font-family: poppins;
-  font-size: 16px;
-}
-
-.guide-link a,
-.related-links a {
-  color: var(--van-text-color);
-  text-decoration: underline;
-}
-
-.faq-item + .faq-item {
-  margin-top: 28px;
-}
-
-.faq-q {
-  margin: 0 0 8px;
+.stepNumber {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--van-seconday-color);
+  color: #111217;
   font-family: generalSans;
   font-size: 22px;
   font-weight: 600;
 }
 
-.faq-a {
-  margin: 0;
-  max-width: 720px;
+.stepText {
   font-family: poppins;
   font-size: 16px;
   line-height: 26px;
 }
 
-.related-links {
+.validatorCard {
+  margin-top: 28px;
+  background: var(--van-mainnet-network-background);
+  color: var(--van-mainnet-color);
+  border-radius: 20px;
+  padding: 22px;
+}
+
+.validatorLabel {
+  font-family: poppins;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.validatorValue {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 15px;
+  word-break: break-all;
+  color: var(--van-seconday-color);
+}
+
+.guideLink {
+  margin: 24px 0 0;
+  font-family: poppins;
+  font-size: 16px;
+}
+
+.guideLink a {
+  color: var(--van-text-color);
+  text-decoration: underline;
+}
+
+/* Why section — gradient band like Testnet / About Us */
+.whySection {
+  background: var(--van-about-us-background);
+  padding-top: 100px;
+  padding-bottom: 100px;
+  margin-top: 30px;
+}
+
+.whyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.whyCard {
+  background: var(--van-ourCapabilities-wrapper);
+  color: var(--van-ourCapabilities-text);
+  border-radius: 20px;
+  padding: 26px 22px;
+  font-family: poppins;
+  font-size: 16px;
+  line-height: 26px;
+}
+
+/* FAQ — same accordion as CitabilitySection */
+.faqSection {
+  padding-top: 100px;
+  padding-bottom: 100px;
+}
+
+.faq-panels {
+  width: 100%;
+}
+
+.wrapper {
+  max-height: 62px;
+  width: 100%;
+  overflow: hidden;
+  margin-bottom: 18px;
+  transition: 0.3s linear max-height;
+  background: var(--van-ourCapabilities-wrapper);
+  color: var(--van-ourCapabilities-text);
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.wrapper.withHeight {
+  max-height: 320px;
+}
+
+.presentationRow {
+  display: flex;
+  padding: 16px 20px 11px 20px;
+  font-family: poppins;
+  font-size: 20px;
+  line-height: 30px;
+  justify-content: space-between;
+}
+
+.panel-title {
+  font-family: poppins;
+  font-size: 20px;
+  line-height: 30px;
+  font-weight: 400;
   margin: 0;
+}
+
+.panel-description {
+  text-align: left;
+  padding: 0 20px 15px 20px;
+  font-size: 16px;
+  line-height: 24px;
+  font-family: poppins;
+  margin: 0;
+}
+
+.add {
+  font-size: 24px;
+  align-self: flex-end;
+  transition: 0.3s linear transform;
+}
+
+.add.around {
+  transform: rotate(45deg);
+}
+
+.relatedLinks {
+  margin: 30px 0 0;
   font-family: poppins;
   font-size: 16px;
   line-height: 28px;
 }
 
+.relatedLinks a {
+  color: var(--van-text-color);
+  text-decoration: underline;
+}
+
 @media only screen and (max-width: 900px) {
-  .headline {
-    font-size: 40px;
+  .networkHero {
+    padding: 64px 19px 0 19px;
+    box-sizing: border-box;
+    display: block;
   }
 
-  .intro {
-    font-size: 18px;
-    line-height: 28px;
+  .presentation {
+    width: 100% !important;
+    margin-bottom: 30px;
   }
 
-  .section {
-    padding-top: 56px;
-    padding-bottom: 56px;
+  .imageArea {
+    width: 100%;
+    height: 420px;
+  }
+
+  .titleArea .titleLvl1,
+  .titleArea .titleLvl2 {
+    font-size: 56px;
+    line-height: 62px;
+  }
+
+  .ctaGroup {
+    margin-top: 30px;
+  }
+
+  .whySection,
+  .faqSection {
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+
+  .presentationRow {
+    font-size: 16px;
+    line-height: 24px;
+    padding: 16px 15px;
+    align-items: center;
+  }
+
+  .panel-title {
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  .wrapper.withHeight {
+    max-height: 420px;
+  }
+
+  .panel-description {
+    padding: 0 15px 15px 15px;
   }
 }
 </style>
