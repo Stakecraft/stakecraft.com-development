@@ -66,7 +66,13 @@
     </div>
 
     <div class="mainAreas stakeSection" :id="`how-to-stake-${page.slug}`">
-      <div class="titleHeader">How to stake {{ page.token }}</div>
+      <div class="titleHeader">
+        How to stake {{ page.token }}<template v-if="page.stakingOptions"> natively</template>
+      </div>
+      <p v-if="page.stakingOptions" class="stakeSectionIntro">
+        The steps below cover native protocol staking. Prefer a liquid token? Use one of the pool
+        options above instead.
+      </p>
       <div class="stepsArea">
         <div v-for="(step, index) in page.steps" :key="index" class="stepCard">
           <div class="stepNumber">{{ index + 1 }}</div>
@@ -344,6 +350,13 @@ export default {
 /* How to stake — cards like the mainnet network buttons */
 .stakeSection {
   padding-bottom: 70px;
+}
+
+.stakeSectionIntro {
+  margin: -14px 0 28px;
+  font-family: poppins;
+  font-size: 16px;
+  line-height: 26px;
 }
 
 .stepsArea {
