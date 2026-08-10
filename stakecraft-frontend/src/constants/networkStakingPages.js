@@ -69,6 +69,22 @@ export const networkStakingPages = {
         action: 'external',
         url: 'https://stake.solblaze.org/app/?validator=BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g',
         ctaLabel: 'Stake via SolBlaze'
+      },
+      {
+        id: 'jagpool',
+        title: 'JagPool direct staking',
+        tabLabel: 'JagPool · jagSOL',
+        description:
+          'JagPool is a non-custodial stake pool built on the audited Solana stake pool program. Direct-stake to the StakeCraft validator and receive jagSOL, a liquid token that grows in value as rewards accrue and can be redeemed for SOL anytime.',
+        steps: [
+          'Open the JagPool direct staking page — the StakeCraft validator is preselected.',
+          'Connect your Solana wallet and enter the amount of SOL to stake.',
+          'Confirm the transaction. Your SOL is directed to StakeCraft and you receive jagSOL.',
+          'Hold or use jagSOL in DeFi; redeem it for SOL plus accrued rewards whenever you like.'
+        ],
+        action: 'external',
+        url: 'https://www.jagpool.xyz/direct-stake?validator=BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g',
+        ctaLabel: 'Stake via JagPool'
       }
     ],
     why: [
@@ -95,7 +111,7 @@ export const networkStakingPages = {
       {
         question: 'Can I stake SOL to StakeCraft through a liquid staking pool?',
         answer:
-          'Yes. JPool direct staking and SolBlaze custom liquid staking both let you point pool stake at the StakeCraft validator while you receive a liquid token (JSOL or bSOL) to use in DeFi. Native protocol staking remains available if you prefer a plain stake account.'
+          'Yes. JPool direct staking, SolBlaze custom liquid staking, and JagPool direct staking all let you point pool stake at the StakeCraft validator while you receive a liquid token (JSOL, bSOL, or jagSOL) to use in DeFi. Native protocol staking remains available if you prefer a plain stake account.'
       }
     ],
     service: {
