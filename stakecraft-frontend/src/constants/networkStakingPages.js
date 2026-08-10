@@ -22,28 +22,34 @@ export const networkStakingPages = {
       'https://stakewiz.com/validator/BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g',
     howToStake:
       'https://stakecraft.medium.com/stakecraft-launches-direct-staking-support-for-solana-near-kava-and-supra-df9f4987f406',
-    steps: [
-      'Open Phantom (or another Solana wallet) and fund it with SOL.',
-      'Go to staking in your wallet, or open StakeCraft and choose Solana on the mainnet section.',
-      'Search for StakeCraft or paste our Solana validator vote account.',
-      'Enter the amount to delegate and confirm. Your SOL remains under your custody.'
-    ],
     stakingOptions: [
       {
         id: 'native',
         title: 'Native staking',
-        tag: 'Protocol-level',
+        tabLabel: 'Native staking',
         description:
           'Delegate SOL straight to the StakeCraft validator through the Solana protocol. Your stake stays in a native stake account you own — no pool token, no smart-contract layer. Unstaking follows the normal ~2-day deactivation.',
+        steps: [
+          'Open Phantom (or another Solana wallet) and fund it with SOL.',
+          'Go to staking in your wallet, or open StakeCraft and choose Solana on the mainnet section.',
+          'Search for StakeCraft or paste our Solana validator vote account.',
+          'Enter the amount to delegate and confirm. Your SOL remains under your custody.'
+        ],
         action: 'modal',
         ctaLabel: 'Stake natively'
       },
       {
         id: 'jpool',
         title: 'JPool direct staking',
-        tag: 'Liquid staking · JSOL',
+        tabLabel: 'JPool · JSOL',
         description:
           'Stake through the JPool pool directed at our validator and receive JSOL, a liquid token you can use in DeFi. JPool matches direct delegations, so your stake also boosts the validator beyond your own deposit.',
+        steps: [
+          'Open the JPool direct staking page — the StakeCraft validator is preselected.',
+          'Connect your Solana wallet and enter the amount of SOL on the Direct tab.',
+          'Confirm the transaction. Your SOL is delegated to StakeCraft and you receive JSOL.',
+          'Use JSOL in DeFi or unstake anytime — your delegation keeps earning while you hold it.'
+        ],
         action: 'external',
         url: 'https://app.jpool.one/validators/BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g?activeTab=direct',
         ctaLabel: 'Stake via JPool'
@@ -51,9 +57,15 @@ export const networkStakingPages = {
       {
         id: 'solblaze',
         title: 'SolBlaze custom liquid staking',
-        tag: 'Liquid staking · bSOL',
+        tabLabel: 'SolBlaze · bSOL',
         description:
           'BlazeStake Custom Liquid Staking delegates your SOL 1:1 to the StakeCraft validator while you hold bSOL. Keep liquidity for DeFi while supporting our node directly.',
+        steps: [
+          'Open the SolBlaze staking page with the StakeCraft validator preselected.',
+          'Connect your Solana wallet and choose how much SOL to stake.',
+          'Confirm to receive bSOL while your SOL is delegated 1:1 to StakeCraft.',
+          'Keep the bSOL in your wallet or supported DeFi to maintain the delegation.'
+        ],
         action: 'external',
         url: 'https://stake.solblaze.org/app/?validator=BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g',
         ctaLabel: 'Stake via SolBlaze'

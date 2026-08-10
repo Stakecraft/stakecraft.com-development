@@ -30,55 +30,64 @@
       <div class="imageArea" />
     </div>
 
-    <div v-if="page.stakingOptions" class="mainAreas optionsSection">
-      <div class="titleHeader">Ways to stake {{ page.token }}</div>
-      <div class="optionsGrid">
-        <div v-for="option in page.stakingOptions" :key="option.id" class="optionCard">
-          <div class="optionTag">{{ option.tag }}</div>
-          <h3 class="optionTitle">{{ option.title }}</h3>
-          <p class="optionDescription">{{ option.description }}</p>
+    <div class="mainAreas stakeSection" :id="`how-to-stake-${page.slug}`">
+      <div class="titleHeader">How to stake {{ page.token }}</div>
+
+      <div v-if="stakingTabs.length > 1" class="tabBar" role="tablist">
+        <button
+          v-for="tab in stakingTabs"
+          :key="tab.id"
+          class="tabButton"
+          :class="{ active: activeTab === tab.id }"
+          type="button"
+          role="tab"
+          :aria-selected="activeTab === tab.id ? 'true' : 'false'"
+          @click="activeTab = tab.id"
+        >
+          {{ tab.tabLabel || tab.title }}
+        </button>
+      </div>
+
+      <!-- All panels stay in the DOM (v-show) so crawlers index every method. -->
+      <div
+        v-for="tab in stakingTabs"
+        :key="tab.id"
+        v-show="activeTab === tab.id"
+        class="tabPanel"
+        role="tabpanel"
+      >
+        <h3 v-if="stakingTabs.length > 1" class="tabTitle">{{ tab.title }}</h3>
+        <p v-if="tab.description" class="tabDescription">{{ tab.description }}</p>
+        <div class="stepsArea">
+          <div v-for="(step, index) in tab.steps" :key="index" class="stepCard">
+            <div class="stepNumber">{{ index + 1 }}</div>
+            <div class="stepText">{{ step }}</div>
+          </div>
+        </div>
+        <div class="tabCtaRow">
           <button
-            v-if="option.action === 'modal' && stakingNetwork"
-            class="ctaPrimary optionCta"
+            v-if="tab.action === 'modal' && stakingNetwork"
+            class="ctaPrimary"
             type="button"
             @click="stakeNow"
           >
-            {{ option.ctaLabel }}
+            {{ tab.ctaLabel }}
           </button>
-          <router-link
-            v-else-if="option.action === 'modal'"
-            class="ctaPrimary optionCta"
-            to="/#mainnet"
-          >
-            {{ option.ctaLabel }}
+          <router-link v-else-if="tab.action === 'modal'" class="ctaPrimary" to="/#mainnet">
+            {{ tab.ctaLabel }}
           </router-link>
           <a
             v-else
-            class="ctaSecondary optionCta"
-            :href="option.url"
+            class="ctaSecondary"
+            :href="tab.url"
             target="_blank"
             rel="noopener noreferrer"
           >
-            {{ option.ctaLabel }}
+            {{ tab.ctaLabel }}
           </a>
         </div>
       </div>
-    </div>
 
-    <div class="mainAreas stakeSection" :id="`how-to-stake-${page.slug}`">
-      <div class="titleHeader">
-        How to stake {{ page.token }}<template v-if="page.stakingOptions"> natively</template>
-      </div>
-      <p v-if="page.stakingOptions" class="stakeSectionIntro">
-        The steps below cover native protocol staking. Prefer a liquid token? Use one of the pool
-        options above instead.
-      </p>
-      <div class="stepsArea">
-        <div v-for="(step, index) in page.steps" :key="index" class="stepCard">
-          <div class="stepNumber">{{ index + 1 }}</div>
-          <div class="stepText">{{ step }}</div>
-        </div>
-      </div>
       <div class="validatorCard">
         <div class="validatorLabel">Validator address</div>
         <code class="validatorValue">{{ page.validator }}</code>
@@ -173,6 +182,21 @@ export default {
       if (stakingNetwork.value) openModal(stakingNetwork.value)
     }
 
+    // Networks without explicit options get a single native tab from page.steps.
+    const stakingTabs = computed(() => {
+      if (pageData?.stakingOptions?.length) return pageData.stakingOptions
+      return [
+        {
+          id: 'native',
+          title: 'Native staking',
+          steps: pageData?.steps || [],
+          action: 'modal',
+          ctaLabel: `Stake ${pageData?.token || ''} now`
+        }
+      ]
+    })
+    const activeTab = ref(stakingTabs.value[0]?.id)
+
     onMounted(() => {
       fetchMainnet()
 
@@ -201,7 +225,7 @@ export default {
       openItems.value[index] = !openItems.value[index]
     }
 
-    return { page, openItems, toggle, stakingNetwork, stakeNow }
+    return { page, openItems, toggle, stakingNetwork, stakeNow, stakingTabs, activeTab }
   }
 }
 </script>
@@ -296,67 +320,54 @@ export default {
   padding-right: 34px;
 }
 
-/* Ways to stake — cards like the mainnet network buttons */
-.optionsSection {
+/* How to stake — tabbed methods, cards like the mainnet network buttons */
+.stakeSection {
   padding-bottom: 70px;
 }
 
-.optionsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.optionCard {
-  background: var(--van-mainnet-network-background);
-  color: var(--van-mainnet-color);
-  border-radius: 20px;
-  padding: 26px 22px;
+.tabBar {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 32px;
 }
 
-.optionTag {
+.tabButton {
+  padding: 12px 24px;
+  border: 1px solid var(--van-border-color);
+  border-radius: 20px;
+  background: var(--van-mainnet-network-background);
+  color: var(--van-text-color);
   font-family: poppins;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--van-seconday-color);
-  margin-bottom: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-.optionTitle {
-  margin: 0 0 12px;
+.tabButton.active {
+  background: var(--van-seconday-color);
+  border-color: var(--van-seconday-color);
+  color: #111217;
+}
+
+.tabTitle {
+  margin: 0 0 10px;
   font-family: generalSans;
   font-size: 24px;
   font-weight: 600;
 }
 
-.optionDescription {
-  margin: 0 0 22px;
-  font-family: poppins;
-  font-size: 15px;
-  line-height: 25px;
-  flex-grow: 1;
-}
-
-.optionCta {
-  font-size: 16px;
-  padding: 12px 22px;
-}
-
-/* How to stake — cards like the mainnet network buttons */
-.stakeSection {
-  padding-bottom: 70px;
-}
-
-.stakeSectionIntro {
-  margin: -14px 0 28px;
+.tabDescription {
+  margin: 0 0 28px;
+  max-width: 720px;
   font-family: poppins;
   font-size: 16px;
   line-height: 26px;
+}
+
+.tabCtaRow {
+  margin-top: 28px;
 }
 
 .stepsArea {
