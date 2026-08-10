@@ -1,15 +1,23 @@
 <script>
-import { RouterView } from 'vue-router'
+import { RouterView, useRoute } from 'vue-router'
 import AppHeader from './components/Header.vue'
-import { ref, provide, onMounted, watch } from 'vue'
+import { ref, provide, onMounted, watch, computed } from 'vue'
 
 export default {
   components: { RouterView, AppHeader },
   setup() {
+    const route = useRoute()
     const theme = ref(
       typeof window !== 'undefined' ? localStorage.getItem('theme') || 'light' : 'light'
     )
     const isModalOpen = ref(false)
+
+    // Admin screens have their own chrome; the marketing header breaks the login layout.
+    const showMarketingHeader = computed(() => {
+      const name = route.name
+      if (name === 'admin' || name === 'admin-login') return false
+      return !route.path.startsWith('/notadmin')
+    })
 
     // Apply theme class to document body on mount and when theme changes
     const applyThemeToBody = (themeValue) => {
@@ -41,14 +49,14 @@ export default {
     provide('isModalOpen', isModalOpen)
     provide('setModalOpen', (isOpen) => (isModalOpen.value = isOpen))
 
-    return { theme, isModalOpen }
+    return { theme, isModalOpen, showMarketingHeader }
   }
 }
 </script>
 
 <template>
   <van-config-provider :theme="theme">
-    <AppHeader></AppHeader>
+    <AppHeader v-if="showMarketingHeader" />
     <RouterView />
   </van-config-provider>
 </template>
