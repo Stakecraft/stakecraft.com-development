@@ -28,6 +28,37 @@ export const networkStakingPages = {
       'Search for StakeCraft or paste our Solana validator vote account.',
       'Enter the amount to delegate and confirm. Your SOL remains under your custody.'
     ],
+    stakingOptions: [
+      {
+        id: 'native',
+        title: 'Native staking',
+        tag: 'Protocol-level',
+        description:
+          'Delegate SOL straight to the StakeCraft validator through the Solana protocol. Your stake stays in a native stake account you own — no pool token, no smart-contract layer. Unstaking follows the normal ~2-day deactivation.',
+        action: 'modal',
+        ctaLabel: 'Stake natively'
+      },
+      {
+        id: 'jpool',
+        title: 'JPool direct staking',
+        tag: 'Liquid staking · JSOL',
+        description:
+          'Stake through the JPool pool directed at our validator and receive JSOL, a liquid token you can use in DeFi. JPool matches direct delegations, so your stake also boosts the validator beyond your own deposit.',
+        action: 'external',
+        url: 'https://app.jpool.one/validators/BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g?activeTab=direct',
+        ctaLabel: 'Stake via JPool'
+      },
+      {
+        id: 'solblaze',
+        title: 'SolBlaze custom liquid staking',
+        tag: 'Liquid staking · bSOL',
+        description:
+          'BlazeStake Custom Liquid Staking delegates your SOL 1:1 to the StakeCraft validator while you hold bSOL. Keep liquidity for DeFi while supporting our node directly.',
+        action: 'external',
+        url: 'https://stake.solblaze.org/app/?validator=BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g',
+        ctaLabel: 'Stake via SolBlaze'
+      }
+    ],
     why: [
       'Purpose-built Solana staking infrastructure with monitoring and uptime focus.',
       'Non-custodial: StakeCraft never takes possession of your SOL.',
@@ -48,6 +79,11 @@ export const networkStakingPages = {
         question: 'Where can I verify the StakeCraft Solana validator?',
         answer:
           'Use the StakeWiz explorer link on this page for live validator stats, or start from the Solana network button on stakecraft.com.'
+      },
+      {
+        question: 'Can I stake SOL to StakeCraft through a liquid staking pool?',
+        answer:
+          'Yes. JPool direct staking and SolBlaze custom liquid staking both let you point pool stake at the StakeCraft validator while you receive a liquid token (JSOL or bSOL) to use in DeFi. Native protocol staking remains available if you prefer a plain stake account.'
       }
     ],
     service: {
