@@ -16,6 +16,7 @@
     </div>
     <MainnetStatic />
     <Testnet />
+    <Products />
     <CitabilitySection />
     <Whychooseus />
     <About />
@@ -26,6 +27,7 @@
 <script>
 import MainnetStatic from '../components/MainnetStatic.vue'
 import Testnet from '../components/Testnet.vue'
+import Products from '../components/Products.vue'
 import Whychooseus from '../components/Whychooseus.vue'
 import About from '../components/About.vue'
 import CitabilitySection from '../components/CitabilitySection.vue'
@@ -37,6 +39,7 @@ export default {
   components: {
     MainnetStatic,
     Testnet,
+    Products,
     Whychooseus,
     About,
     CitabilitySection,

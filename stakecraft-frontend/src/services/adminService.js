@@ -1,51 +1,54 @@
 // Admin API Service
-import { getAuthToken } from './authService.js'
+import { authHeaders, clearSession } from './authService'
 import { API_BASE_URL } from '../config/api.js'
 
-const authHeaders = () => {
-  const token = getAuthToken()
-  return token ? { Authorization: `Bearer ${token}` } : {}
+// Broadcast rather than importing the router here: the router imports the
+// views, the views import this service, and closing that loop would create a
+// circular import.
+const notifyUnauthorized = () => {
+  window.dispatchEvent(new CustomEvent('auth:unauthorized'))
 }
 
 // Helper function for API calls
 const apiCall = async (endpoint, options = {}) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...authHeaders(),
-        ...options.headers
-      },
-      ...options
-    })
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders(),
+      ...options.headers
+    }
+  })
 
-    if (!response.ok) {
-      // Try to extract error message from response
-      try {
-        const errorData = await response.json()
-        const errorMessage =
-          errorData.message || errorData.msg || `HTTP error! status: ${response.status}`
-        throw new Error(errorMessage)
-      } catch (parseError) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
+  if (!response.ok) {
+    if (response.status === 401) {
+      clearSession()
+      notifyUnauthorized()
+      throw new Error('Your session has expired. Please sign in again.')
+    }
+    if (response.status === 403) {
+      throw new Error('You do not have permission to perform this action.')
+    }
+    if (response.status === 429) {
+      throw new Error('Too many requests. Please slow down and try again shortly.')
     }
 
-    return await response.json()
-  } catch (error) {
-    console.error('API call failed:', error)
-    throw error
+    const errorData = await response.json().catch(() => null)
+    const errorMessage =
+      errorData?.message || errorData?.error || `HTTP error! status: ${response.status}`
+    console.error('API call failed:', endpoint, response.status, errorMessage)
+    throw new Error(errorMessage)
   }
+
+  return await response.json()
 }
 
 // Menu Items API
 export const menuService = {
-  // Get all menu items
   async getAll() {
     return apiCall('/content/menu')
   },
 
-  // Create new menu item
   async create(menuData) {
     return apiCall('/content/menu', {
       method: 'POST',
@@ -53,7 +56,6 @@ export const menuService = {
     })
   },
 
-  // Update menu item
   async update(id, menuData) {
     return apiCall(`/content/menu/${id}`, {
       method: 'PUT',
@@ -61,7 +63,6 @@ export const menuService = {
     })
   },
 
-  // Delete menu item
   async delete(id) {
     return apiCall(`/content/menu/${id}`, {
       method: 'DELETE'
@@ -70,8 +71,10 @@ export const menuService = {
 }
 
 export const mainnetService = {
-  async getAll() {
-    return apiCall('/mainnet/', {
+  /** @param {boolean} [includeHidden] — admin: pass true to list hidden cards */
+  async getAll(includeHidden = false) {
+    const q = includeHidden ? '?includeHidden=true' : ''
+    return apiCall(`/mainnet/${q}`, {
       method: 'GET'
     })
   },
@@ -103,7 +106,6 @@ export const mainnetService = {
     })
   },
 
-  // Migrate mainnet networks to testnet
   async migrateToTestnet(ids) {
     return apiCall('/mainnet/migrate-to-testnet', {
       method: 'POST',
@@ -114,12 +116,11 @@ export const mainnetService = {
 
 // Testnet Cards API
 export const testnetService = {
-  // Get all testnet cards
-  async getAll() {
-    return apiCall('/testnet')
+  async getAll(includeHidden = false) {
+    const q = includeHidden ? '?includeHidden=true' : ''
+    return apiCall(`/testnet${q}`)
   },
 
-  // Create new testnet card
   async create(cardData) {
     return apiCall('/testnet', {
       method: 'POST',
@@ -127,7 +128,6 @@ export const testnetService = {
     })
   },
 
-  // Update testnet card
   async update(id, cardData) {
     return apiCall(`/testnet/${id}`, {
       method: 'PUT',
@@ -135,14 +135,12 @@ export const testnetService = {
     })
   },
 
-  // Delete testnet card
   async delete(id) {
     return apiCall(`/testnet/${id}`, {
       method: 'DELETE'
     })
   },
 
-  // Update testnet positions
   async updatePositions(positions) {
     return apiCall('/testnet/positions/update', {
       method: 'PUT',
@@ -150,7 +148,6 @@ export const testnetService = {
     })
   },
 
-  // Migrate testnet networks to mainnet
   async migrateToMainnet(ids) {
     return apiCall('/testnet/migrate-to-mainnet', {
       method: 'POST',
@@ -161,12 +158,11 @@ export const testnetService = {
 
 // Partnerships API
 export const partnershipService = {
-  // Get all partnerships
-  async getAll() {
-    return apiCall('/partnership')
+  async getAll(includeHidden = false) {
+    const q = includeHidden ? '?includeHidden=true' : ''
+    return apiCall(`/partnership${q}`)
   },
 
-  // Create new partnership
   async create(partnershipData) {
     return apiCall('/partnership', {
       method: 'POST',
@@ -174,7 +170,6 @@ export const partnershipService = {
     })
   },
 
-  // Update partnership
   async update(id, partnershipData) {
     return apiCall(`/partnership/${id}`, {
       method: 'PUT',
@@ -182,7 +177,6 @@ export const partnershipService = {
     })
   },
 
-  // Delete partnership
   async delete(id) {
     return apiCall(`/partnership/${id}`, {
       method: 'DELETE'
@@ -192,12 +186,10 @@ export const partnershipService = {
 
 // Team Members API
 export const teamService = {
-  // Get all team members
   async getAll() {
     return apiCall('/team')
   },
 
-  // Create new team member
   async create(memberData) {
     return apiCall('/team', {
       method: 'POST',
@@ -205,7 +197,6 @@ export const teamService = {
     })
   },
 
-  // Update team member
   async update(id, memberData) {
     return apiCall(`/team/${id}`, {
       method: 'PUT',
@@ -213,7 +204,6 @@ export const teamService = {
     })
   },
 
-  // Delete team member
   async delete(id) {
     return apiCall(`/team/${id}`, {
       method: 'DELETE'
@@ -221,19 +211,43 @@ export const teamService = {
   }
 }
 
+// Products (portfolio / previous projects)
+export const productService = {
+  async getAll() {
+    return apiCall('/products')
+  },
+
+  async create(data) {
+    return apiCall('/products', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
+  },
+
+  async update(id, data) {
+    return apiCall(`/products/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    })
+  },
+
+  async delete(id) {
+    return apiCall(`/products/${id}`, {
+      method: 'DELETE'
+    })
+  }
+}
+
 // About Content API
 export const aboutService = {
-  // Get about content
   async getAll() {
     return apiCall('/about')
   },
 
-  // Get about content by type
   async getByType(type) {
     return apiCall(`/about?type=${type}`)
   },
 
-  // Create new about content
   async create(aboutData) {
     return apiCall('/about', {
       method: 'POST',
@@ -241,7 +255,6 @@ export const aboutService = {
     })
   },
 
-  // Update about content
   async update(id, aboutData) {
     return apiCall(`/about/${id}`, {
       method: 'PUT',
@@ -249,7 +262,6 @@ export const aboutService = {
     })
   },
 
-  // Delete about content
   async delete(id) {
     return apiCall(`/about/${id}`, {
       method: 'DELETE'

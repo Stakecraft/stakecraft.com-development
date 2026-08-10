@@ -6,6 +6,16 @@ export const clientOnlyRoutes = [
     component: () => import('../views/HealthView.vue')
   },
   {
+    path: '/products',
+    redirect: { path: '/', hash: '#products' }
+  },
+  {
+    path: '/notadmin/login',
+    name: 'admin-login',
+    component: () => import('../views/AdminLogin.vue'),
+    meta: { guestOnly: true }
+  },
+  {
     path: '/notadmin',
     name: 'admin',
     component: () => import('../views/AdminPanel.vue'),

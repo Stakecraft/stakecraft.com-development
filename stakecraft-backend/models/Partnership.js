@@ -9,6 +9,10 @@ const partnershipSchema = new mongoose.Schema(
     image: {
       type: String,
     },
+    isVisible: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,

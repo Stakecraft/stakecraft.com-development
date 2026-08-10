@@ -38,7 +38,14 @@
             <button class="notification-btn">
               <Bell class="bell-icon" />
             </button>
+            <span v-if="currentUser" class="current-user">
+              {{ currentUser.username }}
+              <span class="user-role">{{ currentUser.role }}</span>
+            </span>
             <div class="user-avatar"></div>
+            <button class="logout-btn" title="Sign out" @click="handleLogout">
+              <LogOut class="logout-icon" />
+            </button>
           </div>
         </div>
       </header>
@@ -146,7 +153,12 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="card in mainnetCards" :key="card.id" class="table-row">
+                <tr
+                  v-for="card in mainnetCards"
+                  :key="card._id || card.id"
+                  class="table-row"
+                  :class="{ 'row-item-hidden': card.isVisible === false }"
+                >
                   <td class="table-cell">
                     <div class="network-cell">
                       <img
@@ -167,6 +179,19 @@
                   <td class="table-cell">{{ card.order || 0 }}</td>
                   <td class="table-cell">
                     <div class="action-buttons">
+                      <button
+                        type="button"
+                        @click="toggleMainnetVisible(card)"
+                        class="action-btn visibility-btn"
+                        :title="
+                          card.isVisible === false
+                            ? 'Show on public site'
+                            : 'Hide from public site'
+                        "
+                      >
+                        <Eye v-if="card.isVisible !== false" class="action-icon" />
+                        <EyeOff v-else class="action-icon" />
+                      </button>
                       <button @click="editMainnetCard(card)" class="action-btn edit-btn">
                         <Edit class="action-icon" />
                       </button>
@@ -213,7 +238,12 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="card in testnetCards" :key="card.id" class="table-row">
+                <tr
+                  v-for="card in testnetCards"
+                  :key="card._id || card.id"
+                  class="table-row"
+                  :class="{ 'row-item-hidden': card.isVisible === false }"
+                >
                   <td class="table-cell">
                     <div class="network-cell">
                       <img
@@ -232,6 +262,19 @@
                   <td class="table-cell">{{ card.order || 0 }}</td>
                   <td class="table-cell">
                     <div class="action-buttons">
+                      <button
+                        type="button"
+                        @click="toggleTestnetVisible(card)"
+                        class="action-btn visibility-btn"
+                        :title="
+                          card.isVisible === false
+                            ? 'Show on public site'
+                            : 'Hide from public site'
+                        "
+                      >
+                        <Eye v-if="card.isVisible !== false" class="action-icon" />
+                        <EyeOff v-else class="action-icon" />
+                      </button>
                       <button @click="editTestnetCard(card)" class="action-btn edit-btn">
                         <Edit class="action-icon" />
                       </button>
@@ -410,7 +453,12 @@
           </div>
 
           <div class="partnerships-grid">
-            <div v-for="partner in partnerships" :key="partner._id" class="partnership-card">
+            <div
+              v-for="partner in partnerships"
+              :key="partner._id"
+              class="partnership-card"
+              :class="{ 'partnership-card--hidden': partner.isVisible === false }"
+            >
               <div class="partner-icon">
                 <img v-if="partner.image" :src="partner.image" :alt="partner.title" />
                 <Building class="default-icon" v-else />
@@ -418,6 +466,19 @@
               <h4 class="partner-name">{{ partner.title }}</h4>
               <!-- <p class="partner-description">{{ partner.description }}</p> -->
               <div class="card-actions">
+                <button
+                  type="button"
+                  @click="togglePartnershipVisible(partner)"
+                  class="action-btn visibility-btn"
+                  :title="
+                    partner.isVisible === false
+                      ? 'Show on public site'
+                      : 'Hide from public site'
+                  "
+                >
+                  <Eye v-if="partner.isVisible !== false" class="action-icon" />
+                  <EyeOff v-else class="action-icon" />
+                </button>
                 <button @click="editPartnership(partner)" class="action-btn edit-btn">
                   <Edit class="action-icon" />
                 </button>
@@ -426,6 +487,81 @@
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div v-if="activeSection === 'products'" class="section">
+          <div class="section-header">
+            <h3 class="section-title">Projects</h3>
+            <button @click="showProductModal = true" class="btn btn-primary">
+              <Plus class="btn-icon" />
+              Add project
+            </button>
+          </div>
+
+          <div v-if="loading.products" class="loading-container">
+            <div class="loading-spinner"></div>
+            <p>Loading products…</p>
+          </div>
+
+          <div v-else class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Preview</th>
+                  <th>Title</th>
+                  <th>Link</th>
+                  <th>Images</th>
+                  <th>Order</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="p in products" :key="p._id" class="table-row">
+                  <td class="table-cell">
+                    <div class="product-thumb-cell">
+                      <img
+                        v-if="p.images?.length"
+                        :src="p.images[0]"
+                        :alt="p.title"
+                        class="product-thumb-img"
+                      />
+                      <Package v-else class="product-thumb-fallback" />
+                    </div>
+                  </td>
+                  <td class="table-cell font-medium">{{ p.title }}</td>
+                  <td class="table-cell">
+                    <a
+                      v-if="p.link"
+                      :href="p.link"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="url-text"
+                      >{{ truncate(p.link, 40) }}</a
+                    >
+                    <span v-else class="muted">—</span>
+                  </td>
+                  <td class="table-cell">{{ p.images?.length || 0 }}</td>
+                  <td class="table-cell">{{ p.order ?? 0 }}</td>
+                  <td class="table-cell">
+                    <span :class="['status-badge', p.isActive !== false ? 'status-active' : 'status-inactive']">
+                      {{ p.isActive !== false ? 'Active' : 'Hidden' }}
+                    </span>
+                  </td>
+                  <td class="table-cell">
+                    <div class="action-buttons">
+                      <button @click="editProduct(p)" class="action-btn edit-btn">
+                        <Edit class="action-icon" />
+                      </button>
+                      <button @click="deleteProduct(p._id)" class="action-btn delete-btn">
+                        <Trash2 class="action-icon" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -627,6 +763,14 @@
       @save="savePartnership"
     />
 
+    <ProductModal
+      :show="showProductModal"
+      :editing="!!editingProduct"
+      :product="editingProduct || {}"
+      @close="closeProductModal"
+      @save="saveProduct"
+    />
+
     <TeamModal
       :show="showTeamModal"
       :editing="!!editingTeamMember"
@@ -795,7 +939,6 @@
 <script setup>
 import { ref, onMounted, inject } from 'vue'
 import AdminLogin from '@/components/AdminLogin.vue'
-import { getAuthToken, fetchCurrentUser } from '@/services/authService.js'
 import {
   Menu,
   Bell,
@@ -814,8 +957,14 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckSquare,
-  HelpCircle
+  HelpCircle,
+  Package,
+  Eye,
+  EyeOff,
+  LogOut
 } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
+import { currentUser, logout, getToken, verifySession } from '@/services/authService'
 
 // Import modal components
 import MenuModal from '@/components/MenuModal.vue'
@@ -825,6 +974,7 @@ import PartnershipModal from '@/components/PartnershipModal.vue'
 import TeamModal from '@/components/TeamModal.vue'
 import AboutModal from '@/components/AboutModal.vue'
 import FaqModal from '@/components/FaqModal.vue'
+import ProductModal from '@/components/ProductModal.vue'
 import { parseTagsInput } from '@/utils/parseTags.js'
 
 // Import API services
@@ -835,7 +985,8 @@ import {
   partnershipService,
   teamService,
   aboutService,
-  faqService
+  faqService,
+  productService
 } from '@/services/adminService'
 
 // Theme injection
@@ -845,6 +996,15 @@ const isAuthenticated = ref(false)
 const onAuthenticated = () => {
   isAuthenticated.value = true
   loadAllData()
+}
+
+const router = useRouter()
+
+// Ends the session and returns to the sign-in screen. Because the token is
+// stateless, discarding it client-side is what actually ends the session.
+const handleLogout = async () => {
+  await logout()
+  router.replace({ name: 'admin-login' })
 }
 
 // Reactive data
@@ -857,6 +1017,7 @@ const loading = ref({
   mainnet: false,
   testnet: false,
   partnerships: false,
+  products: false,
   team: false,
   about: false,
   faq: false
@@ -870,6 +1031,7 @@ const showPartnershipModal = ref(false)
 const showTeamModal = ref(false)
 const showAboutModal = ref(false)
 const showFaqModal = ref(false)
+const showProductModal = ref(false)
 const showMainnetPositionManager = ref(false)
 const showTestnetPositionManager = ref(false)
 // Editing states
@@ -881,6 +1043,7 @@ const editingPartnership = ref(null)
 const editingTeamMember = ref(null)
 const editingAboutContent = ref(null)
 const editingFaqItem = ref(null)
+const editingProduct = ref(null)
 
 // Migration states
 const selectedMainnetForMigration = ref([])
@@ -893,6 +1056,7 @@ const menuItems = [
   { id: 'testnet', name: 'Testnet Cards', icon: Network },
   { id: 'migration', name: 'Network Migration', icon: ArrowLeftRight },
   { id: 'partnerships', name: 'Partnerships', icon: Building },
+  { id: 'products', name: 'Projects', icon: Package },
   { id: 'team', name: 'Team Members', icon: User },
   { id: 'about', name: 'About Content', icon: FileText },
   { id: 'faq', name: 'FAQ', icon: HelpCircle }
@@ -903,16 +1067,17 @@ const menuData = ref([])
 const mainnetCards = ref([])
 const testnetCards = ref([])
 const partnerships = ref([])
+const products = ref([])
 const teamMembers = ref([])
 const aboutContent = ref([])
 const faqItems = ref([])
 
 // Load data on component mount
 onMounted(async () => {
-  if (getAuthToken()) {
-    const user = await fetchCurrentUser()
-    isAuthenticated.value = !!user
-    if (isAuthenticated.value) {
+  if (getToken()) {
+    const valid = await verifySession()
+    isAuthenticated.value = valid
+    if (valid) {
       await loadAllData()
     }
   }
@@ -926,6 +1091,7 @@ const loadAllData = async () => {
       loadMainnetData(),
       loadTestnetData(),
       loadPartnershipsData(),
+      loadProductsData(),
       loadTeamData(),
       loadAboutData(),
       loadFaqData()
@@ -959,7 +1125,7 @@ const loadMenuData = async () => {
 const loadMainnetData = async () => {
   loading.value.mainnet = true
   try {
-    const data = await mainnetService.getAll()
+    const data = await mainnetService.getAll(true)
     mainnetCards.value = data?.data || []
   } catch (error) {
     console.error('Failed to load mainnet data:', error)
@@ -972,7 +1138,7 @@ const loadMainnetData = async () => {
 const loadTestnetData = async () => {
   loading.value.testnet = true
   try {
-    const data = await testnetService.getAll()
+    const data = await testnetService.getAll(true)
     testnetCards.value = data?.data || []
   } catch (error) {
     console.error('Failed to load testnet data:', error)
@@ -985,13 +1151,31 @@ const loadTestnetData = async () => {
 const loadPartnershipsData = async () => {
   loading.value.partnerships = true
   try {
-    const data = await partnershipService.getAll()
+    const data = await partnershipService.getAll(true)
     partnerships.value = data?.data || []
   } catch (error) {
     console.error('Failed to load partnerships data:', error)
   } finally {
     loading.value.partnerships = false
   }
+}
+
+const loadProductsData = async () => {
+  loading.value.products = true
+  try {
+    const data = await productService.getAll()
+    products.value = data?.data || []
+  } catch (error) {
+    console.error('Failed to load projects:', error)
+    products.value = []
+  } finally {
+    loading.value.products = false
+  }
+}
+
+const truncate = (str, n) => {
+  if (!str) return ''
+  return str.length <= n ? str : `${str.slice(0, n)}…`
 }
 
 // Load team data
@@ -1212,6 +1396,80 @@ const deletePartnership = async (id) => {
       console.error('Failed to delete partnership:', error)
       alert('Failed to delete partnership. Please try again.')
     }
+  }
+}
+
+const toggleMainnetVisible = async (card) => {
+  try {
+    const newVal = card.isVisible === false
+    await mainnetService.update(card._id, { isVisible: newVal })
+    await loadMainnetData()
+  } catch (error) {
+    console.error('Failed to toggle mainnet visibility:', error)
+    alert('Failed to update visibility. Please try again.')
+  }
+}
+
+const toggleTestnetVisible = async (card) => {
+  try {
+    const newVal = card.isVisible === false
+    await testnetService.update(card._id, { isVisible: newVal })
+    await loadTestnetData()
+  } catch (error) {
+    console.error('Failed to toggle testnet visibility:', error)
+    alert('Failed to update visibility. Please try again.')
+  }
+}
+
+const togglePartnershipVisible = async (partner) => {
+  try {
+    const newVal = partner.isVisible === false
+    await partnershipService.update(partner._id, { isVisible: newVal })
+    await loadPartnershipsData()
+  } catch (error) {
+    console.error('Failed to toggle partnership visibility:', error)
+    alert('Failed to update visibility. Please try again.')
+  }
+}
+
+const editProduct = (p) => {
+  editingProduct.value = p
+  showProductModal.value = true
+}
+
+const closeProductModal = () => {
+  showProductModal.value = false
+  editingProduct.value = null
+}
+
+const saveProduct = async (payload) => {
+  try {
+    if (editingProduct.value) {
+      const res = await productService.update(editingProduct.value._id, payload)
+      const idx = products.value.findIndex((x) => x._id === editingProduct.value._id)
+      if (idx !== -1) {
+        products.value[idx] = res.data || { ...editingProduct.value, ...payload }
+      }
+    } else {
+      const res = await productService.create(payload)
+      products.value.push(res.data || res)
+    }
+    closeProductModal()
+    await loadProductsData()
+  } catch (error) {
+    console.error('Failed to save project:', error)
+    alert('Failed to save project. Please try again.')
+  }
+}
+
+const deleteProduct = async (id) => {
+  if (!confirm('Delete this project?')) return
+  try {
+    await productService.delete(id)
+    products.value = products.value.filter((p) => p._id !== id)
+  } catch (error) {
+    console.error('Failed to delete project:', error)
+    alert('Failed to delete project. Please try again.')
   }
 }
 
@@ -1824,6 +2082,61 @@ const migrateTestnetToMainnet = async () => {
   border-radius: 50%;
 }
 
+.current-user {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.user-role {
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  background: #e5e7eb;
+  color: #4b5563;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 50%;
+  color: #6b7280;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.logout-btn:hover {
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+.logout-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.van-theme-dark .current-user {
+  color: #e5e7eb;
+}
+
+.van-theme-dark .user-role {
+  background: #374151;
+  color: #d1d5db;
+}
+
+.van-theme-dark .logout-btn:hover {
+  color: #fca5a5;
+  background: rgba(185, 28, 28, 0.2);
+}
+
 .theme-toggle-wrapper {
   display: flex;
   align-items: center;
@@ -1985,6 +2298,33 @@ const migrateTestnetToMainnet = async () => {
   border-radius: 0.375rem;
 }
 
+.product-thumb-cell {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-thumb-fallback {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #9ca3af;
+}
+
+.table-cell .muted {
+  color: #9ca3af;
+}
+
 .image-placeholder-small {
   width: 3rem;
   height: 3rem;
@@ -2084,6 +2424,22 @@ const migrateTestnetToMainnet = async () => {
 
 .delete-btn:hover {
   color: #991b1b;
+}
+
+.visibility-btn {
+  color: #64748b;
+}
+
+.visibility-btn:hover {
+  color: #4f46e5;
+}
+
+.row-item-hidden {
+  opacity: 0.55;
+}
+
+.partnership-card--hidden {
+  opacity: 0.55;
 }
 
 .action-icon {

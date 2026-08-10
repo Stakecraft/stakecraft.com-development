@@ -16,6 +16,10 @@ const testnetSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  isVisible: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 // Index for efficient queries

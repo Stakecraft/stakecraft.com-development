@@ -82,6 +82,13 @@
             <textarea v-model="form.description" class="form-textarea" rows="3" required></textarea>
           </div>
 
+          <div class="form-group form-group-checkbox">
+            <label class="checkbox-label">
+              <input v-model="form.isVisible" type="checkbox" />
+              Visible on public website
+            </label>
+          </div>
+
           <div class="form-group">
             <label class="form-label">Order</label>
             <input
@@ -148,7 +155,8 @@ const form = reactive({
   image: '',
   title: '',
   description: '',
-  order: 0
+  order: 0,
+  isVisible: true
 })
 
 watch(
@@ -159,12 +167,14 @@ watch(
       form.title = newCard.title || ''
       form.description = newCard.description || ''
       form.order = newCard.order || 0
+      form.isVisible = newCard.isVisible !== false
       imagePreview.value = newCard.image || null
     } else {
       form.image = ''
       form.title = ''
       form.description = ''
       form.order = 0
+      form.isVisible = true
       imagePreview.value = null
       selectedFile.value = null
     }
@@ -263,7 +273,8 @@ const saveCard = () => {
     image: form.image,
     title: form.title,
     description: form.description,
-    order: form.order
+    order: form.order,
+    isVisible: form.isVisible !== false
   }
 
   emit('save', cardData)
@@ -654,6 +665,24 @@ const saveCard = () => {
 
 .btn-secondary:hover {
   background: #4b5563;
+}
+
+.form-group-checkbox {
+  margin-bottom: 0.25rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #374151;
+}
+
+.modal.van-theme-dark .checkbox-label {
+  color: #f9fafb;
 }
 
 @media (max-width: 768px) {

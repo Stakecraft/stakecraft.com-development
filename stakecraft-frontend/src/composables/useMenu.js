@@ -17,6 +17,11 @@ const fallbackMenuItems = [
     link: '/#partnership',
     metadata: { menuSection: 'center', isExternal: 'false' }
   },
+  {
+    title: 'Projects',
+    link: '/#products',
+    metadata: { menuSection: 'center', isExternal: 'false' }
+  },
   { title: 'Swap', link: '/swap', metadata: { menuSection: 'center', isExternal: 'false' } },
   {
     title: 'About Us',

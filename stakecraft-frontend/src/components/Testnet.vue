@@ -98,14 +98,6 @@ export default {
   padding-bottom: 0;
 }
 
-.titleHeader {
-  font-family: poppins;
-  font-size: 48px;
-  font-weight: 700;
-  margin-bottom: 40px;
-  color: #fff;
-}
-
 .networks {
   background: #111217;
   box-sizing: border-box;

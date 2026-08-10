@@ -1,10 +1,11 @@
 import Partnership from "../models/Partnership.js";
 
 export const createPartnershipList = async (req, res) => {
-  const { title, image } = req.body;
+  const { title, image, isVisible } = req.body;
   const partnershipData = {
     title,
     image,
+    isVisible: isVisible !== false,
   };
   const partnership = new Partnership(partnershipData);
   await partnership.save();
@@ -16,7 +17,10 @@ export const createPartnershipList = async (req, res) => {
 };
 
 export const getPartnershipList = async (req, res) => {
-  const partnership = await Partnership.find({});
+  const includeHidden =
+    req.query.includeHidden === "true" || req.query.includeHidden === "1";
+  const filter = includeHidden ? {} : { isVisible: { $ne: false } };
+  const partnership = await Partnership.find(filter);
   res.status(200).json({
     success: true,
     msg: "Partnership Fetched Successfully!",
@@ -27,12 +31,12 @@ export const getPartnershipList = async (req, res) => {
 export const updatePartnershipList = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, image } = req.body;
+    const { title, image, isVisible } = req.body;
 
-    const updateData = {
-      title,
-      image,
-    };
+    const updateData = {};
+    if (title !== undefined) updateData.title = title;
+    if (image !== undefined) updateData.image = image;
+    if (isVisible !== undefined) updateData.isVisible = isVisible;
 
     const updatedPartnership = await Partnership.findByIdAndUpdate(
       id,
