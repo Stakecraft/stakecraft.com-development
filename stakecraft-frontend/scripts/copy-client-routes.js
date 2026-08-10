@@ -5,7 +5,7 @@
  * admin/health shells. Overwriting them with the homepage caused the SPA to
  * hydrate as `/` and redirect away from /notadmin.
  */
-import { copyFileSync, existsSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -13,7 +13,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const distDir = join(__dirname, '..', 'dist')
 const indexHtml = join(distDir, 'index.html')
 
-const clientRoutes = ['notadmin', 'health']
+// Paths relative to dist/, without .html — nested paths get directories created.
+const clientRoutes = ['notadmin', 'notadmin/login', 'health']
 
 if (!existsSync(indexHtml)) {
   console.error('copy-client-routes: dist/index.html not found — run vite-ssg build first')
@@ -26,6 +27,12 @@ for (const route of clientRoutes) {
     console.log(`copy-client-routes: kept existing ${route}.html`)
     continue
   }
-  copyFileSync(indexHtml, target)
-  console.log(`copy-client-routes: wrote ${route}.html from index.html`)
+  mkdirSync(dirname(target), { recursive: true })
+  // Prefer the dedicated notadmin shell when seeding the login path.
+  const source =
+    route.startsWith('notadmin') && existsSync(join(distDir, 'notadmin.html'))
+      ? join(distDir, 'notadmin.html')
+      : indexHtml
+  copyFileSync(source, target)
+  console.log(`copy-client-routes: wrote ${route}.html from ${source === indexHtml ? 'index.html' : 'notadmin.html'}`)
 }

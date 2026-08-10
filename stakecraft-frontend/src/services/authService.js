@@ -5,19 +5,50 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000
 const TOKEN_KEY = 'stakecraft_admin_token'
 const USER_KEY = 'stakecraft_admin_user'
 
-// Reactive session state so the UI can react to login and logout without a
-// page reload.
-const token = ref(localStorage.getItem(TOKEN_KEY) || null)
-const user = ref(readStoredUser())
+// vite-ssg renders pages in Node, where localStorage does not exist. Guard every
+// storage access so importing this module during prerender cannot crash the build.
+const canUseStorage = typeof localStorage !== 'undefined'
+
+function storageGet(key) {
+  if (!canUseStorage) return null
+  try {
+    return localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+function storageSet(key, value) {
+  if (!canUseStorage) return
+  try {
+    localStorage.setItem(key, value)
+  } catch {
+    /* private mode / quota — ignore */
+  }
+}
+
+function storageRemove(key) {
+  if (!canUseStorage) return
+  try {
+    localStorage.removeItem(key)
+  } catch {
+    /* ignore */
+  }
+}
 
 function readStoredUser() {
   try {
-    const raw = localStorage.getItem(USER_KEY)
+    const raw = storageGet(USER_KEY)
     return raw ? JSON.parse(raw) : null
   } catch {
     return null
   }
 }
+
+// Reactive session state so the UI can react to login and logout without a
+// page reload.
+const token = ref(storageGet(TOKEN_KEY) || null)
+const user = ref(readStoredUser())
 
 /**
  * Reads the `exp` claim without verifying the signature.
@@ -48,15 +79,15 @@ function isExpired(jwt) {
 function persist(newToken, newUser) {
   token.value = newToken
   user.value = newUser
-  localStorage.setItem(TOKEN_KEY, newToken)
-  localStorage.setItem(USER_KEY, JSON.stringify(newUser))
+  storageSet(TOKEN_KEY, newToken)
+  storageSet(USER_KEY, JSON.stringify(newUser))
 }
 
 export function clearSession() {
   token.value = null
   user.value = null
-  localStorage.removeItem(TOKEN_KEY)
-  localStorage.removeItem(USER_KEY)
+  storageRemove(TOKEN_KEY)
+  storageRemove(USER_KEY)
 }
 
 export function getToken() {
