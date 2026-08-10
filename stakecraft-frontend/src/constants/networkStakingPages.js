@@ -9,6 +9,8 @@ export const networkStakingPages = {
     path: '/solana-staking',
     seoKey: 'solanaStaking',
     networkName: 'Solana',
+    /** Must match the CMS mainnet item title that StakingModals.vue switches on. */
+    mainnetTitle: 'Solana',
     h1: 'Solana Staking',
     brandLine: 'StakeCraft',
     intro:
@@ -64,6 +66,7 @@ export const networkStakingPages = {
     path: '/near-staking',
     seoKey: 'nearStaking',
     networkName: 'NEAR',
+    mainnetTitle: 'Near Protocol',
     h1: 'NEAR Staking',
     brandLine: 'StakeCraft',
     intro:
@@ -118,6 +121,7 @@ export const networkStakingPages = {
     path: '/monad-staking',
     seoKey: 'monadStaking',
     networkName: 'Monad',
+    mainnetTitle: 'Monad',
     h1: 'Monad Staking',
     brandLine: 'StakeCraft',
     intro:

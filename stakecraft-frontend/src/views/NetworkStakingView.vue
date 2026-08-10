@@ -10,7 +10,12 @@
           {{ page.intro }}
         </div>
         <div class="ctaGroup">
-          <router-link class="ctaPrimary" to="/#mainnet">Stake with StakeCraft</router-link>
+          <button v-if="stakingNetwork" class="ctaPrimary" type="button" @click="stakeNow">
+            Stake {{ page.token }} now
+          </button>
+          <router-link v-else class="ctaPrimary" to="/#mainnet">
+            Stake with StakeCraft
+          </router-link>
           <a
             v-if="page.explorer"
             class="ctaSecondary"
@@ -94,12 +99,14 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import LetsConnect from '../components/LetsConnect.vue'
 import { useSeo } from '../composables/useSeo.js'
 import { routeSeo } from '../config/seo.js'
 import { getNetworkStakingPage } from '../constants/networkStakingPages.js'
+import { useContent } from '../composables/useContent.js'
+import { useStakingModal } from '../composables/useStakingModal.js'
 
 export default {
   name: 'NetworkStakingView',
@@ -111,6 +118,38 @@ export default {
     const seoBase = routeSeo[route.meta.seoKey] || routeSeo.home
     const openItems = ref({})
 
+    const { fetchMainnet, getMainnetNetworks } = useContent()
+    const { openModal } = useStakingModal()
+
+    // Same wallet staking modal the homepage mainnet cards open.
+    const stakingNetwork = computed(
+      () =>
+        getMainnetNetworks.value.find((network) => network.title === pageData?.mainnetTitle) ||
+        null
+    )
+
+    const stakeNow = () => {
+      if (stakingNetwork.value) openModal(stakingNetwork.value)
+    }
+
+    onMounted(() => {
+      fetchMainnet()
+
+      // Deep link: /solana-staking?stake=1 opens the wizard on arrival.
+      if (route.query.stake) {
+        const stop = watch(
+          stakingNetwork,
+          (network) => {
+            if (network) {
+              openModal(network)
+              stop()
+            }
+          },
+          { immediate: true }
+        )
+      }
+    })
+
     useSeo({
       ...seoBase,
       faqItems: pageData?.faqItems,
@@ -121,7 +160,7 @@ export default {
       openItems.value[index] = !openItems.value[index]
     }
 
-    return { page, openItems, toggle }
+    return { page, openItems, toggle, stakingNetwork, stakeNow }
   }
 }
 </script>
@@ -189,11 +228,13 @@ export default {
   align-items: center;
   justify-content: center;
   padding: 14px 28px;
+  border: none;
   border-radius: 20px;
   font-family: poppins;
   font-size: 18px;
   font-weight: 700;
   text-decoration: none;
+  cursor: pointer;
   transition: padding 0.5s;
 }
 
