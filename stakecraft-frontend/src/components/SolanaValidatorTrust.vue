@@ -34,7 +34,6 @@
       <span class="metricChip"><span class="metricLabel">Uptime</span>{{ stats.uptimeLabel }}</span>
       <span class="metricChip"><span class="metricLabel">Location</span>{{ stats.location }}</span>
       <span class="metricChip"><span class="metricLabel">IBRL</span>{{ stats.ibrlLabel }}</span>
-      <span v-if="stats.isDz" class="metricChip flagChip">DoubleZero</span>
     </div>
 
     <div v-if="stats?.pools?.length" class="poolsRow">
@@ -168,11 +167,11 @@ export default {
   margin-top: 6px;
   font-family: poppins;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--van-text-color);
-  opacity: 0.55;
+  color: var(--van-mainnet-color);
+  opacity: 0.72;
 }
 
 .poolList,
@@ -193,15 +192,14 @@ export default {
   padding: 8px 12px;
   border-radius: 14px;
   border: 1px solid var(--van-border-color);
-  background: rgba(17, 18, 23, 0.45);
-  color: var(--van-text-color);
+  background: var(--van-mainnet-network-background);
+  color: var(--van-mainnet-color);
   font-family: poppins;
   text-decoration: none;
 }
 
 .keyChip {
   cursor: pointer;
-  background: var(--van-mainnet-network-background);
 }
 
 .keyLabel,
@@ -211,30 +209,28 @@ export default {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  opacity: 0.55;
+  color: var(--van-mainnet-color);
+  opacity: 0.7;
 }
 
 .keyValue {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 13px;
+  font-weight: 600;
   color: var(--van-seconday-color);
 }
 
 .copyHint {
   font-size: 11px;
-  opacity: 0.45;
+  font-weight: 600;
+  color: var(--van-mainnet-color);
+  opacity: 0.65;
 }
 
 .metricChip {
   font-size: 13px;
   font-weight: 600;
   gap: 6px;
-}
-
-.flagChip {
-  color: #111217;
-  background: var(--van-seconday-color);
-  border-color: var(--van-seconday-color);
 }
 
 .poolChip {

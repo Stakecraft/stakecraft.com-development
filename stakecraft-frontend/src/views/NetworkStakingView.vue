@@ -16,8 +16,9 @@
           <router-link v-else class="ctaPrimary" to="/#mainnet">
             Stake with StakeCraft
           </router-link>
+          <!-- Explorer link stays for networks without the live trust strip. -->
           <a
-            v-if="page.explorer"
+            v-if="page.explorer && page.slug !== 'solana'"
             class="ctaSecondary"
             :href="page.explorer"
             target="_blank"
