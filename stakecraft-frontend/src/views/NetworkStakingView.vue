@@ -381,6 +381,7 @@ export default {
   background-image: url('../assets/bg img.svg');
   background-repeat: no-repeat;
   background-position: right top;
+  padding-bottom: 56px;
 }
 
 .solanaStakingPage .stakeSection,
@@ -400,6 +401,15 @@ export default {
 
 .solanaStakingPage .whySection {
   background: #f0f0f0;
+}
+
+.solanaStakingPage .stakeSection {
+  padding-top: 72px;
+  padding-bottom: 80px;
+}
+
+.solanaStakingPage .stakeSection .titleHeader {
+  margin-bottom: 28px;
 }
 
 .solanaStakingPage .stakeSection .titleHeader,
@@ -720,6 +730,11 @@ export default {
 
   .tabSplit {
     grid-template-columns: 1fr;
+  }
+
+  .solanaStakingPage .stakeSection {
+    padding-top: 48px;
+    padding-bottom: 56px;
   }
 
   .titleArea .titleLvl1,
