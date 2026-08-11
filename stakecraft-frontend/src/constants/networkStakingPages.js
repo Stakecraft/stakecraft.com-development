@@ -31,13 +31,13 @@ export const networkStakingPages = {
         description:
           'Delegate SOL straight to the StakeCraft validator through the Solana protocol. Your stake stays in a native stake account you own — no pool token, no smart-contract layer. Unstaking follows the normal ~2-day deactivation.',
         steps: [
-          'Open Phantom (or another Solana wallet) and fund it with SOL.',
-          'Go to staking in your wallet, or open StakeCraft and choose Solana on the mainnet section.',
-          'Search for StakeCraft or paste our Solana validator vote account.',
-          'Enter the amount to delegate and confirm. Your SOL remains under your custody.'
+          'Connect Phantom or Solflare with the stake widget on the left.',
+          'Enter the amount of SOL to delegate — StakeCraft’s validator is already selected.',
+          'Confirm the transaction in your wallet. Your SOL stays in a stake account you own.',
+          'Use the Unstake and Withdraw tabs in the same widget when you want to exit (~2-day cooldown).'
         ],
-        action: 'modal',
-        ctaLabel: 'Stake natively'
+        action: 'embed',
+        embed: 'native'
       },
       {
         id: 'definity',

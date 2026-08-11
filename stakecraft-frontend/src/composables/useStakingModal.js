@@ -5,6 +5,8 @@ import { ref } from 'vue'
 // without pulling any wallet code into the SSR/SSG render graph.
 const selectedNetwork = ref(null)
 const isModalVisible = ref(false)
+/** CMS network object for the inline Solana stake card on /solana-staking. */
+const embedNetwork = ref(null)
 
 export function useStakingModal() {
   const openModal = (network) => {
@@ -17,5 +19,16 @@ export function useStakingModal() {
     selectedNetwork.value = null
   }
 
-  return { selectedNetwork, isModalVisible, openModal, closeModal }
+  const setEmbedNetwork = (network) => {
+    embedNetwork.value = network || null
+  }
+
+  return {
+    selectedNetwork,
+    isModalVisible,
+    embedNetwork,
+    openModal,
+    closeModal,
+    setEmbedNetwork
+  }
 }

@@ -1,5 +1,12 @@
 <template>
   <div>
+    <Teleport v-if="embedTargetReady" to="#native-solana-stake-embed">
+      <solana-staking
+        v-if="embedNetwork?.title === 'Solana'"
+        :network="embedNetwork"
+        embedded
+      />
+    </Teleport>
     <solana-staking
       v-if="props.selectedNetwork?.title === 'Solana'"
       :network="props.selectedNetwork"
@@ -179,6 +186,7 @@
 </template>
 
 <script>
+import { onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import modal from './Modal.vue'
 import SolanaStaking from './stakingViews/SolanaStaking.vue'
 import KavaStaking from './stakingViews/KavaStaking.vue'
@@ -206,6 +214,7 @@ import BitsCrunchStaking from './stakingViews/BitsCrunchStaking.vue'
 import RedbellyStaking from './stakingViews/RedbellyStaking.vue'
 import WalrusStaking from './stakingViews/WalrusStaking.vue'
 import MonadStaking from './stakingViews/MonadStaking.vue'
+import { useStakingModal } from '../composables/useStakingModal.js'
 
 export default {
   name: 'StakingModals',
@@ -244,8 +253,34 @@ export default {
   },
   emits: ['close'],
   setup(props, { emit }) {
+    const { embedNetwork } = useStakingModal()
+    const embedTargetReady = ref(false)
+    let observer = null
+
+    const syncEmbedTarget = () => {
+      embedTargetReady.value = Boolean(document.getElementById('native-solana-stake-embed'))
+    }
+
+    onMounted(() => {
+      syncEmbedTarget()
+      observer = new MutationObserver(() => syncEmbedTarget())
+      observer.observe(document.body, { childList: true, subtree: true })
+      watch(
+        embedNetwork,
+        async () => {
+          await nextTick()
+          syncEmbedTarget()
+        },
+        { immediate: true }
+      )
+    })
+
+    onBeforeUnmount(() => {
+      observer?.disconnect()
+    })
+
     const emitClose = () => emit('close')
-    return { props, emitClose }
+    return { props, emitClose, embedNetwork, embedTargetReady }
   }
 }
 </script>

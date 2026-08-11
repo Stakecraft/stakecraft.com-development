@@ -33,7 +33,7 @@
           @select-pool="openPoolTab"
         />
       </div>
-      <div class="imageArea" />
+      <div v-if="page.slug !== 'solana'" class="imageArea" />
     </div>
 
     <div class="mainAreas stakeSection" :id="`how-to-stake-${page.slug}`">
@@ -67,44 +67,60 @@
       >
         <h3 v-if="stakingTabs.length > 1" class="tabTitle">{{ tab.title }}</h3>
         <p v-if="tab.description" class="tabDescription">{{ tab.description }}</p>
-        <div class="stepsArea">
-          <div v-for="(step, index) in tab.steps" :key="index" class="stepCard">
-            <div class="stepNumber">{{ index + 1 }}</div>
-            <div class="stepText">{{ step }}</div>
+
+        <!-- Native Solana: stake widget left, how-to steps right -->
+        <div v-if="tab.action === 'embed' && tab.embed === 'native'" class="tabSplit">
+          <div class="tabSplitWidget">
+            <div id="native-solana-stake-embed" class="nativeStakeHost" />
+          </div>
+          <div class="tabSplitSteps">
+            <div v-for="(step, index) in tab.steps" :key="index" class="stepCard">
+              <div class="stepNumber">{{ index + 1 }}</div>
+              <div class="stepText">{{ step }}</div>
+            </div>
           </div>
         </div>
-        <div class="tabCtaRow">
-          <DefinityDirectStakeWidget
-            v-if="tab.action === 'embed' && tab.embed === 'definity' && tab.widget"
-            :vote="tab.widget.vote"
-            :name="tab.widget.name"
-            :image="tab.widget.image"
-            :ref-code="tab.widget.ref"
-          />
-          <button
-            v-else-if="tab.action === 'modal' && stakingNetwork"
-            class="ctaPrimary"
-            type="button"
-            @click="stakeNow"
-          >
-            {{ tab.ctaLabel }}
-          </button>
-          <router-link v-else-if="tab.action === 'modal'" class="ctaPrimary" to="/#mainnet">
-            {{ tab.ctaLabel }}
-          </router-link>
-          <a
-            v-else-if="tab.action === 'external'"
-            class="ctaSecondary"
-            :href="tab.url"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {{ tab.ctaLabel }}
-          </a>
-        </div>
+
+        <template v-else>
+          <div class="stepsArea">
+            <div v-for="(step, index) in tab.steps" :key="index" class="stepCard">
+              <div class="stepNumber">{{ index + 1 }}</div>
+              <div class="stepText">{{ step }}</div>
+            </div>
+          </div>
+          <div class="tabCtaRow">
+            <DefinityDirectStakeWidget
+              v-if="tab.action === 'embed' && tab.embed === 'definity' && tab.widget"
+              :vote="tab.widget.vote"
+              :name="tab.widget.name"
+              :image="tab.widget.image"
+              :ref-code="tab.widget.ref"
+            />
+            <button
+              v-else-if="tab.action === 'modal' && stakingNetwork"
+              class="ctaPrimary"
+              type="button"
+              @click="stakeNow"
+            >
+              {{ tab.ctaLabel }}
+            </button>
+            <router-link v-else-if="tab.action === 'modal'" class="ctaPrimary" to="/#mainnet">
+              {{ tab.ctaLabel }}
+            </router-link>
+            <a
+              v-else-if="tab.action === 'external'"
+              class="ctaSecondary"
+              :href="tab.url"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {{ tab.ctaLabel }}
+            </a>
+          </div>
+        </template>
       </div>
 
-      <div class="validatorCard">
+      <div v-if="page.slug !== 'solana'" class="validatorCard">
         <div class="validatorLabel">Validator address</div>
         <code class="validatorValue">{{ page.validator }}</code>
       </div>
@@ -165,7 +181,7 @@
 </template>
 
 <script>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import LetsConnect from '../components/LetsConnect.vue'
 import DefinityDirectStakeWidget from '../components/DefinityDirectStakeWidget.vue'
@@ -191,9 +207,8 @@ export default {
     const openItems = ref({})
 
     const { fetchMainnet, getMainnetNetworks } = useContent()
-    const { openModal } = useStakingModal()
+    const { openModal, setEmbedNetwork } = useStakingModal()
 
-    // Same wallet staking modal the homepage mainnet cards open.
     const stakingNetwork = computed(
       () =>
         getMainnetNetworks.value.find((network) => network.title === pageData?.mainnetTitle) ||
@@ -204,7 +219,6 @@ export default {
       if (stakingNetwork.value) openModal(stakingNetwork.value)
     }
 
-    // Networks without explicit options get a single native tab from page.steps.
     const stakingTabs = computed(() => {
       if (pageData?.stakingOptions?.length) return pageData.stakingOptions
       return [
@@ -229,8 +243,21 @@ export default {
     onMounted(() => {
       fetchMainnet()
 
-      // Deep link: /solana-staking?stake=1 opens the wizard on arrival.
-      if (route.query.stake) {
+      if (pageData?.slug === 'solana') {
+        watch(
+          stakingNetwork,
+          (network) => {
+            setEmbedNetwork(network)
+          },
+          { immediate: true }
+        )
+      }
+
+      if (route.query.stake && pageData?.slug === 'solana') {
+        activeTab.value = 'native'
+        const section = document.getElementById(`how-to-stake-${pageData.slug}`)
+        section?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } else if (route.query.stake) {
         const stop = watch(
           stakingNetwork,
           (network) => {
@@ -243,10 +270,13 @@ export default {
         )
       }
 
-      // Deep link: /solana-staking?tab=jpool opens that method.
       if (route.query.tab && stakingTabs.value.some((tab) => tab.id === route.query.tab)) {
         activeTab.value = route.query.tab
       }
+    })
+
+    onBeforeUnmount(() => {
+      if (pageData?.slug === 'solana') setEmbedNetwork(null)
     })
 
     useSeo({
@@ -319,75 +349,43 @@ export default {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  /* 25% smaller than the original 630×630 hero cube */
   width: 473px;
   height: 472px;
   flex-shrink: 0;
   margin-top: 8px;
 }
 
-/*
-  Solana: cube sits beside title + identity/vote only.
-  Metrics / pools / ranks break out to full hero width underneath.
-*/
+/* Solana: no hero cube — trust strip uses full content width */
 .networkHero.isSolana {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: auto auto auto auto;
-  align-items: start;
-  column-gap: 24px;
-  row-gap: 0;
+  display: block;
+  background-position: right top;
 }
 
 .networkHero.isSolana .presentation {
-  display: contents;
-  width: auto;
-}
-
-.networkHero.isSolana .titleArea {
-  grid-column: 1;
-  grid-row: 1;
-  max-width: 640px;
-}
-
-.networkHero.isSolana .websiteDescription {
-  grid-column: 1;
-  grid-row: 2;
-  max-width: 640px;
-}
-
-.networkHero.isSolana :deep(.trustStrip) {
-  display: contents;
-}
-
-.networkHero.isSolana :deep(.keysRow) {
-  grid-column: 1;
-  grid-row: 3;
-  margin-top: 28px;
-  max-width: 640px;
-}
-
-.networkHero.isSolana .imageArea {
-  grid-column: 2;
-  grid-row: 1 / 4;
-  align-self: end;
-  justify-self: end;
-  width: 340px;
-  height: 340px;
-  margin-top: 0;
-}
-
-.networkHero.isSolana :deep(.metricsRow),
-.networkHero.isSolana :deep(.poolsRow),
-.networkHero.isSolana :deep(.ranksRow),
-.networkHero.isSolana :deep(.trustError) {
-  grid-column: 1 / -1;
+  width: 100%;
   max-width: none;
-  margin-top: 12px;
 }
 
-.networkHero.isSolana :deep(.metricsRow) {
-  margin-top: 16px;
+.tabSplit {
+  display: grid;
+  grid-template-columns: minmax(280px, 480px) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.tabSplitWidget {
+  min-width: 0;
+}
+
+.nativeStakeHost {
+  min-height: 220px;
+}
+
+.tabSplitSteps {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
 }
 
 .ctaGroup {
@@ -667,49 +665,19 @@ export default {
     display: block;
   }
 
-  .networkHero.isSolana {
-    display: block;
-  }
-
-  .networkHero.isSolana .presentation {
-    display: flex;
-    flex-direction: column;
-    width: 100% !important;
-  }
-
-  .networkHero.isSolana .titleArea,
-  .networkHero.isSolana .websiteDescription {
-    max-width: none;
-  }
-
-  .networkHero.isSolana :deep(.trustStrip) {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .networkHero.isSolana :deep(.keysRow) {
-    margin-top: 0;
-    max-width: none;
-  }
-
-  .networkHero.isSolana :deep(.metricsRow),
-  .networkHero.isSolana :deep(.poolsRow),
-  .networkHero.isSolana :deep(.ranksRow),
-  .networkHero.isSolana :deep(.trustError) {
-    margin-top: 0;
-  }
-
   .presentation {
     width: 100% !important;
     margin-bottom: 30px;
   }
 
-  .imageArea,
-  .networkHero.isSolana .imageArea {
+  .imageArea {
     width: 315px;
     height: 315px;
     margin: 0 auto;
+  }
+
+  .tabSplit {
+    grid-template-columns: 1fr;
   }
 
   .titleArea .titleLvl1,

@@ -1,12 +1,16 @@
 <template>
   <transition name="modal-fade">
-    <div v-if="network" class="modal-overlay" @click.self="close">
-      <div class="modal-container" @click.stop>
+    <div
+      v-if="network"
+      :class="embedded ? 'stake-embed' : 'modal-overlay'"
+      @click.self="embedded ? undefined : close()"
+    >
+      <div :class="embedded ? 'embed-container' : 'modal-container'" @click.stop>
         <div class="modal-content">
           <!-- Header -->
           <div class="modal-header">
-            <h2 class="modal-title">{{ network.title }}</h2>
-            <button @click="close" class="close-button">
+            <h2 class="modal-title">{{ embedded ? 'Stake SOL' : network.title }}</h2>
+            <button v-if="!embedded" type="button" @click="close" class="close-button">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -445,6 +449,11 @@ export default {
     network: {
       type: Object,
       required: true
+    },
+    /** Inline card on /solana-staking — no overlay or close control. */
+    embedded: {
+      type: Boolean,
+      default: false
     }
   },
   emits: ['close'],
@@ -1730,5 +1739,113 @@ export default {
 .disconnect-button svg {
   width: 16px;
   height: 16px;
+}
+
+/* Inline embed on /solana-staking — match page tokens (Definity-sized card) */
+.stake-embed {
+  position: relative;
+  display: block;
+  background: transparent;
+  z-index: auto;
+}
+
+.embed-container {
+  background: var(--van-mainnet-network-background);
+  color: var(--van-mainnet-color);
+  border: 1px solid var(--van-border-color);
+  border-radius: 20px;
+  box-shadow: none;
+  max-width: 480px;
+  width: 100%;
+  overflow: hidden;
+  max-height: none;
+}
+
+.stake-embed .modal-content {
+  padding: 22px;
+}
+
+.stake-embed .modal-title {
+  font-family: poppins;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--van-text-color);
+}
+
+.stake-embed .network-description p,
+.stake-embed .info-label,
+.stake-embed .form-label,
+.stake-embed .input-hint,
+.stake-embed .warning-message {
+  color: var(--van-mainnet-color);
+  opacity: 0.8;
+}
+
+.stake-embed .wallet-info-card,
+.stake-embed .info-card,
+.stake-embed .wallet-warning {
+  background: var(--van-ourCapabilities-wrapper);
+  color: var(--van-ourCapabilities-text);
+  border: 1px solid var(--van-border-color);
+  border-radius: 14px;
+}
+
+.stake-embed .info-value,
+.stake-embed .form-input {
+  color: var(--van-text-color);
+}
+
+.stake-embed .form-input {
+  background: var(--van-mainnet-network-background);
+  border: 1px solid var(--van-border-color);
+  border-radius: 12px;
+}
+
+.stake-embed .form-input:focus {
+  border-color: var(--van-seconday-color);
+  box-shadow: none;
+  outline: none;
+}
+
+.stake-embed .tab-container {
+  background: var(--van-ourCapabilities-wrapper);
+  border-radius: 14px;
+}
+
+.stake-embed .tab-button {
+  color: var(--van-mainnet-color);
+  font-family: poppins;
+}
+
+.stake-embed .tab-button.tab-active {
+  background: var(--van-seconday-color);
+  color: #111217;
+  box-shadow: none;
+}
+
+.stake-embed .tab-button:hover:not(.tab-active) {
+  background: transparent;
+  color: var(--van-text-color);
+}
+
+.stake-embed .primary-button {
+  background: var(--van-seconday-color);
+  color: #111217;
+  border-radius: 20px;
+  font-family: poppins;
+  font-weight: 700;
+}
+
+.stake-embed .primary-button:hover:not(:disabled) {
+  background: var(--van-seconday-color);
+  filter: brightness(0.95);
+}
+
+.stake-embed .link-primary {
+  color: var(--van-seconday-color);
+}
+
+.stake-embed .disconnect-button {
+  border-radius: 14px;
 }
 </style>
