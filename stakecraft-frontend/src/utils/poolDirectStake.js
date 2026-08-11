@@ -1,6 +1,9 @@
 /**
  * On-page liquid/direct stake helpers for JPool, SolBlaze CLS, and The Vault.
  * Reuses Phantom/Solflare via SolanaStaking wallet helpers.
+ *
+ * Heavy Solana SDKs (@jpool/sdk, @solana/spl-stake-pool) are loaded lazily so
+ * vite-ssg / Node SSR never evaluates their broken buffer-layout graph.
  */
 import {
   Connection,
@@ -11,8 +14,6 @@ import {
   VersionedTransaction,
   LAMPORTS_PER_SOL
 } from '@solana/web3.js'
-import { JPoolClient } from '@jpool/sdk'
-import { depositSol, stakePoolInfo } from '@solana/spl-stake-pool'
 import { connectWallet, getCurrentWallet, getProvider } from './SolanaStaking.js'
 
 const SOLANA_RPC_ENDPOINTS = [
@@ -38,6 +39,9 @@ function getConnection() {
 }
 
 async function ensureWallet() {
+  if (typeof window === 'undefined') {
+    throw new Error('Wallet staking is only available in the browser')
+  }
   try {
     getProvider()
   } catch {
@@ -126,6 +130,7 @@ export async function stakeJpoolDirect({ amountSol, voteAccount }) {
     throw new Error('Insufficient SOL for stake + fees')
   }
 
+  const { JPoolClient } = await import('@jpool/sdk')
   const client = new JPoolClient(connection)
   const { instructions, signers } = await client.depositSol({
     from: wallet.publicKey,
@@ -142,7 +147,6 @@ export async function stakeSolblazeCls({ amountSol, voteAccount }) {
   const connection = getConnection()
   const lamports = parseSolAmount(amountSol)
   const balance = await connection.getBalance(wallet.publicKey)
-  // deposit + 5000 activation transfer + fees
   if (balance < lamports + 5_000 + FEE_BUFFER_LAMPORTS) {
     throw new Error('Insufficient SOL for stake + fees')
   }
@@ -155,6 +159,8 @@ export async function stakeSolblazeCls({ amountSol, voteAccount }) {
   } catch {
     /* pool update is best-effort */
   }
+
+  const { depositSol, stakePoolInfo } = await import('@solana/spl-stake-pool')
 
   const info = await stakePoolInfo(connection, BLAZESTAKE_POOL)
   if (info?.details?.updateRequired) {
