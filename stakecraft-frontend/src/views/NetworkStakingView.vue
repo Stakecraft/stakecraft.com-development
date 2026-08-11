@@ -1,5 +1,5 @@
 <template>
-  <div v-if="page">
+  <div v-if="page" :class="{ solanaStakingPage: page.slug === 'solana' }">
     <div class="networkHero" :class="{ isSolana: page.slug === 'solana' }">
       <div class="presentation">
         <h1 class="titleArea">
@@ -364,6 +364,48 @@ export default {
 .networkHero.isSolana .presentation {
   width: 100%;
   max-width: none;
+}
+
+/*
+  Solana page contrast lock (ignores site theme toggle):
+  hero/trust strip always dark; stake UI + below always light.
+*/
+.solanaStakingPage .networkHero.isSolana {
+  --van-text-color: #ffffff;
+  --van-mainnet-color: #ffffff;
+  --van-mainnet-network-background: #1b1d25;
+  --van-border-color: rgba(255, 255, 255, 0.14);
+  --van-seconday-color: #35f6df;
+  color: #ffffff;
+  background-color: #111216;
+  background-image: url('../assets/bg img.svg');
+  background-repeat: no-repeat;
+  background-position: right top;
+}
+
+.solanaStakingPage .stakeSection,
+.solanaStakingPage .whySection,
+.solanaStakingPage .faqSection {
+  --van-text-color: #111217;
+  --van-mainnet-color: #111217;
+  --van-mainnet-network-background: #ffffff;
+  --van-border-color: #ebedf0;
+  --van-seconday-color: #35f6df;
+  --van-ourCapabilities-wrapper: #ffffff;
+  --van-ourCapabilities-text: #111217;
+  --van-about-us-background: #f0f0f0;
+  color: #111217;
+  background-color: #f0f0f0;
+}
+
+.solanaStakingPage .whySection {
+  background: #f0f0f0;
+}
+
+.solanaStakingPage .stakeSection .titleHeader,
+.solanaStakingPage .faqSection .titleHeader,
+.solanaStakingPage .whySection .titleHeader {
+  color: #111217;
 }
 
 .tabSplit {
