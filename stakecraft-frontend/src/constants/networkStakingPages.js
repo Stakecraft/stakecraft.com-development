@@ -39,6 +39,26 @@ export const networkStakingPages = {
         ctaLabel: 'Stake natively'
       },
       {
+        id: 'definity',
+        title: 'Definity direct staking',
+        tabLabel: 'Definity · definSOL',
+        description:
+          'Stake SOL to StakeCraft through Definity without leaving this page. You receive definSOL (liquid, still earning pool yield), and Definity directs your stake plus up to 3.5× matching onto our validator.',
+        steps: [
+          'Use the Definity widget below — StakeCraft is already selected as the validator.',
+          'Connect Phantom, Solflare, or Backpack and enter the amount of SOL to stake.',
+          'Confirm in your wallet. You receive definSOL while your stake counts toward StakeCraft.',
+          'Unstake from the same widget anytime — wallets connect and sign on this domain.'
+        ],
+        action: 'embed',
+        embed: 'definity',
+        widget: {
+          vote: 'BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g',
+          name: 'StakeCraft',
+          image: 'https://stakecraft.com/headerLogo.svg'
+        }
+      },
+      {
         id: 'jpool',
         title: 'JPool direct staking',
         tabLabel: 'JPool · JSOL',
@@ -111,7 +131,7 @@ export const networkStakingPages = {
       {
         question: 'Can I stake SOL to StakeCraft through a liquid staking pool?',
         answer:
-          'Yes. JPool direct staking, SolBlaze custom liquid staking, and JagPool direct staking all let you point pool stake at the StakeCraft validator while you receive a liquid token (JSOL, bSOL, or jagSOL) to use in DeFi. Native protocol staking remains available if you prefer a plain stake account.'
+          'Yes. JPool, SolBlaze, JagPool, and Definity all let you point pool stake at the StakeCraft validator while you receive a liquid token (JSOL, bSOL, jagSOL, or definSOL) to use in DeFi. Definity stakes in an on-page widget; the others open their apps with StakeCraft preselected. Native protocol staking remains available if you prefer a plain stake account.'
       }
     ],
     service: {
