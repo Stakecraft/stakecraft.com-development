@@ -64,7 +64,7 @@ export const networkStakingPages = {
         id: 'marinade-select',
         title: 'Marinade Select',
         tabLabel: 'Marinade Select',
-        logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png',
+        logo: '/marinade-select-chip.png',
         description:
           'StakeCraft is part of Marinade Select — Marinade’s curated, KYC-verified validator set for institutional-grade native staking. Deposits are distributed across the Select set (including StakeCraft) with protected staking rewards and smart rebalancing.',
         steps: [

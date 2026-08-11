@@ -29,7 +29,7 @@ export const SOLANA_TRACKED_POOLS = [
     // Membership comes from Marinade institutional bonds, not GDIndex pool files.
     poolAddress: null,
     membership: 'marinade-select',
-    logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png',
+    logo: '/marinade-select-chip.png',
     url: 'https://app.marinade.finance/?type=select'
   },
   {

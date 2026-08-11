@@ -50,7 +50,7 @@ const TRACKED_POOLS = [
     tabId: "marinade-select",
     poolAddress: null,
     membership: "marinade-select",
-    logo: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png",
+    logo: "/marinade-select-chip.png",
     url: "https://app.marinade.finance/?type=select",
   },
   {
