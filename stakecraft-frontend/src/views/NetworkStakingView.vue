@@ -26,6 +26,11 @@
             View validator
           </a>
         </div>
+        <SolanaValidatorTrust
+          v-if="page.slug === 'solana' && page.validator"
+          :vote="page.validator"
+          :identity="page.identity || ''"
+        />
       </div>
       <div class="imageArea" />
     </div>
@@ -160,6 +165,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import LetsConnect from '../components/LetsConnect.vue'
 import DefinityDirectStakeWidget from '../components/DefinityDirectStakeWidget.vue'
+import SolanaValidatorTrust from '../components/SolanaValidatorTrust.vue'
 import { useSeo } from '../composables/useSeo.js'
 import { routeSeo } from '../config/seo.js'
 import { getNetworkStakingPage } from '../constants/networkStakingPages.js'
@@ -168,7 +174,7 @@ import { useStakingModal } from '../composables/useStakingModal.js'
 
 export default {
   name: 'NetworkStakingView',
-  components: { LetsConnect, DefinityDirectStakeWidget },
+  components: { LetsConnect, DefinityDirectStakeWidget, SolanaValidatorTrust },
   setup() {
     const route = useRoute()
     const pageData = getNetworkStakingPage(route.meta.networkSlug)

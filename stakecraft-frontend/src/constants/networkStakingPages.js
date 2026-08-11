@@ -18,6 +18,7 @@ export const networkStakingPages = {
     token: 'SOL',
     wallet: 'Phantom',
     validator: 'BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g',
+    identity: 'WUNoB9YQXmXXRcJsjY1G8PfVag5aAfnyGmFd6YwJVwp',
     explorer:
       'https://stakewiz.com/validator/BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g',
     howToStake:
