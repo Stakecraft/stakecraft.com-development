@@ -81,28 +81,6 @@
             :image="tab.widget.image"
             :ref-code="tab.widget.ref"
           />
-          <PoolDirectStakeWidget
-            v-else-if="
-              clientReady && tab.action === 'embed' && tab.embed === 'pool' && tab.widget
-            "
-            :pool="tab.widget.pool"
-            :vote="tab.widget.vote"
-            :token-symbol="tab.widget.tokenSymbol"
-            :logo="tab.logo || tab.widget.logo"
-            :title="tab.title"
-            :fallback-url="tab.url || tab.widget.fallbackUrl"
-          />
-          <a
-            v-else-if="
-              !clientReady && tab.action === 'embed' && tab.embed === 'pool' && tab.url
-            "
-            class="ctaSecondary"
-            :href="tab.url"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Open {{ tab.tabLabel || tab.title }}
-          </a>
           <button
             v-else-if="tab.action === 'modal' && stakingNetwork"
             class="ctaPrimary"
@@ -187,7 +165,7 @@
 </template>
 
 <script>
-import { ref, computed, watch, onMounted, defineAsyncComponent } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import LetsConnect from '../components/LetsConnect.vue'
 import DefinityDirectStakeWidget from '../components/DefinityDirectStakeWidget.vue'
@@ -203,10 +181,6 @@ export default {
   components: {
     LetsConnect,
     DefinityDirectStakeWidget,
-    // Lazy + client-only: keeps @jpool/sdk / spl-stake-pool out of vite-ssg Node render.
-    PoolDirectStakeWidget: defineAsyncComponent(() =>
-      import('../components/PoolDirectStakeWidget.vue')
-    ),
     SolanaValidatorTrust
   },
   setup() {
@@ -215,8 +189,6 @@ export default {
     const page = computed(() => pageData)
     const seoBase = routeSeo[route.meta.seoKey] || routeSeo.home
     const openItems = ref({})
-    // Pool stake SDKs break Node SSR (buffer-layout); mount widgets after hydrate.
-    const clientReady = ref(false)
 
     const { fetchMainnet, getMainnetNetworks } = useContent()
     const { openModal } = useStakingModal()
@@ -255,7 +227,6 @@ export default {
     }
 
     onMounted(() => {
-      clientReady.value = true
       fetchMainnet()
 
       // Deep link: /solana-staking?stake=1 opens the wizard on arrival.
@@ -296,8 +267,7 @@ export default {
       stakeNow,
       stakingTabs,
       activeTab,
-      openPoolTab,
-      clientReady
+      openPoolTab
     }
   }
 }

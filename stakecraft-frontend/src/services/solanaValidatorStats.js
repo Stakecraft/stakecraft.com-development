@@ -26,10 +26,16 @@ function cacheSet(key, value) {
   cache.set(key, { at: Date.now(), value })
 }
 
-async function fetchJson(url) {
-  const response = await fetch(url)
-  if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`)
-  return response.json()
+async function fetchJson(url, { timeoutMs = 12_000 } = {}) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const response = await fetch(url, { signal: controller.signal })
+    if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`)
+    return response.json()
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 function truncateKey(key, head = 4, tail = 4) {
@@ -226,11 +232,18 @@ function assembleStats(voteAccount, stakewiz, gdindex, pools, validBlocks = null
 }
 
 async function fetchFromBackend(voteAccount) {
-  const response = await fetch(
-    `${API_BASE_URL}/solana/validator-stats/${encodeURIComponent(voteAccount)}`
-  )
-  if (!response.ok) throw new Error(`Backend stats HTTP ${response.status}`)
-  return response.json()
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 8_000)
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/solana/validator-stats/${encodeURIComponent(voteAccount)}`,
+      { signal: controller.signal }
+    )
+    if (!response.ok) throw new Error(`Backend stats HTTP ${response.status}`)
+    return response.json()
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 async function fetchFromSources(voteAccount) {
