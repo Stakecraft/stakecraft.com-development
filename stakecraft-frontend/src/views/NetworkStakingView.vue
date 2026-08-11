@@ -311,7 +311,7 @@ export default {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   background: url('../assets/bg img.svg');
   background-repeat: no-repeat;
   background-position: right;
@@ -349,9 +349,11 @@ export default {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  width: 158px;
-  height: 157px;
+  /* 25% smaller than the original 630×630 hero cube */
+  width: 473px;
+  height: 472px;
   flex-shrink: 0;
+  margin-top: 8px;
 }
 
 .ctaGroup {
@@ -637,8 +639,8 @@ export default {
   }
 
   .imageArea {
-    width: 105px;
-    height: 105px;
+    width: 315px;
+    height: 315px;
     margin: 0 auto;
   }
 
