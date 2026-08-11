@@ -61,6 +61,23 @@ export const networkStakingPages = {
         }
       },
       {
+        id: 'marinade-select',
+        title: 'Marinade Select',
+        tabLabel: 'Marinade Select',
+        logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png',
+        description:
+          'StakeCraft is part of Marinade Select — Marinade’s curated, KYC-verified validator set for institutional-grade native staking. Deposits are distributed across the Select set (including StakeCraft) with protected staking rewards and smart rebalancing.',
+        steps: [
+          'Open Marinade and choose the Select staking product.',
+          'Connect your Solana wallet (or stake via a supported custodian).',
+          'Deposit SOL into Marinade Select — stake is allocated across the vetted Select validator set.',
+          'Track Select distribution on select.marinade.finance; StakeCraft remains an approved Select validator.'
+        ],
+        action: 'external',
+        url: 'https://app.marinade.finance/?type=select',
+        ctaLabel: 'Stake via Marinade Select'
+      },
+      {
         id: 'jpool',
         title: 'JPool direct staking',
         tabLabel: 'JPool · JSOL',
@@ -153,7 +170,7 @@ export const networkStakingPages = {
       {
         question: 'Can I stake SOL to StakeCraft through a liquid staking pool?',
         answer:
-          'Yes. Definity, JPool, The Vault, SolBlaze, and JagPool all let you point pool stake at the StakeCraft validator while you receive a liquid token (definSOL, JSOL, vSOL, bSOL, or jagSOL) to use in DeFi. Definity stakes in an on-page widget; the others open their apps for directed stake. Native protocol staking remains available if you prefer a plain stake account.'
+          'Yes. Definity, JPool, The Vault, SolBlaze, and JagPool all let you point pool stake at the StakeCraft validator while you receive a liquid token (definSOL, JSOL, vSOL, bSOL, or jagSOL) to use in DeFi. StakeCraft is also in Marinade Select, Marinade’s curated native-staking validator set. Definity stakes in an on-page widget; the others open their apps. Native protocol staking remains available if you prefer a plain stake account.'
       }
     ],
     service: {

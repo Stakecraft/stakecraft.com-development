@@ -5,6 +5,8 @@ const STAKEWIZ_URL = 'https://api.stakewiz.com/validator'
 const GDINDEX_VALIDATOR_INDEX = 'https://gdindex.app/gdi/validator-index.json'
 const GDINDEX_POOL_LATEST = (address) => `https://gdindex.app/gdi/pools/${address}/latest.json`
 const VALIDBLOCKS_LIVE_URL = 'https://dashboards.validblocks.com/api/validator-live'
+const MARINADE_SELECT_BONDS_URL =
+  'https://validator-bonds-api.marinade.finance/bonds/institutional'
 
 const CACHE_TTL_MS = 15 * 60 * 1000
 const cache = new Map()
@@ -68,9 +70,23 @@ async function loadGdindexEntry(vote) {
   }
 }
 
+async function loadMarinadeSelectMembership(vote) {
+  const pool = SOLANA_TRACKED_POOLS.find((p) => p.membership === 'marinade-select')
+  if (!pool) return null
+  const data = await fetchJson(MARINADE_SELECT_BONDS_URL)
+  const bond = data?.bonds?.find((b) => b.vote_account === vote)
+  if (!bond) return null
+  return {
+    ...pool,
+    stakeSol: null,
+    stakeLabel: 'Select set'
+  }
+}
+
 async function loadTrackedPools(vote) {
+  const gdindexPools = SOLANA_TRACKED_POOLS.filter((pool) => pool.poolAddress)
   const results = await Promise.all(
-    SOLANA_TRACKED_POOLS.map(async (pool) => {
+    gdindexPools.map(async (pool) => {
       try {
         const detail = await fetchJson(GDINDEX_POOL_LATEST(pool.poolAddress))
         const hit = detail?.validators?.find((v) => v.pubkey === vote)
@@ -86,7 +102,15 @@ async function loadTrackedPools(vote) {
       }
     })
   )
-  return results.filter(Boolean).sort((a, b) => b.stakeSol - a.stakeSol)
+
+  const pools = results.filter(Boolean).sort((a, b) => b.stakeSol - a.stakeSol)
+  try {
+    const select = await loadMarinadeSelectMembership(vote)
+    if (select) pools.unshift(select)
+  } catch {
+    /* optional */
+  }
+  return pools
 }
 
 async function loadValidBlocks(vote) {

@@ -13,6 +13,8 @@ const GDINDEX_POOL_LATEST = (address) =>
 const VALIDBLOCKS_LIVE_URL = "https://dashboards.validblocks.com/api/validator-live";
 const VALIDATORS_APP_URL = (identity) =>
   `https://www.validators.app/api/v1/validators/mainnet/${identity}.json`;
+const MARINADE_SELECT_BONDS_URL =
+  "https://validator-bonds-api.marinade.finance/bonds/institutional";
 
 const CACHE_TTL_MS = 15 * 60 * 1000;
 const VALIDATORS_APP_MAX_SCORE = 13;
@@ -40,6 +42,16 @@ const TRACKED_POOLS = [
     poolAddress: "Bvbu55B991evqqhLtKcyTZjzQ4EQzRUwtf9T4CcpMmPL",
     logo: "https://hv4gxzchk24cqfezebn3ujjz6oy2kbtztv5vghn6kpbkjc3vg4rq.arweave.net/n3W2lUNPCJpX9WXjXEl0Tx0hB57BvioKUG8pixx1A4o",
     url: "https://definity.finance/",
+  },
+  {
+    id: "marinade-select",
+    symbol: "Select",
+    name: "Marinade Select",
+    tabId: "marinade-select",
+    poolAddress: null,
+    membership: "marinade-select",
+    logo: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png",
+    url: "https://app.marinade.finance/?type=select",
   },
   {
     id: "vsol",
@@ -153,9 +165,23 @@ async function loadGdindexEntry(vote) {
   };
 }
 
+async function loadMarinadeSelectMembership(vote) {
+  const pool = TRACKED_POOLS.find((p) => p.membership === "marinade-select");
+  if (!pool) return null;
+  const data = await fetchJson(MARINADE_SELECT_BONDS_URL);
+  const bond = data?.bonds?.find((b) => b.vote_account === vote);
+  if (!bond) return null;
+  return {
+    ...pool,
+    stakeSol: null,
+    stakeLabel: "Select set",
+  };
+}
+
 async function loadTrackedPools(vote) {
+  const gdindexPools = TRACKED_POOLS.filter((pool) => pool.poolAddress);
   const results = await Promise.all(
-    TRACKED_POOLS.map(async (pool) => {
+    gdindexPools.map(async (pool) => {
       try {
         const detail = await fetchJson(GDINDEX_POOL_LATEST(pool.poolAddress));
         const hit = detail?.validators?.find((v) => v.pubkey === vote);
@@ -171,7 +197,15 @@ async function loadTrackedPools(vote) {
       }
     })
   );
-  return results.filter(Boolean).sort((a, b) => b.stakeSol - a.stakeSol);
+
+  const pools = results.filter(Boolean).sort((a, b) => b.stakeSol - a.stakeSol);
+  try {
+    const select = await loadMarinadeSelectMembership(vote);
+    if (select) pools.unshift(select);
+  } catch (error) {
+    console.warn("Marinade Select membership check failed:", error?.message || error);
+  }
+  return pools;
 }
 
 async function loadValidBlocks(vote) {
