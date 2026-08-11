@@ -154,7 +154,7 @@ export default {
 <style scoped>
 .trustStrip {
   margin-top: 28px;
-  max-width: 640px;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   gap: 12px;

@@ -1,6 +1,6 @@
 <template>
   <div v-if="page">
-    <div class="networkHero">
+    <div class="networkHero" :class="{ isSolana: page.slug === 'solana' }">
       <div class="presentation">
         <h1 class="titleArea">
           <span class="titleLvl1">{{ page.networkName }}</span>
@@ -326,6 +326,70 @@ export default {
   margin-top: 8px;
 }
 
+/*
+  Solana: cube sits beside title + identity/vote only.
+  Metrics / pools / ranks break out to full hero width underneath.
+*/
+.networkHero.isSolana {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto auto;
+  align-items: start;
+  column-gap: 24px;
+  row-gap: 0;
+}
+
+.networkHero.isSolana .presentation {
+  display: contents;
+  width: auto;
+}
+
+.networkHero.isSolana .titleArea {
+  grid-column: 1;
+  grid-row: 1;
+  max-width: 640px;
+}
+
+.networkHero.isSolana .websiteDescription {
+  grid-column: 1;
+  grid-row: 2;
+  max-width: 640px;
+}
+
+.networkHero.isSolana :deep(.trustStrip) {
+  display: contents;
+}
+
+.networkHero.isSolana :deep(.keysRow) {
+  grid-column: 1;
+  grid-row: 3;
+  margin-top: 28px;
+  max-width: 640px;
+}
+
+.networkHero.isSolana .imageArea {
+  grid-column: 2;
+  grid-row: 1 / 4;
+  align-self: end;
+  justify-self: end;
+  width: 340px;
+  height: 340px;
+  margin-top: 0;
+}
+
+.networkHero.isSolana :deep(.metricsRow),
+.networkHero.isSolana :deep(.poolsRow),
+.networkHero.isSolana :deep(.ranksRow),
+.networkHero.isSolana :deep(.trustError) {
+  grid-column: 1 / -1;
+  max-width: none;
+  margin-top: 12px;
+}
+
+.networkHero.isSolana :deep(.metricsRow) {
+  margin-top: 16px;
+}
+
 .ctaGroup {
   display: flex;
   flex-wrap: wrap;
@@ -603,12 +667,46 @@ export default {
     display: block;
   }
 
+  .networkHero.isSolana {
+    display: block;
+  }
+
+  .networkHero.isSolana .presentation {
+    display: flex;
+    flex-direction: column;
+    width: 100% !important;
+  }
+
+  .networkHero.isSolana .titleArea,
+  .networkHero.isSolana .websiteDescription {
+    max-width: none;
+  }
+
+  .networkHero.isSolana :deep(.trustStrip) {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .networkHero.isSolana :deep(.keysRow) {
+    margin-top: 0;
+    max-width: none;
+  }
+
+  .networkHero.isSolana :deep(.metricsRow),
+  .networkHero.isSolana :deep(.poolsRow),
+  .networkHero.isSolana :deep(.ranksRow),
+  .networkHero.isSolana :deep(.trustError) {
+    margin-top: 0;
+  }
+
   .presentation {
     width: 100% !important;
     margin-bottom: 30px;
   }
 
-  .imageArea {
+  .imageArea,
+  .networkHero.isSolana .imageArea {
     width: 315px;
     height: 315px;
     margin: 0 auto;
