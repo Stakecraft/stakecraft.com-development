@@ -115,6 +115,8 @@ export const config = {
     secretKey: process.env.PINATA_SECRET_KEY || "",
     jwt: process.env.PINATA_JWT || "",
   },
+  // Optional — enables validators.app score/rank on the Solana trust strip.
+  validatorsAppToken: (process.env.VALIDATORS_APP_TOKEN || "").trim(),
   maxFileSize: parseInt(process.env.MAX_FILE_SIZE || "5242880", 10),
 };
 

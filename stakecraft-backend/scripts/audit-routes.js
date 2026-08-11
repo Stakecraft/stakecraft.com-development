@@ -31,6 +31,7 @@ import partnershipRouter from "../routes/partnership.js";
 import aboutRouter from "../routes/about.js";
 import teamRouter from "../routes/team.js";
 import productRouter from "../routes/product.js";
+import solanaRouter from "../routes/solana.js";
 
 // Mount points must mirror server.js.
 const MOUNTS = [
@@ -45,6 +46,7 @@ const MOUNTS = [
   ["/api/about", aboutRouter],
   ["/api/team", teamRouter],
   ["/api/products", productRouter],
+  ["/api/solana", solanaRouter],
 ];
 
 // Routes that are intentionally public. Anything reaching the internet without

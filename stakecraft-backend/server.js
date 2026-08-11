@@ -23,6 +23,7 @@ import aboutRouter from "./routes/about.js";
 import faqRouter from "./routes/faq.js";
 import teamRouter from "./routes/team.js";
 import productRouter from "./routes/product.js";
+import solanaRouter from "./routes/solana.js";
 
 const app = express();
 const PORT = config.port;
@@ -175,6 +176,7 @@ app.use("/api/about", aboutRouter);
 app.use("/api/faq", faqRouter);
 app.use("/api/team", teamRouter);
 app.use("/api/products", productRouter);
+app.use("/api/solana", solanaRouter);
 
 // 404 handler - must come after every route but before the error handler.
 app.use("*", (req, res) => {

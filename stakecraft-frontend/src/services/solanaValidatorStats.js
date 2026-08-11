@@ -1,8 +1,10 @@
 import { SOLANA_TRACKED_POOLS } from '../constants/solanaValidatorPools.js'
+import { API_BASE_URL } from '../config/api.js'
 
 const STAKEWIZ_URL = 'https://api.stakewiz.com/validator'
 const GDINDEX_VALIDATOR_INDEX = 'https://gdindex.app/gdi/validator-index.json'
 const GDINDEX_POOL_LATEST = (address) => `https://gdindex.app/gdi/pools/${address}/latest.json`
+const VALIDBLOCKS_LIVE_URL = 'https://dashboards.validblocks.com/api/validator-live'
 
 const CACHE_TTL_MS = 15 * 60 * 1000
 const cache = new Map()
@@ -87,30 +89,15 @@ async function loadTrackedPools(vote) {
   return results.filter(Boolean).sort((a, b) => b.stakeSol - a.stakeSol)
 }
 
-/**
- * Aggregate live StakeCraft Solana validator stats for the staking page trust strip.
- */
-export async function fetchSolanaValidatorStats(voteAccount) {
-  if (!voteAccount) throw new Error('voteAccount is required')
+async function loadValidBlocks(vote) {
+  return fetchJson(
+    `${VALIDBLOCKS_LIVE_URL}?voteAccount=${encodeURIComponent(vote)}`
+  )
+}
 
-  const cached = cacheGet(voteAccount)
-  if (cached) return cached
-
-  const [stakewizResult, gdindexResult, poolsResult] = await Promise.allSettled([
-    loadStakewiz(voteAccount),
-    loadGdindexEntry(voteAccount),
-    loadTrackedPools(voteAccount)
-  ])
-
-  const stakewiz = stakewizResult.status === 'fulfilled' ? stakewizResult.value : null
-  const gdindex = gdindexResult.status === 'fulfilled' ? gdindexResult.value : null
-  const pools = poolsResult.status === 'fulfilled' ? poolsResult.value : []
-
-  if (!stakewiz && !gdindex?.entry) {
-    throw new Error('Unable to load validator stats')
-  }
-
-  const identity = stakewiz?.identity || gdindex?.entry?.identity_pubkey || ''
+function assembleStats(voteAccount, stakewiz, gdindex, pools, validBlocks = null) {
+  const identity =
+    stakewiz?.identity || gdindex?.entry?.identity_pubkey || validBlocks?.nodePubkey || ''
   const vote = stakewiz?.vote_identity || gdindex?.entry?.vote_pubkey || voteAccount
   const locationCity = stakewiz?.ip_city || gdindex?.entry?.city || ''
   const locationCountry = stakewiz?.ip_country || gdindex?.entry?.country || ''
@@ -120,15 +107,23 @@ export async function fetchSolanaValidatorStats(voteAccount) {
       : locationCity || locationCountry || '—'
 
   const mevBps = stakewiz?.jito_commission_bps
-  const stats = {
+  return {
     identity,
     vote,
     identityShort: truncateKey(identity),
     voteShort: truncateKey(vote),
-    totalStake: stakewiz?.activated_stake ?? gdindex?.entry?.activated_stake_sol ?? null,
-    totalStakeLabel: formatSol(stakewiz?.activated_stake ?? gdindex?.entry?.activated_stake_sol),
-    commission: stakewiz?.commission ?? null,
-    commissionLabel: formatPct(stakewiz?.commission, 0),
+    totalStake:
+      stakewiz?.activated_stake ??
+      gdindex?.entry?.activated_stake_sol ??
+      validBlocks?.activatedStake ??
+      null,
+    totalStakeLabel: formatSol(
+      stakewiz?.activated_stake ??
+        gdindex?.entry?.activated_stake_sol ??
+        validBlocks?.activatedStake
+    ),
+    commission: stakewiz?.commission ?? validBlocks?.commission ?? null,
+    commissionLabel: formatPct(stakewiz?.commission ?? validBlocks?.commission, 0),
     mevCommission: mevBps == null ? null : mevBps / 100,
     mevCommissionLabel: mevBps == null ? '—' : formatPct(mevBps / 100, 0),
     apy: stakewiz?.total_apy ?? null,
@@ -150,6 +145,19 @@ export async function fetchSolanaValidatorStats(voteAccount) {
             ? `${formatNum(stakewiz.wiz_score)} · #${stakewiz.rank}`
             : null,
         href: `https://stakewiz.com/validator/${vote}`
+      },
+      {
+        id: 'validblocks',
+        label: 'ValidBlocks',
+        value:
+          validBlocks?.creditsRank != null
+            ? `#${validBlocks.creditsRank}${
+                validBlocks.totalValidators != null
+                  ? ` / ${validBlocks.totalValidators}`
+                  : ''
+              }`
+            : null,
+        href: `https://dashboards.validblocks.com/validator?pubkey=${vote}`
       },
       {
         id: 'gdi-rank',
@@ -174,9 +182,59 @@ export async function fetchSolanaValidatorStats(voteAccount) {
     ].filter((rank) => rank.value),
     sources: {
       stakewiz: Boolean(stakewiz),
-      gdindex: Boolean(gdindex?.entry)
+      gdindex: Boolean(gdindex?.entry),
+      validBlocks: Boolean(validBlocks)
     },
     updatedAt: Date.now()
+  }
+}
+
+async function fetchFromBackend(voteAccount) {
+  const response = await fetch(
+    `${API_BASE_URL}/solana/validator-stats/${encodeURIComponent(voteAccount)}`
+  )
+  if (!response.ok) throw new Error(`Backend stats HTTP ${response.status}`)
+  return response.json()
+}
+
+async function fetchFromSources(voteAccount) {
+  const [stakewizResult, gdindexResult, poolsResult, validBlocksResult] =
+    await Promise.allSettled([
+      loadStakewiz(voteAccount),
+      loadGdindexEntry(voteAccount),
+      loadTrackedPools(voteAccount),
+      loadValidBlocks(voteAccount)
+    ])
+
+  const stakewiz = stakewizResult.status === 'fulfilled' ? stakewizResult.value : null
+  const gdindex = gdindexResult.status === 'fulfilled' ? gdindexResult.value : null
+  const pools = poolsResult.status === 'fulfilled' ? poolsResult.value : []
+  const validBlocks =
+    validBlocksResult.status === 'fulfilled' ? validBlocksResult.value : null
+
+  if (!stakewiz && !gdindex?.entry && !validBlocks) {
+    throw new Error('Unable to load validator stats')
+  }
+
+  return assembleStats(voteAccount, stakewiz, gdindex, pools, validBlocks)
+}
+
+/**
+ * Aggregate live StakeCraft Solana validator stats for the staking page trust strip.
+ * Prefers the cached backend endpoint; falls back to direct Stakewiz/GDIndex calls.
+ */
+export async function fetchSolanaValidatorStats(voteAccount) {
+  if (!voteAccount) throw new Error('voteAccount is required')
+
+  const cached = cacheGet(voteAccount)
+  if (cached) return cached
+
+  let stats
+  try {
+    stats = await fetchFromBackend(voteAccount)
+  } catch (backendError) {
+    console.warn('Solana stats backend unavailable, using direct sources:', backendError?.message)
+    stats = await fetchFromSources(voteAccount)
   }
 
   cacheSet(voteAccount, stats)
