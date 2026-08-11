@@ -65,8 +65,15 @@
           </div>
         </div>
         <div class="tabCtaRow">
+          <DefinityDirectStakeWidget
+            v-if="tab.action === 'embed' && tab.embed === 'definity' && tab.widget"
+            :vote="tab.widget.vote"
+            :name="tab.widget.name"
+            :image="tab.widget.image"
+            :ref-code="tab.widget.ref"
+          />
           <button
-            v-if="tab.action === 'modal' && stakingNetwork"
+            v-else-if="tab.action === 'modal' && stakingNetwork"
             class="ctaPrimary"
             type="button"
             @click="stakeNow"
@@ -77,7 +84,7 @@
             {{ tab.ctaLabel }}
           </router-link>
           <a
-            v-else
+            v-else-if="tab.action === 'external'"
             class="ctaSecondary"
             :href="tab.url"
             target="_blank"
@@ -152,6 +159,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import LetsConnect from '../components/LetsConnect.vue'
+import DefinityDirectStakeWidget from '../components/DefinityDirectStakeWidget.vue'
 import { useSeo } from '../composables/useSeo.js'
 import { routeSeo } from '../config/seo.js'
 import { getNetworkStakingPage } from '../constants/networkStakingPages.js'
@@ -160,7 +168,7 @@ import { useStakingModal } from '../composables/useStakingModal.js'
 
 export default {
   name: 'NetworkStakingView',
-  components: { LetsConnect },
+  components: { LetsConnect, DefinityDirectStakeWidget },
   setup() {
     const route = useRoute()
     const pageData = getNetworkStakingPage(route.meta.networkSlug)
