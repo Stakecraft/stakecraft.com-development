@@ -170,16 +170,9 @@ export default {
   align-items: center;
 }
 
+.poolsRow,
 .ranksRow {
   align-items: flex-start;
-}
-
-.poolsRow {
-  flex-wrap: nowrap;
-  align-items: center;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
 }
 
 .rowLabel {
@@ -195,22 +188,12 @@ export default {
   opacity: 0.72;
 }
 
-.poolsRow .rowLabel {
-  margin-top: 0;
-}
-
 .poolList,
 .rankList {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   flex: 1;
-}
-
-.poolList {
-  flex-wrap: nowrap;
-  flex: 1 1 auto;
-  min-width: 0;
 }
 
 .keyChip,

@@ -81,6 +81,15 @@
             :image="tab.widget.image"
             :ref-code="tab.widget.ref"
           />
+          <PoolDirectStakeWidget
+            v-else-if="tab.action === 'embed' && tab.embed === 'pool' && tab.widget"
+            :pool="tab.widget.pool"
+            :vote="tab.widget.vote"
+            :token-symbol="tab.widget.tokenSymbol"
+            :logo="tab.logo || tab.widget.logo"
+            :title="tab.title"
+            :fallback-url="tab.url || tab.widget.fallbackUrl"
+          />
           <button
             v-else-if="tab.action === 'modal' && stakingNetwork"
             class="ctaPrimary"
@@ -169,6 +178,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import LetsConnect from '../components/LetsConnect.vue'
 import DefinityDirectStakeWidget from '../components/DefinityDirectStakeWidget.vue'
+import PoolDirectStakeWidget from '../components/PoolDirectStakeWidget.vue'
 import SolanaValidatorTrust from '../components/SolanaValidatorTrust.vue'
 import { useSeo } from '../composables/useSeo.js'
 import { routeSeo } from '../config/seo.js'
@@ -178,7 +188,12 @@ import { useStakingModal } from '../composables/useStakingModal.js'
 
 export default {
   name: 'NetworkStakingView',
-  components: { LetsConnect, DefinityDirectStakeWidget, SolanaValidatorTrust },
+  components: {
+    LetsConnect,
+    DefinityDirectStakeWidget,
+    PoolDirectStakeWidget,
+    SolanaValidatorTrust
+  },
   setup() {
     const route = useRoute()
     const pageData = getNetworkStakingPage(route.meta.networkSlug)
@@ -315,8 +330,9 @@ export default {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  width: 630px;
-  height: 629.88px;
+  width: 158px;
+  height: 157px;
+  flex-shrink: 0;
 }
 
 .ctaGroup {
@@ -602,8 +618,9 @@ export default {
   }
 
   .imageArea {
-    width: 100%;
-    height: 420px;
+    width: 105px;
+    height: 105px;
+    margin: 0 auto;
   }
 
   .titleArea .titleLvl1,

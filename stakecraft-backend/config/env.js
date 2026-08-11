@@ -117,6 +117,19 @@ export const config = {
   },
   // Optional — enables validators.app score/rank on the Solana trust strip.
   validatorsAppToken: (process.env.VALIDATORS_APP_TOKEN || "").trim(),
+  // Optional — SVT / thevalidators.io JWT for JPool TVC rank (Discord: jfactory).
+  svtApiToken: (process.env.SVT_API_TOKEN || "").trim(),
+  // Optional — manual Vault Elite badge when confirmed (no public Elite API).
+  // Set VAULT_ELITE=true for a plain "Elite" chip, or VAULT_ELITE_RANK=12 for "#12".
+  vaultEliteEnabled: ["1", "true", "yes"].includes(
+    String(process.env.VAULT_ELITE || "").trim().toLowerCase()
+  ),
+  vaultEliteRank: (() => {
+    const raw = String(process.env.VAULT_ELITE_RANK || "").trim();
+    if (!raw) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : null;
+  })(),
   maxFileSize: parseInt(process.env.MAX_FILE_SIZE || "5242880", 10),
 };
 

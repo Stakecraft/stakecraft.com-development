@@ -1,7 +1,8 @@
 /**
- * Aggregates Stakewiz + GDIndex + ValidBlocks (+ optional validators.app)
- * stats for the Solana staking trust strip. Cached in-process so clients
- * avoid downloading the full GDIndex index.
+ * Aggregates Stakewiz + GDIndex + ValidBlocks + JPool
+ * (+ optional validators.app / SVT TVC / Vault Elite) for the Solana
+ * staking trust strip. Cached in-process so clients avoid downloading
+ * the full GDIndex index.
  */
 
 import config from "../config/env.js";
@@ -15,6 +16,10 @@ const VALIDATORS_APP_URL = (identity) =>
   `https://www.validators.app/api/v1/validators/mainnet/${identity}.json`;
 const MARINADE_SELECT_BONDS_URL =
   "https://validator-bonds-api.marinade.finance/bonds/institutional";
+const JPOOL_PUBLIC_URL = (vote) =>
+  `https://api.jpool.one/validators/${encodeURIComponent(vote)}`;
+const SVT_VALIDATOR_URL = (vote) =>
+  `https://api.svt.one/validators/${encodeURIComponent(vote)}?network=mainnet&select=voteId,tvcRank,tvCredits,name`;
 
 const CACHE_TTL_MS = 15 * 60 * 1000;
 const VALIDATORS_APP_MAX_SCORE = 13;
@@ -230,6 +235,43 @@ async function loadValidatorsApp(identity) {
   return response.json();
 }
 
+async function loadJpoolPublic(vote) {
+  return fetchJson(JPOOL_PUBLIC_URL(vote));
+}
+
+async function loadSvtTvc(vote) {
+  const token = config.svtApiToken;
+  if (!token) return null;
+
+  const response = await fetch(SVT_VALIDATOR_URL(vote), {
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+      "User-Agent": "StakeCraftBackend/1.0",
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`SVT API HTTP ${response.status}`);
+  }
+  const data = await response.json();
+  // Response may be a validator object or { data: [...] } / array.
+  if (Array.isArray(data)) return data[0] || null;
+  if (Array.isArray(data?.data)) return data.data[0] || null;
+  return data;
+}
+
+function vaultEliteRankEntry(vote) {
+  if (!config.vaultEliteEnabled && config.vaultEliteRank == null) return null;
+  const value =
+    config.vaultEliteRank != null ? `#${config.vaultEliteRank}` : "Elite";
+  return {
+    id: "vault-elite",
+    label: "Vault Elite",
+    value,
+    href: `https://thevault.finance/dapp/direct/`,
+  };
+}
+
 export async function getSolanaValidatorStats(voteAccount) {
   if (!voteAccount || !ALLOWED_VOTE_ACCOUNTS.has(voteAccount)) {
     const err = new Error("Unknown or unsupported vote account");
@@ -242,19 +284,35 @@ export async function getSolanaValidatorStats(voteAccount) {
     return { ...cached, cache: "hit" };
   }
 
-  const [stakewizResult, gdindexResult, poolsResult, validBlocksResult] =
-    await Promise.allSettled([
-      loadStakewiz(voteAccount),
-      loadGdindexEntry(voteAccount),
-      loadTrackedPools(voteAccount),
-      loadValidBlocks(voteAccount),
-    ]);
+  const [
+    stakewizResult,
+    gdindexResult,
+    poolsResult,
+    validBlocksResult,
+    jpoolResult,
+    svtResult,
+  ] = await Promise.allSettled([
+    loadStakewiz(voteAccount),
+    loadGdindexEntry(voteAccount),
+    loadTrackedPools(voteAccount),
+    loadValidBlocks(voteAccount),
+    loadJpoolPublic(voteAccount),
+    loadSvtTvc(voteAccount),
+  ]);
 
   const stakewiz = stakewizResult.status === "fulfilled" ? stakewizResult.value : null;
   const gdindex = gdindexResult.status === "fulfilled" ? gdindexResult.value : null;
   const pools = poolsResult.status === "fulfilled" ? poolsResult.value : [];
   const validBlocks =
     validBlocksResult.status === "fulfilled" ? validBlocksResult.value : null;
+  const jpool = jpoolResult.status === "fulfilled" ? jpoolResult.value : null;
+  const svt = svtResult.status === "fulfilled" ? svtResult.value : null;
+  if (jpoolResult.status === "rejected") {
+    console.warn("JPool public API unavailable:", jpoolResult.reason?.message);
+  }
+  if (svtResult.status === "rejected") {
+    console.warn("SVT TVC unavailable:", svtResult.reason?.message);
+  }
 
   if (!stakewiz && !gdindex?.entry && !validBlocks) {
     const err = new Error("Unable to load validator stats");
@@ -349,6 +407,20 @@ export async function getSolanaValidatorStats(voteAccount) {
         href: `https://dashboards.validblocks.com/validator?pubkey=${vote}`,
       },
       {
+        id: "jpool-tvc",
+        label: "JPool TVC",
+        value: svt?.tvcRank != null ? `#${svt.tvcRank}` : null,
+        href: `https://app.jpool.one/validators/${vote}?activeTab=tvc`,
+      },
+      {
+        id: "jpool-score",
+        label: "JPool score",
+        value:
+          jpool?.jpool_score != null ? formatNum(jpool.jpool_score, 1) : null,
+        href: `https://app.jpool.one/validators/${vote}`,
+      },
+      vaultEliteRankEntry(vote),
+      {
         id: "gdi-rank",
         label: "Active-set",
         value:
@@ -368,12 +440,15 @@ export async function getSolanaValidatorStats(voteAccount) {
             : null,
         href: `https://gdindex.app/validator/${vote}`,
       },
-    ].filter((rank) => rank.value),
+    ].filter((rank) => rank?.value),
     sources: {
       stakewiz: Boolean(stakewiz),
       gdindex: Boolean(gdindex?.entry),
       validBlocks: Boolean(validBlocks),
       validatorsApp: Boolean(validatorsApp),
+      jpool: Boolean(jpool),
+      svt: Boolean(svt),
+      vaultElite: Boolean(config.vaultEliteEnabled || config.vaultEliteRank != null),
     },
     updatedAt: Date.now(),
   };

@@ -7,6 +7,7 @@ const GDINDEX_POOL_LATEST = (address) => `https://gdindex.app/gdi/pools/${addres
 const VALIDBLOCKS_LIVE_URL = 'https://dashboards.validblocks.com/api/validator-live'
 const MARINADE_SELECT_BONDS_URL =
   'https://validator-bonds-api.marinade.finance/bonds/institutional'
+const JPOOL_PUBLIC_URL = (vote) => `https://api.jpool.one/validators/${encodeURIComponent(vote)}`
 
 const CACHE_TTL_MS = 15 * 60 * 1000
 const cache = new Map()
@@ -119,7 +120,11 @@ async function loadValidBlocks(vote) {
   )
 }
 
-function assembleStats(voteAccount, stakewiz, gdindex, pools, validBlocks = null) {
+async function loadJpoolPublic(vote) {
+  return fetchJson(JPOOL_PUBLIC_URL(vote))
+}
+
+function assembleStats(voteAccount, stakewiz, gdindex, pools, validBlocks = null, jpool = null) {
   const identity =
     stakewiz?.identity || gdindex?.entry?.identity_pubkey || validBlocks?.nodePubkey || ''
   const vote = stakewiz?.vote_identity || gdindex?.entry?.vote_pubkey || voteAccount
@@ -184,6 +189,12 @@ function assembleStats(voteAccount, stakewiz, gdindex, pools, validBlocks = null
         href: `https://dashboards.validblocks.com/validator?pubkey=${vote}`
       },
       {
+        id: 'jpool-score',
+        label: 'JPool score',
+        value: jpool?.jpool_score != null ? formatNum(jpool.jpool_score, 1) : null,
+        href: `https://app.jpool.one/validators/${vote}`
+      },
+      {
         id: 'gdi-rank',
         label: 'Active-set',
         value:
@@ -207,7 +218,8 @@ function assembleStats(voteAccount, stakewiz, gdindex, pools, validBlocks = null
     sources: {
       stakewiz: Boolean(stakewiz),
       gdindex: Boolean(gdindex?.entry),
-      validBlocks: Boolean(validBlocks)
+      validBlocks: Boolean(validBlocks),
+      jpool: Boolean(jpool)
     },
     updatedAt: Date.now()
   }
@@ -222,12 +234,13 @@ async function fetchFromBackend(voteAccount) {
 }
 
 async function fetchFromSources(voteAccount) {
-  const [stakewizResult, gdindexResult, poolsResult, validBlocksResult] =
+  const [stakewizResult, gdindexResult, poolsResult, validBlocksResult, jpoolResult] =
     await Promise.allSettled([
       loadStakewiz(voteAccount),
       loadGdindexEntry(voteAccount),
       loadTrackedPools(voteAccount),
-      loadValidBlocks(voteAccount)
+      loadValidBlocks(voteAccount),
+      loadJpoolPublic(voteAccount)
     ])
 
   const stakewiz = stakewizResult.status === 'fulfilled' ? stakewizResult.value : null
@@ -235,12 +248,13 @@ async function fetchFromSources(voteAccount) {
   const pools = poolsResult.status === 'fulfilled' ? poolsResult.value : []
   const validBlocks =
     validBlocksResult.status === 'fulfilled' ? validBlocksResult.value : null
+  const jpool = jpoolResult.status === 'fulfilled' ? jpoolResult.value : null
 
   if (!stakewiz && !gdindex?.entry && !validBlocks) {
     throw new Error('Unable to load validator stats')
   }
 
-  return assembleStats(voteAccount, stakewiz, gdindex, pools, validBlocks)
+  return assembleStats(voteAccount, stakewiz, gdindex, pools, validBlocks, jpool)
 }
 
 /**
