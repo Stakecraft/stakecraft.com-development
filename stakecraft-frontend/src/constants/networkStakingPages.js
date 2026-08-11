@@ -43,6 +43,7 @@ export const networkStakingPages = {
         id: 'definity',
         title: 'Definity direct staking',
         tabLabel: 'Definity · definSOL',
+        logo: 'https://hv4gxzchk24cqfezebn3ujjz6oy2kbtztv5vghn6kpbkjc3vg4rq.arweave.net/n3W2lUNPCJpX9WXjXEl0Tx0hB57BvioKUG8pixx1A4o',
         description:
           'Stake SOL to StakeCraft through Definity without leaving this page. You receive definSOL (liquid, still earning pool yield), and Definity directs your stake plus up to 3.5× matching onto our validator.',
         steps: [
@@ -63,6 +64,7 @@ export const networkStakingPages = {
         id: 'jpool',
         title: 'JPool direct staking',
         tabLabel: 'JPool · JSOL',
+        logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/7Q2afV64in6N6SeZsAAB81TJzwDoD6zpqmHkzi9Dcavn/logo.svg',
         description:
           'Stake through the JPool pool directed at our validator and receive JSOL, a liquid token you can use in DeFi. JPool matches direct delegations, so your stake also boosts the validator beyond your own deposit.',
         steps: [
@@ -76,9 +78,27 @@ export const networkStakingPages = {
         ctaLabel: 'Stake via JPool'
       },
       {
+        id: 'vault',
+        title: 'The Vault direct staking',
+        tabLabel: 'Vault · vSOL',
+        logo: 'https://bafkreig55mf3lazzbgndiqyqvdmchdsykvvebww7cqlws6ywgog5xfdzta.ipfs.nftstorage.link/',
+        description:
+          'Direct stake through The Vault to the StakeCraft validator and receive vSOL. Once your wallet is bound to StakeCraft, vSOL in your wallet (and supported DeFi venues) counts toward our validator.',
+        steps: [
+          'Open The Vault Direct Stake page and connect your Solana wallet.',
+          'Select StakeCraft from the validator list and confirm the wallet binding.',
+          'Stake SOL to mint vSOL — it is directed to StakeCraft while you hold it.',
+          'Keep vSOL in your wallet or a supported venue (e.g. Kamino) to maintain the directed stake.'
+        ],
+        action: 'external',
+        url: 'https://thevault.finance/dapp/direct/',
+        ctaLabel: 'Stake via The Vault'
+      },
+      {
         id: 'solblaze',
         title: 'SolBlaze custom liquid staking',
         tabLabel: 'SolBlaze · bSOL',
+        logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1/logo.png',
         description:
           'BlazeStake Custom Liquid Staking delegates your SOL 1:1 to the StakeCraft validator while you hold bSOL. Keep liquidity for DeFi while supporting our node directly.',
         steps: [
@@ -95,6 +115,7 @@ export const networkStakingPages = {
         id: 'jagpool',
         title: 'JagPool direct staking',
         tabLabel: 'JagPool · jagSOL',
+        logo: 'https://arweave.net/hsBrk--wCnuMc5fCu6ckQCotTPQy6JJqqzwXa2Euefw',
         description:
           'JagPool is a non-custodial stake pool built on the audited Solana stake pool program. Direct-stake to the StakeCraft validator and receive jagSOL, a liquid token that grows in value as rewards accrue and can be redeemed for SOL anytime.',
         steps: [
@@ -132,7 +153,7 @@ export const networkStakingPages = {
       {
         question: 'Can I stake SOL to StakeCraft through a liquid staking pool?',
         answer:
-          'Yes. JPool, SolBlaze, JagPool, and Definity all let you point pool stake at the StakeCraft validator while you receive a liquid token (JSOL, bSOL, jagSOL, or definSOL) to use in DeFi. Definity stakes in an on-page widget; the others open their apps with StakeCraft preselected. Native protocol staking remains available if you prefer a plain stake account.'
+          'Yes. Definity, JPool, The Vault, SolBlaze, and JagPool all let you point pool stake at the StakeCraft validator while you receive a liquid token (definSOL, JSOL, vSOL, bSOL, or jagSOL) to use in DeFi. Definity stakes in an on-page widget; the others open their apps for directed stake. Native protocol staking remains available if you prefer a plain stake account.'
       }
     ],
     service: {

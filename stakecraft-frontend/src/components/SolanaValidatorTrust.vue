@@ -39,18 +39,22 @@
     <div v-if="stats?.pools?.length" class="poolsRow">
       <span class="rowLabel">Pools</span>
       <div class="poolList">
-        <a
+        <button
           v-for="pool in stats.pools"
           :key="pool.id"
+          type="button"
           class="poolChip"
-          :href="pool.url"
-          target="_blank"
-          rel="noopener noreferrer"
-          :title="`${pool.name} · ${pool.stakeLabel}`"
+          :class="{ selectable: Boolean(pool.tabId) }"
+          :title="
+            pool.tabId
+              ? `${pool.name} · ${pool.stakeLabel} — open stake tab`
+              : `${pool.name} · ${pool.stakeLabel}`
+          "
+          @click="onPoolClick(pool)"
         >
           <img v-if="pool.logo" class="poolLogo" :src="pool.logo" :alt="pool.symbol" loading="lazy" />
           <span class="poolSymbol">{{ pool.symbol }}</span>
-        </a>
+        </button>
       </div>
     </div>
 
@@ -85,7 +89,8 @@ export default {
     vote: { type: String, required: true },
     identity: { type: String, default: '' }
   },
-  setup(props) {
+  emits: ['select-pool'],
+  setup(props, { emit }) {
     const stats = ref(null)
     const loading = ref(true)
     const error = ref(null)
@@ -111,6 +116,14 @@ export default {
       }
     }
 
+    const onPoolClick = (pool) => {
+      if (pool.tabId) {
+        emit('select-pool', pool.tabId)
+        return
+      }
+      if (pool.url) window.open(pool.url, '_blank', 'noopener,noreferrer')
+    }
+
     onMounted(async () => {
       try {
         stats.value = await fetchSolanaValidatorStats(props.vote)
@@ -131,7 +144,8 @@ export default {
       vote,
       identityShort,
       voteShort,
-      copy
+      copy,
+      onPoolClick
     }
   }
 }
@@ -156,9 +170,16 @@ export default {
   align-items: center;
 }
 
-.poolsRow,
 .ranksRow {
   align-items: flex-start;
+}
+
+.poolsRow {
+  flex-wrap: nowrap;
+  align-items: center;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .rowLabel {
@@ -174,12 +195,22 @@ export default {
   opacity: 0.72;
 }
 
+.poolsRow .rowLabel {
+  margin-top: 0;
+}
+
 .poolList,
 .rankList {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   flex: 1;
+}
+
+.poolList {
+  flex-wrap: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .keyChip,
@@ -200,6 +231,23 @@ export default {
 
 .keyChip {
   cursor: pointer;
+  background: var(--van-seconday-color);
+  border-color: var(--van-seconday-color);
+  color: #111217;
+}
+
+.keyChip:hover {
+  border-color: #111217;
+}
+
+.keyChip .keyLabel,
+.keyChip .copyHint {
+  color: #111217;
+  opacity: 0.72;
+}
+
+.keyChip .keyValue {
+  color: #111217;
 }
 
 .keyLabel,
@@ -234,13 +282,20 @@ export default {
 }
 
 .poolChip {
+  flex: 0 0 auto;
   padding: 6px 10px;
   transition: border-color 0.2s, transform 0.2s;
+  white-space: nowrap;
+  cursor: pointer;
+  font: inherit;
+}
+
+.poolChip.selectable:hover {
+  border-color: var(--van-seconday-color);
 }
 
 .poolChip:hover,
-.rankChip:hover,
-.keyChip:hover {
+.rankChip:hover {
   border-color: var(--van-seconday-color);
 }
 
@@ -296,7 +351,7 @@ export default {
     max-width: 100%;
   }
 
-  .rowLabel {
+  .ranksRow .rowLabel {
     width: 100%;
     margin-top: 0;
   }

@@ -9,16 +9,15 @@
         <div class="websiteDescription">
           {{ page.intro }}
         </div>
-        <div class="ctaGroup">
+        <div v-if="page.slug !== 'solana'" class="ctaGroup">
           <button v-if="stakingNetwork" class="ctaPrimary" type="button" @click="stakeNow">
             Stake {{ page.token }} now
           </button>
           <router-link v-else class="ctaPrimary" to="/#mainnet">
             Stake with StakeCraft
           </router-link>
-          <!-- Explorer link stays for networks without the live trust strip. -->
           <a
-            v-if="page.explorer && page.slug !== 'solana'"
+            v-if="page.explorer"
             class="ctaSecondary"
             :href="page.explorer"
             target="_blank"
@@ -31,13 +30,16 @@
           v-if="page.slug === 'solana' && page.validator"
           :vote="page.validator"
           :identity="page.identity || ''"
+          @select-pool="openPoolTab"
         />
       </div>
       <div class="imageArea" />
     </div>
 
     <div class="mainAreas stakeSection" :id="`how-to-stake-${page.slug}`">
-      <div class="titleHeader">How to stake {{ page.token }}</div>
+      <div class="titleHeader">
+        {{ page.slug === 'solana' ? `Stake ${page.token} now` : `How to stake ${page.token}` }}
+      </div>
 
       <div v-if="stakingTabs.length > 1" class="tabBar" role="tablist">
         <button
@@ -50,6 +52,7 @@
           :aria-selected="activeTab === tab.id ? 'true' : 'false'"
           @click="activeTab = tab.id"
         >
+          <img v-if="tab.logo" class="tabLogo" :src="tab.logo" :alt="''" loading="lazy" />
           {{ tab.tabLabel || tab.title }}
         </button>
       </div>
@@ -212,6 +215,13 @@ export default {
     })
     const activeTab = ref(stakingTabs.value[0]?.id)
 
+    const openPoolTab = (tabId) => {
+      if (!tabId || !stakingTabs.value.some((tab) => tab.id === tabId)) return
+      activeTab.value = tabId
+      const section = document.getElementById(`how-to-stake-${pageData?.slug}`)
+      section?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+
     onMounted(() => {
       fetchMainnet()
 
@@ -228,6 +238,11 @@ export default {
           { immediate: true }
         )
       }
+
+      // Deep link: /solana-staking?tab=jpool opens that method.
+      if (route.query.tab && stakingTabs.value.some((tab) => tab.id === route.query.tab)) {
+        activeTab.value = route.query.tab
+      }
     })
 
     useSeo({
@@ -240,7 +255,16 @@ export default {
       openItems.value[index] = !openItems.value[index]
     }
 
-    return { page, openItems, toggle, stakingNetwork, stakeNow, stakingTabs, activeTab }
+    return {
+      page,
+      openItems,
+      toggle,
+      stakingNetwork,
+      stakeNow,
+      stakingTabs,
+      activeTab,
+      openPoolTab
+    }
   }
 }
 </script>
@@ -348,6 +372,9 @@ export default {
 }
 
 .tabButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   padding: 12px 24px;
   border: 1px solid var(--van-border-color);
   border-radius: 20px;
@@ -358,6 +385,14 @@ export default {
   font-weight: 700;
   cursor: pointer;
   transition: background 0.2s;
+}
+
+.tabLogo {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #111217;
 }
 
 .tabButton.active {
