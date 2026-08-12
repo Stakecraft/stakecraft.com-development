@@ -131,7 +131,7 @@
       </p>
     </div>
 
-    <div class="whySection">
+    <div v-if="page.slug !== 'solana'" class="whySection">
       <div class="mainAreas">
         <div class="titleHeader">Why StakeCraft for {{ page.networkName }}?</div>
         <div class="whyGrid">
