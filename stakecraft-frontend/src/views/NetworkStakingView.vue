@@ -422,15 +422,42 @@ export default {
   display: grid;
   grid-template-columns: minmax(280px, 480px) minmax(0, 1fr);
   gap: 28px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .tabSplitWidget {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .nativeStakeHost {
   min-height: 220px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Keep embed card full height of the left column for bottom alignment */
+.tabSplitWidget :deep(.stake-embed),
+.tabSplitWidget :deep(.embed-container) {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabSplitWidget :deep(.modal-content) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabSplitWidget :deep(.wallet-connection) {
+  flex: 1;
+  justify-content: center;
 }
 
 .tabSplitSteps {
@@ -438,6 +465,12 @@ export default {
   flex-direction: column;
   gap: 16px;
   min-width: 0;
+  height: 100%;
+}
+
+.tabSplitSteps .stepCard {
+  flex: 1;
+  align-items: center;
 }
 
 .ctaGroup {
@@ -730,6 +763,17 @@ export default {
 
   .tabSplit {
     grid-template-columns: 1fr;
+  }
+
+  .tabSplitSteps .stepCard {
+    flex: 0 0 auto;
+  }
+
+  .tabSplitWidget :deep(.stake-embed),
+  .tabSplitWidget :deep(.embed-container),
+  .tabSplitWidget :deep(.modal-content) {
+    height: auto;
+    flex: 0 0 auto;
   }
 
   .solanaStakingPage .stakeSection {
