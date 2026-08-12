@@ -184,115 +184,144 @@
               </button>
             </div>
 
-            <!-- Staking Tab Content -->
-            <div v-if="activeTab === 'stake'" class="tab-content">
-              <div class="staking-form" :class="{ 'staking-form-compact': embedded }">
-                <div v-if="embedded" class="stats-inline">
-                  <span>
-                    <span class="info-label">Available</span>
-                    {{ availableBalance }} SOL
-                  </span>
-                  <span class="stats-sep">·</span>
-                  <span>
-                    <span class="info-label">Staked</span>
-                    {{ stakedAmount.toFixed(3) }} SOL
-                  </span>
-                </div>
+            <!-- Tab panels: stacked when embedded so Stake/Unstake share one height -->
+            <div class="tab-panels" :class="{ 'tab-panels-stacked': embedded }">
+              <div
+                class="tab-content"
+                :class="{ 'is-active': activeTab === 'stake' }"
+                v-show="embedded || activeTab === 'stake'"
+                :aria-hidden="activeTab !== 'stake' ? 'true' : 'false'"
+              >
+                <div
+                  v-if="embedded || activeTab === 'stake'"
+                  class="staking-form"
+                  :class="{ 'staking-form-compact': embedded }"
+                >
+                  <div v-if="embedded" class="stats-inline">
+                    <span>
+                      <span class="info-label">Available</span>
+                      {{ availableBalance }} SOL
+                    </span>
+                    <span class="stats-sep">·</span>
+                    <span>
+                      <span class="info-label">Staked</span>
+                      {{ stakedAmount.toFixed(3) }} SOL
+                    </span>
+                  </div>
 
-                <div class="form-group">
-                  <label class="form-label">Amount to Stake (SOL)</label>
-                  <div class="input-container">
-                    <input
-                      v-model.number="stakeAmount"
-                      type="number"
-                      step="1"
-                      :min="minimumStake"
-                      class="form-input"
-                      placeholder="Enter amount"
-                    />
-                    <div class="input-suffix">
-                      <span>SOL</span>
+                  <div class="form-group">
+                    <label class="form-label">Amount to Stake (SOL)</label>
+                    <div class="input-container">
+                      <input
+                        v-model.number="stakeAmount"
+                        type="number"
+                        step="1"
+                        :min="minimumStake"
+                        class="form-input"
+                        placeholder="Enter amount"
+                      />
+                      <div class="input-suffix">
+                        <span>SOL</span>
+                      </div>
+                    </div>
+                    <div class="input-hint">
+                      <span>Minimum: {{ minimumStake }} SOL</span>
+                      <button
+                        @click="stakeAmount = Number(totalSolBalance)"
+                        class="max-button"
+                        :disabled="Number(totalSolBalance) <= 0"
+                      >
+                        Max
+                      </button>
                     </div>
                   </div>
-                  <div class="input-hint">
-                    <span>Minimum: {{ minimumStake }} SOL</span>
-                    <button
-                      @click="stakeAmount = Number(totalSolBalance)"
-                      class="max-button"
-                      :disabled="Number(totalSolBalance) <= 0"
-                    >
-                      Max
+
+                  <div v-if="embedded" class="validator-inline">
+                    <span class="info-label">Validator</span>
+                    <span class="info-value">StakeCraft</span>
+                    <code class="validator-short" :title="network.validator">{{
+                      truncateAddress(network.validator)
+                    }}</code>
+                    <button type="button" class="copy-inline" @click="copyValidator">
+                      {{ validatorCopied ? 'Copied' : 'Copy' }}
                     </button>
                   </div>
-                </div>
+                  <div v-else class="form-group">
+                    <label class="form-label">Validator Address</label>
+                    <input
+                      :value="network.validator"
+                      type="text"
+                      class="form-input"
+                      placeholder="Enter validator address"
+                      readonly
+                    />
+                  </div>
 
-                <div v-if="embedded" class="validator-inline">
-                  <span class="info-label">Validator</span>
-                  <span class="info-value">StakeCraft</span>
-                  <code class="validator-short" :title="network.validator">{{
-                    truncateAddress(network.validator)
-                  }}</code>
-                  <button type="button" class="copy-inline" @click="copyValidator">
-                    {{ validatorCopied ? 'Copied' : 'Copy' }}
+                  <div v-if="!embedded" class="info-card">
+                    <h3 class="info-card-title">Current Staking Status</h3>
+                    <div class="info-card-content">
+                      <div class="info-row">
+                        <span class="info-label">Available Balance:</span>
+                        <span class="info-value">{{ availableBalance }} SOL</span>
+                      </div>
+                      <div class="info-row">
+                        <span class="info-label">Currently Staked:</span>
+                        <span class="info-value">{{ stakedAmount.toFixed(3) }} SOL</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-if="!embedded" class="warning-card">
+                    <div class="warning-icon-small">⚠️</div>
+                    <div class="warning-text">
+                      <strong>Important:</strong> Staked tokens will become active next epoch.
+                    </div>
+                  </div>
+                  <p v-else class="compact-note">
+                    Activates next epoch · ~2-day unstake cooldown
+                  </p>
+
+                  <div v-if="stakingSuccess" class="success-message">Successfully delegated !</div>
+                  <div v-if="stakingError" class="error-message">
+                    {{ stakingError }}
+                  </div>
+
+                  <button
+                    @click="delegateStake"
+                    :disabled="!isValidStake || isProcessing"
+                    class="primary-button full-width delegate-button"
+                    :class="{ 'button-disabled': !isValidStake || isProcessing }"
+                  >
+                    {{ isProcessing ? 'Processing...' : 'Delegate SOL' }}
                   </button>
                 </div>
-                <div v-else class="form-group">
-                  <label class="form-label">Validator Address</label>
-                  <input
-                    :value="network.validator"
-                    type="text"
-                    class="form-input"
-                    placeholder="Enter validator address"
-                    readonly
-                  />
-                </div>
-
-                <div v-if="!embedded" class="info-card">
-                  <h3 class="info-card-title">Current Staking Status</h3>
-                  <div class="info-card-content">
-                    <div class="info-row">
-                      <span class="info-label">Available Balance:</span>
-                      <span class="info-value">{{ availableBalance }} SOL</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Currently Staked:</span>
-                      <span class="info-value">{{ stakedAmount.toFixed(3) }} SOL</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div v-if="!embedded" class="warning-card">
-                  <div class="warning-icon-small">⚠️</div>
-                  <div class="warning-text">
-                    <strong>Important:</strong> Staked tokens will become active next epoch.
-                  </div>
-                </div>
-                <p v-else class="compact-note">
-                  Activates next epoch · ~2-day unstake cooldown
-                </p>
-
-                <div v-if="stakingSuccess" class="success-message">Successfully delegated !</div>
-                <div v-if="stakingError" class="error-message">
-                  {{ stakingError }}
-                </div>
-
-                <button
-                  @click="delegateStake"
-                  :disabled="!isValidStake || isProcessing"
-                  class="primary-button full-width delegate-button"
-                  :class="{ 'button-disabled': !isValidStake || isProcessing }"
-                >
-                  {{ isProcessing ? 'Processing...' : 'Delegate SOL' }}
-                </button>
               </div>
-            </div>
 
-            <!-- Unstaking Tab Content -->
-            <div v-if="activeTab === 'unstake'" class="tab-content">
-              <div class="staking-form">
+              <div
+                class="tab-content"
+                :class="{ 'is-active': activeTab === 'unstake' }"
+                v-show="embedded || activeTab === 'unstake'"
+                :aria-hidden="activeTab !== 'unstake' ? 'true' : 'false'"
+              >
+                <div
+                  v-if="embedded || activeTab === 'unstake'"
+                  class="staking-form"
+                  :class="{ 'staking-form-compact': embedded }"
+                >
                 <!-- My Staking Accounts Section -->
-                <div class="staking-accounts-section">
-                  <h3 class="section-title">My Staking Accounts</h3>
+                <div class="staking-accounts-section" :class="{ 'accounts-fill': embedded }">
+                  <h3 v-if="!embedded" class="section-title">My Staking Accounts</h3>
+                  <div v-else class="stats-inline">
+                    <span>
+                      <span class="info-label">Staked</span>
+                      {{ stakedAmount.toFixed(3) }} SOL
+                    </span>
+                    <span class="stats-sep">·</span>
+                    <span>
+                      <span class="info-label">Accounts</span>
+                      {{ stakingAccounts.length }}
+                    </span>
+                  </div>
 
                   <!-- Loading State -->
                   <div v-if="isLoadingAccounts" class="loading-state">
@@ -302,7 +331,7 @@
 
                   <!-- No Accounts State -->
                   <div v-else-if="stakingAccounts.length === 0" class="no-accounts">
-                    <div class="no-accounts-icon">📭</div>
+                    <div v-if="!embedded" class="no-accounts-icon">📭</div>
                     <p>No active staking accounts found</p>
                     <p class="no-accounts-hint">Stake some SOL to see your accounts here</p>
                   </div>
@@ -425,13 +454,15 @@
                   </div>
                 </div>
 
-                <!-- Unstaking Warning -->
-                <div class="warning-card">
+                <div v-if="!embedded" class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
                     <strong>Important:</strong> Unstaked tokens will become available next epoch.
                   </div>
                 </div>
+                <p v-else class="compact-note">
+                  Unstake takes ~2 days · withdraw when inactive next epoch
+                </p>
 
                 <!-- Success/Error Messages for Unstaking -->
                 <div v-if="unstakingSuccess" class="success-message">
@@ -442,9 +473,10 @@
                 </div>
               </div>
             </div>
+            </div>
 
             <!-- Network Links -->
-            <div class="network-links-bottom">
+            <div v-if="!embedded" class="network-links-bottom">
               <a
                 v-if="network.explorer"
                 :href="network.explorer"
@@ -2050,5 +2082,65 @@ export default {
 .stake-embed .max-button:hover:not(:disabled) {
   color: var(--van-seconday-color);
   filter: brightness(0.9);
+}
+
+/* Equal-height Stake / Unstake panels */
+.stake-embed .tab-panels-stacked {
+  display: grid;
+}
+
+.stake-embed .tab-panels-stacked > .tab-content {
+  grid-area: 1 / 1;
+  display: flex !important;
+  flex-direction: column;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.stake-embed .tab-panels-stacked > .tab-content.is-active {
+  visibility: visible;
+  pointer-events: auto;
+  z-index: 1;
+}
+
+.stake-embed .tab-panels-stacked > .tab-content .staking-form-compact {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.stake-embed .accounts-fill {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 10px;
+}
+
+.stake-embed .accounts-fill .no-accounts,
+.stake-embed .accounts-fill .loading-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--van-border-color);
+  background: var(--van-ourCapabilities-wrapper);
+}
+
+.stake-embed .accounts-fill .accounts-list {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  gap: 8px;
+}
+
+.stake-embed .accounts-fill .section-title {
+  margin: 0;
 }
 </style>
