@@ -27,13 +27,34 @@
       <span v-for="n in 7" :key="n" class="metricChip skeleton" />
     </div>
     <div v-else-if="stats" class="metricsRow">
-      <span class="metricChip"><span class="metricLabel">Stake</span>{{ stats.totalStakeLabel }}</span>
-      <span class="metricChip"><span class="metricLabel">Commission</span>{{ stats.commissionLabel }}</span>
-      <span class="metricChip"><span class="metricLabel">MEV</span>{{ stats.mevCommissionLabel }}</span>
-      <span class="metricChip"><span class="metricLabel">APY</span>{{ stats.apyLabel }}</span>
-      <span class="metricChip"><span class="metricLabel">Uptime</span>{{ stats.uptimeLabel }}</span>
-      <span class="metricChip"><span class="metricLabel">Location</span>{{ stats.location }}</span>
-      <span class="metricChip"><span class="metricLabel">IBRL</span>{{ stats.ibrlLabel }}</span>
+      <span class="metricChip"
+        ><span class="metricLabel">Stake</span
+        ><span class="metricValue">{{ stats.totalStakeLabel }}</span></span
+      >
+      <span class="metricChip"
+        ><span class="metricLabel">Commission</span
+        ><span class="metricValue">{{ stats.commissionLabel }}</span></span
+      >
+      <span class="metricChip"
+        ><span class="metricLabel">MEV</span
+        ><span class="metricValue">{{ stats.mevCommissionLabel }}</span></span
+      >
+      <span class="metricChip"
+        ><span class="metricLabel">APY</span
+        ><span class="metricValue">{{ stats.apyLabel }}</span></span
+      >
+      <span class="metricChip"
+        ><span class="metricLabel">Uptime</span
+        ><span class="metricValue">{{ stats.uptimeLabel }}</span></span
+      >
+      <span class="metricChip"
+        ><span class="metricLabel">Location</span
+        ><span class="metricValue">{{ stats.location }}</span></span
+      >
+      <span class="metricChip"
+        ><span class="metricLabel">IBRL</span
+        ><span class="metricValue">{{ stats.ibrlLabel }}</span></span
+      >
     </div>
 
     <div v-if="stats?.pools?.length" class="poolsRow">
@@ -172,13 +193,13 @@ export default {
 
 .poolsRow,
 .ranksRow {
-  align-items: flex-start;
+  align-items: center;
 }
 
 .rowLabel {
   flex: 0 0 auto;
   min-width: 52px;
-  margin-top: 6px;
+  margin-top: 0;
   font-family: poppins;
   font-size: 12px;
   font-weight: 700;
@@ -186,6 +207,7 @@ export default {
   text-transform: uppercase;
   color: var(--van-mainnet-color);
   opacity: 0.72;
+  line-height: 1;
 }
 
 .poolList,
@@ -193,7 +215,8 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  flex: 1;
+  flex: 1 1 auto;
+  align-items: center;
 }
 
 .keyChip,
@@ -202,14 +225,20 @@ export default {
 .rankChip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  justify-content: center;
+  gap: 4px;
+  width: max-content;
+  max-width: 100%;
+  flex: 0 0 auto;
+  padding: 7px 12px;
   border-radius: 14px;
   border: 1px solid var(--van-border-color);
   background: var(--van-mainnet-network-background);
   color: var(--van-mainnet-color);
   font-family: poppins;
   text-decoration: none;
+  line-height: 1.15;
+  box-sizing: border-box;
 }
 
 .keyChip {
@@ -217,6 +246,7 @@ export default {
   background: var(--van-seconday-color);
   border-color: var(--van-seconday-color);
   color: #111217;
+  gap: 6px;
 }
 
 .keyChip:hover {
@@ -242,6 +272,15 @@ export default {
   text-transform: uppercase;
   color: var(--van-mainnet-color);
   opacity: 0.7;
+  line-height: 1.15;
+  flex: 0 0 auto;
+}
+
+.keyValue,
+.metricValue,
+.rankValue {
+  flex: 0 0 auto;
+  line-height: 1.15;
 }
 
 .keyValue {
@@ -256,16 +295,24 @@ export default {
   font-weight: 600;
   color: var(--van-mainnet-color);
   opacity: 0.65;
+  line-height: 1.15;
 }
 
 .metricChip {
   font-size: 13px;
   font-weight: 600;
-  gap: 6px;
+}
+
+.metricValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--van-mainnet-color);
 }
 
 .poolChip {
-  flex: 0 0 auto;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
   padding: 6px 10px;
   transition: border-color 0.2s, transform 0.2s;
   white-space: nowrap;
@@ -288,15 +335,14 @@ export default {
   border-radius: 50%;
   object-fit: cover;
   background: #111217;
+  flex: 0 0 auto;
+  display: block;
 }
 
 .poolSymbol {
   font-size: 13px;
   font-weight: 600;
-}
-
-.rankChip {
-  gap: 6px;
+  line-height: 1.15;
 }
 
 .rankValue {
