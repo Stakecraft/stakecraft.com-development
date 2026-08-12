@@ -124,7 +124,7 @@
         <div class="validatorLabel">Validator address</div>
         <code class="validatorValue">{{ page.validator }}</code>
       </div>
-      <p v-if="page.howToStake" class="guideLink">
+      <p v-if="page.slug !== 'solana' && page.howToStake" class="guideLink">
         <a :href="page.howToStake" target="_blank" rel="noopener noreferrer">
           Read the full {{ page.networkName }} staking guide
         </a>
