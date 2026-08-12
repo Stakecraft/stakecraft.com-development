@@ -83,5 +83,7 @@ export default {
 .definityHost {
   width: 100%;
   max-width: 480px;
+  height: 100%;
+  min-height: 220px;
 }
 </style>

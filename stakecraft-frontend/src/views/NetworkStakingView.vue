@@ -68,10 +68,26 @@
         <h3 v-if="stakingTabs.length > 1" class="tabTitle">{{ tab.title }}</h3>
         <p v-if="tab.description" class="tabDescription">{{ tab.description }}</p>
 
-        <!-- Native Solana: stake widget left, how-to steps right -->
-        <div v-if="tab.action === 'embed' && tab.embed === 'native'" class="tabSplit">
+        <!-- Native / Definity: stake widget left, how-to steps right -->
+        <div
+          v-if="tab.action === 'embed' && (tab.embed === 'native' || tab.embed === 'definity')"
+          class="tabSplit"
+        >
           <div class="tabSplitWidget">
-            <div id="native-solana-stake-embed" class="nativeStakeHost" />
+            <div
+              v-if="tab.embed === 'native'"
+              id="native-solana-stake-embed"
+              class="nativeStakeHost"
+            />
+            <div v-else class="definityStakeHost">
+              <DefinityDirectStakeWidget
+                v-if="tab.widget"
+                :vote="tab.widget.vote"
+                :name="tab.widget.name"
+                :image="tab.widget.image"
+                :ref-code="tab.widget.ref"
+              />
+            </div>
           </div>
           <div class="tabSplitSteps">
             <div v-for="(step, index) in tab.steps" :key="index" class="stepCard">
@@ -89,15 +105,8 @@
             </div>
           </div>
           <div class="tabCtaRow">
-            <DefinityDirectStakeWidget
-              v-if="tab.action === 'embed' && tab.embed === 'definity' && tab.widget"
-              :vote="tab.widget.vote"
-              :name="tab.widget.name"
-              :image="tab.widget.image"
-              :ref-code="tab.widget.ref"
-            />
             <button
-              v-else-if="tab.action === 'modal' && stakingNetwork"
+              v-if="tab.action === 'modal' && stakingNetwork"
               class="ctaPrimary"
               type="button"
               @click="stakeNow"
@@ -449,6 +458,25 @@ export default {
 .nativeStakeHost > * {
   flex: 1 1 auto;
   width: 100%;
+  height: 100%;
+  min-height: 100%;
+}
+
+.definityStakeHost {
+  min-height: 220px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  align-self: stretch;
+  width: 100%;
+  max-width: 480px;
+}
+
+.definityStakeHost :deep(.definityHost) {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: none;
   height: 100%;
   min-height: 100%;
 }

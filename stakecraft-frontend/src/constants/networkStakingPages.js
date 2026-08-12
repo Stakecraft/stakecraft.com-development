@@ -47,7 +47,7 @@ export const networkStakingPages = {
         description:
           'Stake SOL to StakeCraft through Definity without leaving this page. You receive definSOL (liquid, still earning pool yield), and Definity directs your stake plus up to 3.5× matching onto our validator.',
         steps: [
-          'Use the Definity widget below — StakeCraft is already selected as the validator.',
+          'Use the Definity widget on the left — StakeCraft is already selected as the validator.',
           'Connect Phantom, Solflare, or Backpack and enter the amount of SOL to stake.',
           'Confirm in your wallet. You receive definSOL while your stake counts toward StakeCraft.',
           'Unstake from the same widget anytime — wallets connect and sign on this domain.'
