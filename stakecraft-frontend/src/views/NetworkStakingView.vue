@@ -443,25 +443,38 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100%;
+  align-self: stretch;
+}
+
+.nativeStakeHost > * {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
 }
 
 /* Keep embed card full height of the left column for bottom alignment */
 .tabSplitWidget :deep(.stake-embed),
 .tabSplitWidget :deep(.embed-container) {
-  flex: 1;
+  flex: 1 1 auto;
+  width: 100%;
   height: 100%;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
 }
 
 .tabSplitWidget :deep(.modal-content) {
-  flex: 1;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
+  min-height: 100%;
 }
 
 .tabSplitWidget :deep(.wallet-connection) {
-  flex: 1;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
 }
 

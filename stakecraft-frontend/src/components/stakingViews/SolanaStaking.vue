@@ -108,7 +108,7 @@
           </div>
 
           <!-- Connected Wallet Info (modal / non-compact) -->
-          <div v-if="walletConnected">
+          <div v-if="walletConnected" class="connected-body">
             <template v-if="!embedded">
               <div class="wallet-info-card">
                 <div class="wallet-info-row">
@@ -1835,7 +1835,13 @@ export default {
 /* Inline embed on /solana-staking — match page tokens (Definity-sized card) */
 .stake-embed {
   position: relative;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  align-self: stretch;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
   background: transparent;
   z-index: auto;
 }
@@ -1850,10 +1856,45 @@ export default {
   width: 100%;
   overflow: hidden;
   max-height: none;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
 }
 
 .stake-embed .modal-content {
   padding: 22px;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.stake-embed .wallet-connection {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+}
+
+.stake-embed .network-description {
+  margin-bottom: 0;
+}
+
+.stake-embed .connected-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.stake-embed .connected-body .tab-panels-stacked {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .stake-embed .modal-title {
