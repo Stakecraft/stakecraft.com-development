@@ -8,9 +8,21 @@
       <div :class="embedded ? 'embed-container' : 'modal-container'" @click.stop>
         <div class="modal-content">
           <!-- Header -->
-          <div class="modal-header">
+          <div class="modal-header" :class="{ 'header-compact': embedded && walletConnected }">
             <h2 class="modal-title">{{ embedded ? 'Stake SOL' : network.title }}</h2>
-            <button v-if="!embedded" type="button" @click="close" class="close-button">
+            <div v-if="embedded && walletConnected" class="header-wallet">
+              <span
+                class="wallet-pill tooltip-container"
+                :title="walletAddress"
+              >
+                {{ connectedWalletType }} · {{ truncateAddress(walletAddress) }}
+                <span class="tooltip">{{ walletAddress }}</span>
+              </span>
+              <button type="button" class="disconnect-link" @click="disconnectWallet">
+                Disconnect
+              </button>
+            </div>
+            <button v-else-if="!embedded" type="button" @click="close" class="close-button">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -95,52 +107,63 @@
             </div>
           </div>
 
-          <!-- Connected Wallet Info -->
+          <!-- Connected Wallet Info (modal / non-compact) -->
           <div v-if="walletConnected">
-            <div class="wallet-info-card">
-              <div class="wallet-info-row">
-                <span class="info-label">Connected Wallet:</span>
-                <span class="info-value tooltip-container">
-                  {{ truncateAddress(walletAddress) }}
-                  <span class="tooltip">{{ walletAddress }}</span>
-                </span>
-              </div>
-              <div class="wallet-info-row">
-                <span class="info-label">Wallet Type:</span>
-                <span class="info-value">{{ connectedWalletType }}</span>
-              </div>
-              <div v-if="transactionSignature" class="transaction-info">
+            <template v-if="!embedded">
+              <div class="wallet-info-card">
                 <div class="wallet-info-row">
-                  <span class="info-label">Last Transaction:</span>
-                  <a
-                    :href="`https://explorer.solana.com/tx/${transactionSignature}?cluster=mainnet`"
-                    target="_blank"
-                    class="transaction-link"
-                  >
-                    View on Explorer
-                  </a>
+                  <span class="info-label">Connected Wallet:</span>
+                  <span class="info-value tooltip-container">
+                    {{ truncateAddress(walletAddress) }}
+                    <span class="tooltip">{{ walletAddress }}</span>
+                  </span>
+                </div>
+                <div class="wallet-info-row">
+                  <span class="info-label">Wallet Type:</span>
+                  <span class="info-value">{{ connectedWalletType }}</span>
+                </div>
+                <div v-if="transactionSignature" class="transaction-info">
+                  <div class="wallet-info-row">
+                    <span class="info-label">Last Transaction:</span>
+                    <a
+                      :href="`https://explorer.solana.com/tx/${transactionSignature}?cluster=mainnet`"
+                      target="_blank"
+                      class="transaction-link"
+                    >
+                      View on Explorer
+                    </a>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Disconnect Button -->
-            <div class="disconnect-section">
-              <button @click="disconnectWallet" class="disconnect-button">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M16 17l5-5-5-5M21 12H9M10 3H6a2 2 0 00-2 2v14a2 2 0 002 2h4" />
-                </svg>
-                Disconnect Wallet
-              </button>
+              <div class="disconnect-section">
+                <button @click="disconnectWallet" class="disconnect-button">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M16 17l5-5-5-5M21 12H9M10 3H6a2 2 0 00-2 2v14a2 2 0 002 2h4" />
+                  </svg>
+                  Disconnect Wallet
+                </button>
+              </div>
+            </template>
+            <div v-else-if="transactionSignature" class="compact-tx">
+              <a
+                :href="`https://explorer.solana.com/tx/${transactionSignature}?cluster=mainnet`"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="transaction-link"
+              >
+                Last tx · View on Explorer
+              </a>
             </div>
 
             <!-- Tab Navigation -->
@@ -163,8 +186,19 @@
 
             <!-- Staking Tab Content -->
             <div v-if="activeTab === 'stake'" class="tab-content">
-              <div class="staking-form">
-                <!-- Staking Amount Input -->
+              <div class="staking-form" :class="{ 'staking-form-compact': embedded }">
+                <div v-if="embedded" class="stats-inline">
+                  <span>
+                    <span class="info-label">Available</span>
+                    {{ availableBalance }} SOL
+                  </span>
+                  <span class="stats-sep">·</span>
+                  <span>
+                    <span class="info-label">Staked</span>
+                    {{ stakedAmount.toFixed(3) }} SOL
+                  </span>
+                </div>
+
                 <div class="form-group">
                   <label class="form-label">Amount to Stake (SOL)</label>
                   <div class="input-container">
@@ -192,8 +226,17 @@
                   </div>
                 </div>
 
-                <!-- Validator Address -->
-                <div class="form-group">
+                <div v-if="embedded" class="validator-inline">
+                  <span class="info-label">Validator</span>
+                  <span class="info-value">StakeCraft</span>
+                  <code class="validator-short" :title="network.validator">{{
+                    truncateAddress(network.validator)
+                  }}</code>
+                  <button type="button" class="copy-inline" @click="copyValidator">
+                    {{ validatorCopied ? 'Copied' : 'Copy' }}
+                  </button>
+                </div>
+                <div v-else class="form-group">
                   <label class="form-label">Validator Address</label>
                   <input
                     :value="network.validator"
@@ -204,8 +247,7 @@
                   />
                 </div>
 
-                <!-- Staking Info -->
-                <div class="info-card">
+                <div v-if="!embedded" class="info-card">
                   <h3 class="info-card-title">Current Staking Status</h3>
                   <div class="info-card-content">
                     <div class="info-row">
@@ -219,21 +261,21 @@
                   </div>
                 </div>
 
-                <!-- Staking Warning -->
-                <div class="warning-card">
+                <div v-if="!embedded" class="warning-card">
                   <div class="warning-icon-small">⚠️</div>
                   <div class="warning-text">
                     <strong>Important:</strong> Staked tokens will become active next epoch.
                   </div>
                 </div>
+                <p v-else class="compact-note">
+                  Activates next epoch · ~2-day unstake cooldown
+                </p>
 
-                <!-- Success/Error Messages for Staking -->
                 <div v-if="stakingSuccess" class="success-message">Successfully delegated !</div>
                 <div v-if="stakingError" class="error-message">
                   {{ stakingError }}
                 </div>
 
-                <!-- Stake Action Button -->
                 <button
                   @click="delegateStake"
                   :disabled="!isValidStake || isProcessing"
@@ -485,6 +527,7 @@ export default {
     const stakingError = ref(null)
     const unstakingError = ref(null)
     const availableBalance = ref(0)
+    const validatorCopied = ref(false)
     const activeTab = ref('stake')
     const totalSolBalance = ref(0)
     const stakingAccounts = ref([])
@@ -807,6 +850,20 @@ export default {
       return address.substring(0, 6) + '...' + address.substring(address.length - 4)
     }
 
+    const copyValidator = async () => {
+      const value = props.network?.validator
+      if (!value || !navigator?.clipboard) return
+      try {
+        await navigator.clipboard.writeText(value)
+        validatorCopied.value = true
+        setTimeout(() => {
+          validatorCopied.value = false
+        }, 1500)
+      } catch {
+        /* ignore */
+      }
+    }
+
     const handleDisconnectWallet = async () => {
       console.log('Disconnecting wallet')
       try {
@@ -875,6 +932,8 @@ export default {
       LAMPORTS_PER_SOL,
       transactionSignature,
       truncateAddress,
+      copyValidator,
+      validatorCopied,
       walletError,
       stakedAmount,
       rewardsEarned,
@@ -1847,5 +1906,149 @@ export default {
 
 .stake-embed .disconnect-button {
   border-radius: 14px;
+}
+
+.stake-embed .modal-header.header-compact {
+  margin-bottom: 12px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.stake-embed .header-wallet {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.stake-embed .wallet-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 14px;
+  border: 1px solid var(--van-border-color);
+  background: var(--van-ourCapabilities-wrapper);
+  color: var(--van-text-color);
+  font-family: poppins;
+  font-size: 12px;
+  font-weight: 600;
+  position: relative;
+}
+
+.stake-embed .disconnect-link {
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: poppins;
+  font-size: 12px;
+  font-weight: 600;
+  color: #dc2626;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.stake-embed .compact-tx {
+  margin: 0 0 10px;
+}
+
+.stake-embed .tab-container {
+  margin-bottom: 12px;
+}
+
+.stake-embed .staking-form-compact {
+  gap: 10px;
+}
+
+.stake-embed .staking-form-compact .form-group {
+  margin-bottom: 0;
+}
+
+.stake-embed .stats-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-family: poppins;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--van-text-color);
+}
+
+.stake-embed .stats-inline .info-label {
+  margin-right: 4px;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.stake-embed .stats-sep {
+  opacity: 0.45;
+}
+
+.stake-embed .validator-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--van-border-color);
+  background: var(--van-ourCapabilities-wrapper);
+  font-family: poppins;
+  font-size: 13px;
+}
+
+.stake-embed .validator-inline .info-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.stake-embed .validator-short {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--van-seconday-color);
+}
+
+.stake-embed .copy-inline {
+  margin-left: auto;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: poppins;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--van-seconday-color);
+  cursor: pointer;
+}
+
+.stake-embed .compact-note {
+  margin: 0;
+  font-family: poppins;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--van-mainnet-color);
+  opacity: 0.7;
+}
+
+.stake-embed .success-message,
+.stake-embed .error-message {
+  margin-top: 0;
+}
+
+.stake-embed .max-button {
+  color: var(--van-seconday-color);
+}
+
+.stake-embed .max-button:hover:not(:disabled) {
+  color: var(--van-seconday-color);
+  filter: brightness(0.9);
 }
 </style>
