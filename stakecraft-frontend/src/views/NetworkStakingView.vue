@@ -405,6 +405,11 @@ export default {
 
 .solanaStakingPage .stakeSection {
   padding-top: 72px;
+  padding-bottom: 0;
+}
+
+.solanaStakingPage .faqSection {
+  padding-top: 72px;
   padding-bottom: 80px;
 }
 
@@ -777,6 +782,11 @@ export default {
   }
 
   .solanaStakingPage .stakeSection {
+    padding-top: 48px;
+    padding-bottom: 0;
+  }
+
+  .solanaStakingPage .faqSection {
     padding-top: 48px;
     padding-bottom: 56px;
   }
