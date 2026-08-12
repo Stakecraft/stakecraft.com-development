@@ -2,6 +2,26 @@ import { ref, computed, onMounted } from 'vue'
 import prefetchedData from '../data/prefetched.json'
 import { API_BASE_URL } from '../config/api.js'
 
+/** Network staking pages stay reachable by URL; keep them out of the header. */
+const HEADER_EXCLUDED_LINKS = new Set(['/solana-staking', '/near-staking', '/monad-staking'])
+const HEADER_EXCLUDED_TITLES = new Set(['solana', 'near', 'monad'])
+
+function isHeaderMenuItem(item) {
+  const link = String(item?.link || '')
+    .trim()
+    .replace(/\/$/, '')
+  const title = String(item?.title || '')
+    .trim()
+    .toLowerCase()
+  if (HEADER_EXCLUDED_LINKS.has(link)) return false
+  if (HEADER_EXCLUDED_TITLES.has(title)) return false
+  return true
+}
+
+function forHeaderMenu(items) {
+  return (Array.isArray(items) ? items : []).filter(isHeaderMenuItem)
+}
+
 // Fallback menu items (current hardcoded menu)
 const fallbackMenuItems = [
   { title: 'Mainnet', link: '/#mainnet', metadata: { menuSection: 'center', isExternal: 'false' } },
@@ -23,21 +43,6 @@ const fallbackMenuItems = [
     metadata: { menuSection: 'center', isExternal: 'false' }
   },
   { title: 'Swap', link: '/swap', metadata: { menuSection: 'center', isExternal: 'false' } },
-  {
-    title: 'Solana',
-    link: '/solana-staking',
-    metadata: { menuSection: 'center', isExternal: 'false' }
-  },
-  {
-    title: 'NEAR',
-    link: '/near-staking',
-    metadata: { menuSection: 'center', isExternal: 'false' }
-  },
-  {
-    title: 'Monad',
-    link: '/monad-staking',
-    metadata: { menuSection: 'center', isExternal: 'false' }
-  },
   {
     title: 'About Us',
     link: '/#aboutUs',
@@ -77,17 +82,19 @@ function withFaqMenuItem(items) {
     return sortMenuItems(fallbackMenuItems)
   }
 
-  const hasFaq = items.some(
+  const headerItems = forHeaderMenu(items)
+
+  const hasFaq = headerItems.some(
     (item) => item.link === '/#faq' || /^faq$/i.test(String(item.title || '').trim())
   )
   if (hasFaq) {
-    return sortMenuItems(items)
+    return sortMenuItems(headerItems)
   }
 
-  const testnetIndex = items.findIndex(
+  const testnetIndex = headerItems.findIndex(
     (item) => item.link === '/#testnet' || item.title === 'Testnet'
   )
-  const next = [...items]
+  const next = [...headerItems]
   next.splice(testnetIndex >= 0 ? testnetIndex + 1 : next.length, 0, faqMenuItem)
   return sortMenuItems(next)
 }
