@@ -83,16 +83,15 @@ export const networkStakingPages = {
         tabLabel: 'JPool · JSOL',
         logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/7Q2afV64in6N6SeZsAAB81TJzwDoD6zpqmHkzi9Dcavn/logo.svg',
         description:
-          'Stake through the JPool pool directed at our validator and receive JSOL, a liquid token you can use in DeFi. JPool matches direct delegations, so your stake also boosts the validator beyond your own deposit.',
+          'Stake SOL to StakeCraft through JPool without leaving this page. You receive JSOL (liquid, still earning pool yield), and JPool directs your stake plus matching onto our validator.',
         steps: [
-          'Open the JPool direct staking page — the StakeCraft validator is preselected.',
-          'Connect your Solana wallet and enter the amount of SOL on the Direct tab.',
-          'Confirm the transaction. Your SOL is delegated to StakeCraft and you receive JSOL.',
-          'Use JSOL in DeFi or unstake anytime — your delegation keeps earning while you hold it.'
+          'Use the JPool widget on the left — StakeCraft is already selected as the validator.',
+          'Connect Phantom or Solflare and enter the amount of SOL to stake.',
+          'Confirm in your wallet. You receive JSOL while your stake counts toward StakeCraft.',
+          'Unstake from the same widget anytime — wallets connect and sign on this domain.'
         ],
-        action: 'external',
-        url: 'https://app.jpool.one/validators/BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g?activeTab=direct',
-        ctaLabel: 'Stake via JPool'
+        action: 'embed',
+        embed: 'jpool'
       },
       {
         id: 'vault',
@@ -170,7 +169,7 @@ export const networkStakingPages = {
       {
         question: 'Can I stake SOL to StakeCraft through a liquid staking pool?',
         answer:
-          'Yes. Definity, JPool, The Vault, SolBlaze, and JagPool all let you point pool stake at the StakeCraft validator while you receive a liquid token (definSOL, JSOL, vSOL, bSOL, or jagSOL) to use in DeFi. StakeCraft is also in Marinade Select, Marinade’s curated native-staking validator set. Definity stakes in an on-page widget; the others open their apps. Native protocol staking remains available if you prefer a plain stake account.'
+          'Yes. Definity, JPool, The Vault, SolBlaze, and JagPool all let you point pool stake at the StakeCraft validator while you receive a liquid token (definSOL, JSOL, vSOL, bSOL, or jagSOL) to use in DeFi. StakeCraft is also in Marinade Select, Marinade’s curated native-staking validator set. Definity and JPool stake in on-page widgets; the others open their apps. Native protocol staking remains available if you prefer a plain stake account.'
       }
     ],
     service: {

@@ -7,6 +7,13 @@
         embedded
       />
     </Teleport>
+    <Teleport v-if="jpoolEmbedReady" to="#jpool-direct-stake-embed">
+      <jpool-direct-stake
+        v-if="embedNetwork?.title === 'Solana'"
+        :network="embedNetwork"
+        :vote="embedNetwork.validator"
+      />
+    </Teleport>
     <solana-staking
       v-if="props.selectedNetwork?.title === 'Solana'"
       :network="props.selectedNetwork"
@@ -189,6 +196,7 @@
 import { onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import modal from './Modal.vue'
 import SolanaStaking from './stakingViews/SolanaStaking.vue'
+import JPoolDirectStake from './stakingViews/JPoolDirectStake.vue'
 import KavaStaking from './stakingViews/KavaStaking.vue'
 import NearStaking from './stakingViews/NearStaking.vue'
 import SupraStaking from './stakingViews/SupraStaking.vue'
@@ -220,6 +228,7 @@ export default {
   name: 'StakingModals',
   components: {
     SolanaStaking,
+    JPoolDirectStake,
     KavaStaking,
     SupraStaking,
     NearStaking,
@@ -255,10 +264,12 @@ export default {
   setup(props, { emit }) {
     const { embedNetwork } = useStakingModal()
     const embedTargetReady = ref(false)
+    const jpoolEmbedReady = ref(false)
     let observer = null
 
     const syncEmbedTarget = () => {
       embedTargetReady.value = Boolean(document.getElementById('native-solana-stake-embed'))
+      jpoolEmbedReady.value = Boolean(document.getElementById('jpool-direct-stake-embed'))
     }
 
     onMounted(() => {
@@ -280,7 +291,7 @@ export default {
     })
 
     const emitClose = () => emit('close')
-    return { props, emitClose, embedNetwork, embedTargetReady }
+    return { props, emitClose, embedNetwork, embedTargetReady, jpoolEmbedReady }
   }
 }
 </script>

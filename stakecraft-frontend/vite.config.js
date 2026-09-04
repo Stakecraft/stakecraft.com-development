@@ -48,6 +48,11 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
+            // Keep JPool (+ its stake-pool fork) out of vendor-wallets — bundling
+            // them with @solana/* previously caused TDZ / dead hydration on SSG.
+            if (id.includes('@jpool')) {
+              return 'vendor-jpool'
+            }
             if (
               id.includes('@solana') ||
               id.includes('@cosmjs') ||

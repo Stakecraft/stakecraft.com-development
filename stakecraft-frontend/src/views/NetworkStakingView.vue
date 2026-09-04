@@ -68,9 +68,12 @@
         <h3 v-if="stakingTabs.length > 1" class="tabTitle">{{ tab.title }}</h3>
         <p v-if="tab.description" class="tabDescription">{{ tab.description }}</p>
 
-        <!-- Native / Definity: stake widget left, how-to steps right -->
+        <!-- Native / Definity / JPool: stake widget left, how-to steps right -->
         <div
-          v-if="tab.action === 'embed' && (tab.embed === 'native' || tab.embed === 'definity')"
+          v-if="
+            tab.action === 'embed' &&
+            (tab.embed === 'native' || tab.embed === 'definity' || tab.embed === 'jpool')
+          "
           class="tabSplit"
         >
           <div class="tabSplitWidget">
@@ -78,6 +81,11 @@
               v-if="tab.embed === 'native'"
               id="native-solana-stake-embed"
               class="nativeStakeHost"
+            />
+            <div
+              v-else-if="tab.embed === 'jpool'"
+              id="jpool-direct-stake-embed"
+              class="nativeStakeHost jpoolStakeHost"
             />
             <div v-else class="definityStakeHost">
               <DefinityDirectStakeWidget
