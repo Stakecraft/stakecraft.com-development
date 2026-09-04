@@ -193,10 +193,14 @@
 </template>
 
 <script>
-import { onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
+import { onMounted, onBeforeUnmount, ref, watch, nextTick, defineAsyncComponent } from 'vue'
 import modal from './Modal.vue'
 import SolanaStaking from './stakingViews/SolanaStaking.vue'
-import JPoolDirectStake from './stakingViews/JPoolDirectStake.vue'
+// Lazy: keep @jpool/sdk out of the StakingModals critical path so native
+// stake + /solana-staking tabs stay alive if the JPool chunk fails.
+const JPoolDirectStake = defineAsyncComponent(() =>
+  import('./stakingViews/JPoolDirectStake.vue')
+)
 import KavaStaking from './stakingViews/KavaStaking.vue'
 import NearStaking from './stakingViews/NearStaking.vue'
 import SupraStaking from './stakingViews/SupraStaking.vue'

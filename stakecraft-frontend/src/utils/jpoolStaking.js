@@ -1,6 +1,8 @@
 /**
  * Client-only JPool Direct Stake helpers.
  * @jpool/sdk is imported dynamically so it never enters the SSR/SSG graph.
+ * Wallet helpers are inlined (not imported from SolanaStaking.js) so this
+ * module does not pull the full native-stake util graph into the JPool chunk.
  */
 import {
   Connection,
@@ -8,12 +10,43 @@ import {
   Transaction,
   LAMPORTS_PER_SOL
 } from '@solana/web3.js'
-import {
-  connectWallet,
-  getCurrentWallet,
-  WalletDisconnect,
-  getSolBalance
-} from './SolanaStaking.js'
+
+let currentWallet = null
+
+export const getProvider = () => {
+  if (typeof window === 'undefined') throw new Error('No wallet in SSR')
+  if (window.solana?.isPhantom) return window.solana
+  if (window.solflare) return window.solflare
+  throw new Error('No supported wallet found')
+}
+
+export const connectWallet = async () => {
+  const provider = getProvider()
+  await provider.connect()
+  currentWallet = provider
+  return provider.publicKey
+}
+
+export const getCurrentWallet = () => {
+  if (!currentWallet) currentWallet = getProvider()
+  return currentWallet
+}
+
+export const WalletDisconnect = async () => {
+  try {
+    const wallet = currentWallet || (typeof window !== 'undefined' && (window.solana || window.solflare))
+    if (wallet?.disconnect) await wallet.disconnect()
+  } finally {
+    currentWallet = null
+  }
+}
+
+export const getSolBalance = async (walletAddress) => {
+  if (!walletAddress) throw new Error('Wallet address is required')
+  const walletPubkey = new PublicKey(walletAddress)
+  const balance = await withRpcFallback((conn) => conn.getBalance(walletPubkey))
+  return balance / LAMPORTS_PER_SOL
+}
 
 const STAKECRAFT_VOTE = 'BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g'
 
@@ -93,7 +126,7 @@ async function sendWithEphemeralSigners(wallet, transaction, signers) {
   })
 }
 
-export { STAKECRAFT_VOTE, LAMPORTS_PER_SOL, connectWallet, WalletDisconnect, getSolBalance }
+export { STAKECRAFT_VOTE, LAMPORTS_PER_SOL }
 
 export async function getPoolQuote() {
   return withRpcFallback(async (conn) => {

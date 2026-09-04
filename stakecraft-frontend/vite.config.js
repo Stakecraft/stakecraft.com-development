@@ -48,29 +48,30 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            // Keep JPool (+ its stake-pool fork) out of vendor-wallets — bundling
-            // them with @solana/* previously caused TDZ / dead hydration on SSG.
-            if (id.includes('@jpool')) {
-              return 'vendor-jpool'
+            // Do NOT force @solana / @jpool into a shared vendor chunk.
+            // Putting them in vendor-wallets (or a vendor-solana that cycles with
+            // buffer-layout in `vendor`) causes TDZ crashes that kill hydration
+            // on /solana-staking. Leave them with their dynamic importers
+            // (StakingModals / JPoolDirectStake) so the SEO page stays light.
+            if (id.includes('@jpool') || id.includes('@solana')) {
+              return
             }
             if (
-              id.includes('@solana') ||
               id.includes('@cosmjs') ||
               id.includes('@polkadot') ||
               id.includes('@near-wallet') ||
               id.includes('near-api-js') ||
               id.includes('@mysten/sui') ||
               id.includes('ethers') ||
-              id.includes('web3')
+              id.includes('/node_modules/web3/')
             ) {
               return 'vendor-wallets'
             }
             if (id.includes('vant')) return 'vendor-vant'
-            if (id.includes('vue') || id.includes('@vue')) return 'vendor-vue'
+            if (id.includes('/node_modules/vue/') || id.includes('/node_modules/@vue/')) {
+              return 'vendor-vue'
+            }
             return 'vendor'
-          }
-          if (id.includes('/components/stakingViews/')) {
-            return 'staking-modals'
           }
         }
       }
