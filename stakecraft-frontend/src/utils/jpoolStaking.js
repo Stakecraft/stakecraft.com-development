@@ -11,6 +11,11 @@ import {
   LAMPORTS_PER_SOL
 } from '@solana/web3.js'
 
+/** JPool stake pool + JSOL mint (from @jpool/sdk constants — hardcoded to avoid loading SDK for balances). */
+export const STAKECRAFT_VOTE = 'BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g'
+export const JPOOL_POOL_ADDRESS = 'CtMyWsrUtAwXWiGr9WjHT5fC3p3fgV8cyGpLTo2LJzG1'
+export const JPOOL_MINT_ADDRESS = '7Q2afV64in6N6SeZsAAB81TJzwDoD6zpqmHkzi9Dcavn'
+
 let currentWallet = null
 
 export const getProvider = () => {
@@ -34,21 +39,13 @@ export const getCurrentWallet = () => {
 
 export const WalletDisconnect = async () => {
   try {
-    const wallet = currentWallet || (typeof window !== 'undefined' && (window.solana || window.solflare))
+    const wallet =
+      currentWallet || (typeof window !== 'undefined' && (window.solana || window.solflare))
     if (wallet?.disconnect) await wallet.disconnect()
   } finally {
     currentWallet = null
   }
 }
-
-export const getSolBalance = async (walletAddress) => {
-  if (!walletAddress) throw new Error('Wallet address is required')
-  const walletPubkey = new PublicKey(walletAddress)
-  const balance = await withRpcFallback((conn) => conn.getBalance(walletPubkey))
-  return balance / LAMPORTS_PER_SOL
-}
-
-const STAKECRAFT_VOTE = 'BDn3HiXMTym7ZQofWFxDb7ZGQX6GomQzJYKfytTAqd5g'
 
 const SOLANA_RPC_ENDPOINTS = [
   import.meta.env.VITE_HELIUS_RPC_URL,
@@ -72,6 +69,11 @@ function loadJpoolSdk() {
   return jpoolModulePromise
 }
 
+function isLayoutConflictError(error) {
+  const msg = error?.message || String(error || '')
+  return msg.includes('fields must be array of Layout instances')
+}
+
 async function withRpcFallback(fn) {
   let lastError = null
   for (const rpcUrl of SOLANA_RPC_ENDPOINTS) {
@@ -86,6 +88,8 @@ async function withRpcFallback(fn) {
       return await fn(conn)
     } catch (error) {
       lastError = error
+      // Layout conflicts are bundler/dep issues — every RPC will fail the same way.
+      if (isLayoutConflictError(error)) break
       console.warn(`JPool RPC failed (${rpcUrl}):`, error?.message || error)
     }
   }
@@ -126,7 +130,14 @@ async function sendWithEphemeralSigners(wallet, transaction, signers) {
   })
 }
 
-export { STAKECRAFT_VOTE, LAMPORTS_PER_SOL }
+export { LAMPORTS_PER_SOL }
+
+export const getSolBalance = async (walletAddress) => {
+  if (!walletAddress) throw new Error('Wallet address is required')
+  const walletPubkey = new PublicKey(walletAddress)
+  const balance = await withRpcFallback((conn) => conn.getBalance(walletPubkey))
+  return balance / LAMPORTS_PER_SOL
+}
 
 export async function getPoolQuote() {
   return withRpcFallback(async (conn) => {
@@ -145,11 +156,9 @@ export async function getPoolQuote() {
 export async function getJsolBalance(walletAddress) {
   if (!walletAddress) return 0
   return withRpcFallback(async (conn) => {
-    const { POOL_MINT_ADDRESS } = await loadJpoolSdk()
+    const mint = new PublicKey(JPOOL_MINT_ADDRESS)
     const owner = new PublicKey(walletAddress)
-    const accounts = await conn.getParsedTokenAccountsByOwner(owner, {
-      mint: POOL_MINT_ADDRESS
-    })
+    const accounts = await conn.getParsedTokenAccountsByOwner(owner, { mint })
     let total = 0
     for (const { account } of accounts.value) {
       const amount = account.data?.parsed?.info?.tokenAmount?.uiAmount

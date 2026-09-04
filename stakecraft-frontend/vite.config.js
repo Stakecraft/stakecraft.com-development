@@ -24,8 +24,18 @@ export default defineConfig({
     })
   ],
   resolve: {
+    // Nested copies of these packages break @jpool/spl-stake-pool (and
+    // @coral-xyz/borsh) with `fields must be array of Layout instances`
+    // because Layout instanceof checks fail across duplicates.
+    dedupe: ['buffer-layout', '@solana/buffer-layout', '@solana/web3.js'],
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      'buffer-layout': fileURLToPath(
+        new URL('./node_modules/buffer-layout', import.meta.url)
+      ),
+      '@solana/buffer-layout': fileURLToPath(
+        new URL('./node_modules/@solana/buffer-layout', import.meta.url)
+      )
     }
   },
   define: {
@@ -37,6 +47,8 @@ export default defineConfig({
       '@cosmjs/amino',
       '@cosmjs/stargate',
       'buffer',
+      'buffer-layout',
+      '@solana/buffer-layout',
       'cosmjs-types'
     ]
   },

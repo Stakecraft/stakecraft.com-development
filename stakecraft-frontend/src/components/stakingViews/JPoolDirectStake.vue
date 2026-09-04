@@ -282,23 +282,31 @@ export default {
 
     const refreshBalances = async () => {
       if (!walletAddress.value) return
-      try {
-        const [sol, jsol, quote] = await Promise.all([
-          getSolBalance(walletAddress.value),
-          getJsolBalance(walletAddress.value),
-          getPoolQuote().catch(() => null)
-        ])
+      const [solResult, jsolResult, quoteResult] = await Promise.allSettled([
+        getSolBalance(walletAddress.value),
+        getJsolBalance(walletAddress.value),
+        getPoolQuote()
+      ])
+      if (solResult.status === 'fulfilled') {
+        const sol = solResult.value
         solBalance.value = typeof sol === 'number' ? sol : Number(sol) || 0
-        jsolBalance.value = jsol
-        if (quote) {
-          poolRate.value = quote.rate
-          depositFeePct.value =
-            quote.depositFee != null ? Number((quote.depositFee * 100).toFixed(2)) : null
-          withdrawFeePct.value =
-            quote.withdrawFee != null ? Number((quote.withdrawFee * 100).toFixed(2)) : null
-        }
-      } catch (err) {
-        console.warn('JPool balance refresh failed:', err)
+      } else {
+        console.warn('JPool SOL balance failed:', solResult.reason?.message || solResult.reason)
+      }
+      if (jsolResult.status === 'fulfilled') {
+        jsolBalance.value = jsolResult.value
+      } else {
+        console.warn('JPool JSOL balance failed:', jsolResult.reason?.message || jsolResult.reason)
+      }
+      if (quoteResult.status === 'fulfilled' && quoteResult.value) {
+        const quote = quoteResult.value
+        poolRate.value = quote.rate
+        depositFeePct.value =
+          quote.depositFee != null ? Number((quote.depositFee * 100).toFixed(2)) : null
+        withdrawFeePct.value =
+          quote.withdrawFee != null ? Number((quote.withdrawFee * 100).toFixed(2)) : null
+      } else if (quoteResult.status === 'rejected') {
+        console.warn('JPool pool quote failed:', quoteResult.reason?.message || quoteResult.reason)
       }
     }
 
