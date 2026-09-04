@@ -84,9 +84,16 @@
             />
             <div
               v-else-if="tab.embed === 'jpool'"
-              id="jpool-direct-stake-embed"
               class="nativeStakeHost jpoolStakeHost"
-            />
+            >
+              <!-- Render in-page (like Definity), not via StakingModals Teleport —
+                   the secondary wallet app often never fills this host. -->
+              <JPoolDirectStake
+                v-if="clientReady && activeTab === 'jpool'"
+                :vote="page.validator"
+                :network="stakingNetwork || solanaEmbedFallback"
+              />
+            </div>
             <div v-else class="definityStakeHost">
               <DefinityDirectStakeWidget
                 v-if="tab.widget"
@@ -198,7 +205,7 @@
 </template>
 
 <script>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, defineAsyncComponent } from 'vue'
 import { useRoute } from 'vue-router'
 import LetsConnect from '../components/LetsConnect.vue'
 import DefinityDirectStakeWidget from '../components/DefinityDirectStakeWidget.vue'
@@ -209,12 +216,19 @@ import { getNetworkStakingPage } from '../constants/networkStakingPages.js'
 import { useContent } from '../composables/useContent.js'
 import { useStakingModal } from '../composables/useStakingModal.js'
 
+// Client-only async chunk — keeps @jpool/sdk out of the SSG graph and only
+// loads when the JPool tab is selected.
+const JPoolDirectStake = defineAsyncComponent(() =>
+  import('../components/stakingViews/JPoolDirectStake.vue')
+)
+
 export default {
   name: 'NetworkStakingView',
   components: {
     LetsConnect,
     DefinityDirectStakeWidget,
-    SolanaValidatorTrust
+    SolanaValidatorTrust,
+    JPoolDirectStake
   },
   setup() {
     const route = useRoute()
@@ -222,6 +236,7 @@ export default {
     const page = computed(() => pageData)
     const seoBase = routeSeo[route.meta.seoKey] || routeSeo.home
     const openItems = ref({})
+    const clientReady = ref(false)
 
     const { fetchMainnet, getMainnetNetworks } = useContent()
     const { openModal, setEmbedNetwork } = useStakingModal()
@@ -230,6 +245,19 @@ export default {
       () =>
         getMainnetNetworks.value.find((network) => network.title === pageData?.mainnetTitle) ||
         null
+    )
+
+    const solanaEmbedFallback = computed(() =>
+      pageData?.slug === 'solana'
+        ? {
+            title: 'Solana',
+            validator: pageData.validator,
+            explorer: pageData.explorer,
+            howToStake: pageData.howToStake,
+            description:
+              'Direct-stake to StakeCraft through JPool and receive JSOL.'
+          }
+        : null
     )
 
     const stakeNow = () => {
@@ -258,6 +286,7 @@ export default {
     }
 
     onMounted(() => {
+      clientReady.value = true
       fetchMainnet()
 
       if (pageData?.slug === 'solana') {
@@ -311,6 +340,8 @@ export default {
       openItems,
       toggle,
       stakingNetwork,
+      solanaEmbedFallback,
+      clientReady,
       stakeNow,
       stakingTabs,
       activeTab,
