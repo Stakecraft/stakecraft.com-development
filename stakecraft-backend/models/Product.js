@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { applyIpfsImageTransform } from "../utils/ipfsGateway.js";
 
 const productSchema = new mongoose.Schema(
   {
@@ -37,5 +38,6 @@ const productSchema = new mongoose.Schema(
 
 productSchema.index({ order: 1, createdAt: -1 });
 productSchema.index({ isActive: 1 });
+applyIpfsImageTransform(productSchema);
 
 export default mongoose.model("Product", productSchema);

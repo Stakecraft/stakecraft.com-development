@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { applyIpfsImageTransform } from "../utils/ipfsGateway.js";
 
 const mainnetSchema = new mongoose.Schema(
   {
@@ -39,5 +40,6 @@ const mainnetSchema = new mongoose.Schema(
 
 // Index for efficient queries
 mainnetSchema.index({ type: 1, isActive: 1, order: 1 });
+applyIpfsImageTransform(mainnetSchema);
 
 export default mongoose.model("Mainnet", mainnetSchema);
