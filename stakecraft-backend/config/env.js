@@ -1,9 +1,8 @@
 import crypto from "crypto";
 import { loadEnvFiles } from "./loadEnvFiles.js";
 
-// Real process env (systemd, Docker, CI) wins over file contents. Empty
-// assignments in one file do not hide a value in the other. If NODE_ENV is
-// unset but only .env.production exists, that host is treated as production.
+// NODE_ENV selects the env file. Same code on prod and dev; systemd / npm
+// scripts set NODE_ENV, and we overlay .env.${NODE_ENV} on top of .env.
 const nodeEnv = loadEnvFiles();
 const isProduction = nodeEnv === "production";
 
