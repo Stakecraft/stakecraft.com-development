@@ -1,19 +1,10 @@
-import dotenv from "dotenv";
 import crypto from "crypto";
-import fs from "fs";
-import path from "path";
+import { loadEnvFiles } from "./loadEnvFiles.js";
 
-// Load the environment-specific file first, then fall back to a plain .env.
-// dotenv never overwrites variables that are already set, so real process
-// environment variables (systemd, Docker, CI) always win over file contents.
-const nodeEnv = process.env.NODE_ENV || "development";
-const envFile = path.join(process.cwd(), `.env.${nodeEnv}`);
-
-if (fs.existsSync(envFile)) {
-  dotenv.config({ path: envFile });
-}
-dotenv.config();
-
+// Real process env (systemd, Docker, CI) wins over file contents. Empty
+// assignments in one file do not hide a value in the other. If NODE_ENV is
+// unset but only .env.production exists, that host is treated as production.
+const nodeEnv = loadEnvFiles();
 const isProduction = nodeEnv === "production";
 
 // Secrets that ship in example files or old tutorials. If one of these ever
@@ -113,7 +104,7 @@ export const config = {
   pinata: {
     apiKey: process.env.PINATA_API_KEY || "",
     secretKey: process.env.PINATA_SECRET_KEY || "",
-    jwt: process.env.PINATA_JWT || "",
+    jwt: (process.env.PINATA_JWT || "").trim(),
   },
   maxFileSize: parseInt(process.env.MAX_FILE_SIZE || "5242880", 10),
 };
