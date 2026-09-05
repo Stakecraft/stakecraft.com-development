@@ -1,52 +1,15 @@
 import { ref } from 'vue'
 import { API_BASE_URL } from '../config/api.js'
 import { authHeaders } from '../services/authService'
+import { isIpfsUrl, toPinataGatewayUrl } from '../utils/ipfsGateway.js'
 
 export function useIPFS() {
   const uploading = ref(false)
   const uploadError = ref(null)
 
-  // IPFS Gateway URL - you can change this to your preferred gateway
-  const IPFS_GATEWAY = 'https://ipfs.io/ipfs/'
+  const validateIPFSURL = (url) => isIpfsUrl(url)
 
-  // Utility function to validate IPFS URL
-  const validateIPFSURL = (url) => {
-    if (!url) return false
-
-    // Check if it's a valid IPFS URL
-    if (
-      url.startsWith('https://ipfs.io/ipfs/') ||
-      url.startsWith('http://ipfs.io/ipfs/') ||
-      url.startsWith('https://gateway.pinata.cloud/ipfs/') ||
-      url.startsWith('https://dweb.link/ipfs/')
-    ) {
-      return true
-    }
-
-    // Check if it's just a hash (Qm...)
-    if (url.startsWith('Qm') && url.length > 40) {
-      return true
-    }
-
-    return false
-  }
-
-  // Utility function to get IPFS URL from hash or URL
-  const getIPFSURL = (hash) => {
-    if (!hash) return null
-
-    // If it's already a full URL, return as is
-    if (hash.startsWith('http')) {
-      return hash
-    }
-
-    // CIDv0 / CIDv1 (base32) raw hashes
-    if (hash.startsWith('Qm') || hash.startsWith('bafy')) {
-      return `${IPFS_GATEWAY}${hash}`
-    }
-
-    return null
-  }
+  const getIPFSURL = (hash) => toPinataGatewayUrl(hash)
 
   /**
    * Uploads an image to IPFS through the backend.
@@ -88,7 +51,7 @@ export function useIPFS() {
       return {
         success: true,
         hash,
-        url: result.url || `${IPFS_GATEWAY}${hash}`
+        url: toPinataGatewayUrl(result.url || hash)
       }
     } catch (error) {
       console.error('IPFS upload error:', error)
@@ -127,7 +90,7 @@ export function useIPFS() {
       return {
         success: true,
         hash: ipfsHash,
-        url: `${IPFS_GATEWAY}${ipfsHash}`
+        url: toPinataGatewayUrl(ipfsHash)
       }
     } catch (error) {
       console.error('IPFS upload error:', error)

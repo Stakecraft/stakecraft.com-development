@@ -2,11 +2,11 @@ import express from "express";
 import multer from "multer";
 import { authenticateToken, requireEditor } from "../middleware/auth.js";
 import config from "../config/env.js";
+import { toPinataGatewayUrl } from "../utils/ipfsGateway.js";
 
 const router = express.Router();
 
 const PINATA_ENDPOINT = "https://api.pinata.cloud/pinning/pinFileToIPFS";
-const IPFS_GATEWAY = "https://ipfs.io/ipfs/";
 
 // Files are held in memory only long enough to forward them upstream; nothing
 // is written to disk, so there is no uploaded-file path to serve or traverse.
@@ -111,7 +111,7 @@ router.post(
       return res.status(201).json({
         success: true,
         hash: result.IpfsHash,
-        url: `${IPFS_GATEWAY}${result.IpfsHash}`,
+        url: toPinataGatewayUrl(result.IpfsHash, config.pinata.gateway),
       });
     } catch (error) {
       console.error("IPFS upload error:", error);
