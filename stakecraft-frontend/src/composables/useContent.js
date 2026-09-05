@@ -2,16 +2,39 @@ import { ref, computed } from 'vue'
 import axios from 'axios'
 import prefetchedData from '../data/prefetched.json'
 import { API_BASE_URL } from '../config/api.js'
+import { toPinataGatewayUrl } from '../utils/ipfsGateway.js'
 
-// IPFS Gateway URL
-const IPFS_GATEWAY = 'https://ipfs.io/ipfs/'
+const getIPFSURL = (hash) => toPinataGatewayUrl(hash)
+
+const normalizeImageList = (urls) => {
+  if (!Array.isArray(urls)) return []
+  return urls.map((u) => (u ? getIPFSURL(u) : null)).filter(Boolean)
+}
+
+const processContentWithIPFS = (content) => {
+  if (!content) return content
+
+  if (Array.isArray(content)) {
+    return content.map((item) => ({
+      ...item,
+      image: item.image ? getIPFSURL(item.image) : null,
+      images: item.images ? normalizeImageList(item.images) : item.images
+    }))
+  }
+
+  return {
+    ...content,
+    image: content.image ? getIPFSURL(content.image) : null,
+    images: content.images ? normalizeImageList(content.images) : content.images
+  }
+}
 
 export function useContent() {
-  const mainnet = ref(prefetchedData.mainnet || [])
-  const testnet = ref(prefetchedData.testnet || [])
-  const partnerships = ref(prefetchedData.partnership || [])
-  const about = ref(prefetchedData.about || [])
-  const team = ref(prefetchedData.team || [])
+  const mainnet = ref(processContentWithIPFS(prefetchedData.mainnet || []))
+  const testnet = ref(processContentWithIPFS(prefetchedData.testnet || []))
+  const partnerships = ref(processContentWithIPFS(prefetchedData.partnership || []))
+  const about = ref(processContentWithIPFS(prefetchedData.about || []))
+  const team = ref(processContentWithIPFS(prefetchedData.team || []))
   const faq = ref(prefetchedData.faq || [])
   const menu = ref(prefetchedData.menu || [])
   const products = ref([])
@@ -39,39 +62,6 @@ export function useContent() {
     menu: null,
     products: null
   })
-
-  // Helper function to convert IPFS hash to URL
-  const getIPFSURL = (hash) => {
-    if (!hash) return null
-    // Check if it's already a full URL
-    if (hash.startsWith('http')) return hash
-    // Convert IPFS hash to URL
-    return `${IPFS_GATEWAY}${hash}`
-  }
-
-  // Helper function to process content with IPFS images
-  const normalizeImageList = (urls) => {
-    if (!Array.isArray(urls)) return []
-    return urls.map((u) => (u ? getIPFSURL(u) : null)).filter(Boolean)
-  }
-
-  const processContentWithIPFS = (content) => {
-    if (!content) return content
-
-    if (Array.isArray(content)) {
-      return content.map((item) => ({
-        ...item,
-        image: item.image ? getIPFSURL(item.image) : null,
-        images: item.images ? normalizeImageList(item.images) : item.images
-      }))
-    }
-
-    return {
-      ...content,
-      image: content.image ? getIPFSURL(content.image) : null,
-      images: content.images ? normalizeImageList(content.images) : content.images
-    }
-  }
 
   const extractListPayload = (responseData) => {
     const payload = responseData?.data ?? responseData
