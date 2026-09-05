@@ -1,8 +1,17 @@
 import express from "express";
 import multer from "multer";
+import fetch, { Blob, FormData } from "node-fetch";
 import { authenticateToken, requireEditor } from "../middleware/auth.js";
 import config from "../config/env.js";
 import { toPinataGatewayUrl } from "../utils/ipfsGateway.js";
+
+// Node 16 has no AbortSignal.timeout (Node 18+). Same 30s bound on both.
+const abortAfter = (ms) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  if (typeof timer.unref === "function") timer.unref();
+  return { signal: controller.signal, cancel: () => clearTimeout(timer) };
+};
 
 const router = express.Router();
 
@@ -72,6 +81,7 @@ router.post(
       });
     }
 
+    const timeout = abortAfter(30000);
     try {
       const form = new FormData();
       form.append(
@@ -91,7 +101,7 @@ router.post(
         method: "POST",
         headers,
         body: form,
-        signal: AbortSignal.timeout(30000),
+        signal: timeout.signal,
       });
 
       if (!response.ok) {
@@ -118,6 +128,8 @@ router.post(
       return res
         .status(502)
         .json({ success: false, message: "Upload to IPFS failed" });
+    } finally {
+      timeout.cancel();
     }
   }
 );
