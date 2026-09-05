@@ -163,7 +163,7 @@
                     <div class="network-cell">
                       <img
                         v-if="card.image"
-                        :src="card.image"
+                        :src="ipfsSrc(card.image)"
                         :alt="card.title"
                         class="network-image"
                         @error="handleImageError"
@@ -248,7 +248,7 @@
                     <div class="network-cell">
                       <img
                         v-if="card.image"
-                        :src="card.image"
+                        :src="ipfsSrc(card.image)"
                         :alt="card.title"
                         class="network-image"
                       />
@@ -344,7 +344,7 @@
                   </div>
                   <img
                     v-if="card.image"
-                    :src="card.image"
+                    :src="ipfsSrc(card.image)"
                     :alt="card.title"
                     class="migration-card-image"
                   />
@@ -415,7 +415,7 @@
                   </div>
                   <img
                     v-if="card.image"
-                    :src="card.image"
+                    :src="ipfsSrc(card.image)"
                     :alt="card.title"
                     class="migration-card-image"
                   />
@@ -460,7 +460,7 @@
               :class="{ 'partnership-card--hidden': partner.isVisible === false }"
             >
               <div class="partner-icon">
-                <img v-if="partner.image" :src="partner.image" :alt="partner.title" />
+                <img v-if="partner.image" :src="ipfsSrc(partner.image)" :alt="partner.title" />
                 <Building class="default-icon" v-else />
               </div>
               <h4 class="partner-name">{{ partner.title }}</h4>
@@ -523,7 +523,7 @@
                     <div class="product-thumb-cell">
                       <img
                         v-if="p.images?.length"
-                        :src="p.images[0]"
+                        :src="ipfsSrc(p.images[0])"
                         :alt="p.title"
                         class="product-thumb-img"
                       />
@@ -838,7 +838,7 @@
               >
                 <div class="card-handle">⋮⋮</div>
                 <div class="card-content">
-                  <img v-if="card.image" :src="card.image" :alt="card.title" class="card-image" />
+                  <img v-if="card.image" :src="ipfsSrc(card.image)" :alt="card.title" class="card-image" />
                   <div v-else class="card-image-placeholder">🖼️</div>
                   <div class="card-info">
                     <h4 class="card-title">{{ card.title }}</h4>
@@ -902,7 +902,7 @@
               >
                 <div class="card-handle">⋮⋮</div>
                 <div class="card-content">
-                  <img v-if="card.image" :src="card.image" :alt="card.title" class="card-image" />
+                  <img v-if="card.image" :src="ipfsSrc(card.image)" :alt="card.title" class="card-image" />
                   <div v-else class="card-image-placeholder">🖼️</div>
                   <div class="card-info">
                     <h4 class="card-title">{{ card.title }}</h4>
@@ -976,8 +976,7 @@ import AboutModal from '@/components/AboutModal.vue'
 import FaqModal from '@/components/FaqModal.vue'
 import ProductModal from '@/components/ProductModal.vue'
 import { parseTagsInput } from '@/utils/parseTags.js'
-
-// Import API services
+import { toPinataGatewayUrl } from '@/utils/ipfsGateway.js'
 import {
   menuService,
   mainnetService,
@@ -988,6 +987,8 @@ import {
   faqService,
   productService
 } from '@/services/adminService'
+
+const ipfsSrc = (url) => toPinataGatewayUrl(url) || url
 
 // Theme injection
 const theme = inject('theme')
@@ -1277,10 +1278,11 @@ const closeMainnetModal = () => {
 }
 
 const saveMainnetCard = async (cardData) => {
+  const editingId = editingMainnet.value?._id || editingMainnet.value?.id
   try {
-    if (editingMainnet.value) {
-      const updatedCard = await mainnetService.update(editingMainnet.value._id, cardData)
-      const index = mainnetCards.value.findIndex((c) => c.id === editingMainnet.value.id)
+    if (editingId) {
+      const updatedCard = await mainnetService.update(editingId, cardData)
+      const index = mainnetCards.value.findIndex((c) => (c._id || c.id) === editingId)
       if (index !== -1) {
         mainnetCards.value[index] = updatedCard.data || { ...editingMainnet.value, ...cardData }
       }
@@ -1289,7 +1291,7 @@ const saveMainnetCard = async (cardData) => {
       mainnetCards.value.push(newCard.data || newCard)
     }
     closeMainnetModal()
-    await loadMainnetData() // Refresh the data to ensure consistency
+    await loadMainnetData()
   } catch (error) {
     console.error('Failed to save mainnet card:', error)
     alert('Failed to save mainnet card. Please try again.')

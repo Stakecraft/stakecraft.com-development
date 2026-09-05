@@ -33,3 +33,32 @@ export const toPinataGatewayUrl = (value) => {
 
   return `https://${PUBLIC_GATEWAY_HOST}/ipfs/${cid}`;
 };
+
+/** Rewrite image / images on a plain object (API JSON). Leaves DB rows unchanged. */
+export const withPublicIpfsUrls = (doc) => {
+  if (!doc || typeof doc !== "object") return doc;
+  const out = { ...doc };
+  if (out.image) {
+    const next = toPinataGatewayUrl(out.image);
+    if (next) out.image = next;
+  }
+  if (Array.isArray(out.images)) {
+    out.images = out.images.map((u) => toPinataGatewayUrl(u) || u);
+  }
+  return out;
+};
+
+export const applyIpfsImageTransform = (schema) => {
+  const transform = (_doc, ret) => {
+    if (ret.image && typeof ret.image === "string") {
+      const next = toPinataGatewayUrl(ret.image);
+      if (next) ret.image = next;
+    }
+    if (Array.isArray(ret.images)) {
+      ret.images = ret.images.map((u) => toPinataGatewayUrl(u) || u);
+    }
+    return ret;
+  };
+  schema.set("toJSON", { virtuals: true, transform });
+  schema.set("toObject", { virtuals: true, transform });
+};
