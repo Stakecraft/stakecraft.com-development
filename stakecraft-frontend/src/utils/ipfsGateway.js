@@ -1,25 +1,18 @@
 /**
- * Pinata retrieval URLs (https://docs.pinata.cloud/quickstart §4).
+ * Public Pinata retrieval URLs.
  *
- * The gateway hostname is public (it appears in every <img src>). JWT / API
- * keys stay on the server. Prefer a dedicated gateway from the Pinata
- * dashboard (Gateways tab, e.g. fun-llama-300.mypinata.cloud). The public
- * gateway is the fallback so existing ipfs.io URLs stop hitting Cloudflare
- * CORP blocks before that env is set.
+ * Dedicated *.mypinata.cloud gateways are restricted by default: they 403 any
+ * CID not pinned to that Pinata account (ERR_ID:00006). Existing site images
+ * live on public IPFS but are not on the current account, so browser <img>
+ * tags use gateway.pinata.cloud.
+ *
+ * ipfs.io is avoided: Cloudflare challenges there send CORP: same-origin
+ * and Chrome logs ERR_BLOCKED_BY_RESPONSE.NotSameOrigin.
  */
 
-const DEFAULT_GATEWAY_HOST = 'gateway.pinata.cloud'
+const PUBLIC_GATEWAY_HOST = 'gateway.pinata.cloud'
 
-export const normalizeGatewayHost = (value) => {
-  const raw = String(value || '').trim()
-  if (!raw) return DEFAULT_GATEWAY_HOST
-  return raw
-    .replace(/^https?:\/\//i, '')
-    .replace(/\/ipfs\/?$/i, '')
-    .replace(/\/+$/, '')
-}
-
-export const PINATA_GATEWAY_HOST = normalizeGatewayHost(import.meta.env.VITE_PINATA_GATEWAY)
+export const PINATA_GATEWAY_HOST = PUBLIC_GATEWAY_HOST
 
 export const extractIpfsCid = (value) => {
   if (!value || typeof value !== 'string') return null
@@ -36,14 +29,14 @@ export const extractIpfsCid = (value) => {
   return null
 }
 
-export const toPinataGatewayUrl = (value, gatewayHost = PINATA_GATEWAY_HOST) => {
+export const toPinataGatewayUrl = (value) => {
   if (!value) return null
   if (value.startsWith('blob:') || value.startsWith('data:')) return value
 
   const cid = extractIpfsCid(value)
   if (!cid) return value.startsWith('http') ? value : null
 
-  return `https://${normalizeGatewayHost(gatewayHost)}/ipfs/${cid}`
+  return `https://${PUBLIC_GATEWAY_HOST}/ipfs/${cid}`
 }
 
 export const isIpfsUrl = (url) => Boolean(extractIpfsCid(url))
