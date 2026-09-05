@@ -1,22 +1,13 @@
 /**
- * Pinata retrieval URLs (https://docs.pinata.cloud/quickstart §4).
+ * Public Pinata retrieval URLs.
  *
- * Uploads stay on the server; the browser only ever sees a gateway URL of the
- * form https://<gateway-host>/ipfs/<cid>. The public ipfs.io gateway sits
- * behind Cloudflare bot checks that return Cross-Origin-Resource-Policy:
- * same-origin, which Chrome logs as ERR_BLOCKED_BY_RESPONSE.NotSameOrigin.
+ * Dedicated *.mypinata.cloud hosts 403 CIDs that are not pinned to that
+ * account (ERR_ID:00006). Site images are public IPFS content, so uploads
+ * return gateway.pinata.cloud URLs. ipfs.io is avoided because Cloudflare
+ * challenges send CORP: same-origin.
  */
 
-const DEFAULT_GATEWAY_HOST = "gateway.pinata.cloud";
-
-export const normalizeGatewayHost = (value) => {
-  const raw = String(value || "").trim();
-  if (!raw) return DEFAULT_GATEWAY_HOST;
-  return raw
-    .replace(/^https?:\/\//i, "")
-    .replace(/\/ipfs\/?$/i, "")
-    .replace(/\/+$/, "");
-};
+const PUBLIC_GATEWAY_HOST = "gateway.pinata.cloud";
 
 export const extractIpfsCid = (value) => {
   if (!value || typeof value !== "string") return null;
@@ -33,12 +24,12 @@ export const extractIpfsCid = (value) => {
   return null;
 };
 
-export const toPinataGatewayUrl = (value, gatewayHost = DEFAULT_GATEWAY_HOST) => {
+export const toPinataGatewayUrl = (value) => {
   if (!value) return null;
   if (value.startsWith("blob:") || value.startsWith("data:")) return value;
 
   const cid = extractIpfsCid(value);
   if (!cid) return value.startsWith("http") ? value : null;
 
-  return `https://${normalizeGatewayHost(gatewayHost)}/ipfs/${cid}`;
+  return `https://${PUBLIC_GATEWAY_HOST}/ipfs/${cid}`;
 };

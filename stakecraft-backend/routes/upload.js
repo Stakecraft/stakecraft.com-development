@@ -111,7 +111,7 @@ router.post(
       return res.status(201).json({
         success: true,
         hash: result.IpfsHash,
-        url: toPinataGatewayUrl(result.IpfsHash, config.pinata.gateway),
+        url: toPinataGatewayUrl(result.IpfsHash),
       });
     } catch (error) {
       console.error("IPFS upload error:", error);

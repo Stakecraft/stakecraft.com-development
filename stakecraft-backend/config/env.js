@@ -114,9 +114,6 @@ export const config = {
     apiKey: process.env.PINATA_API_KEY || "",
     secretKey: process.env.PINATA_SECRET_KEY || "",
     jwt: process.env.PINATA_JWT || "",
-    // Dedicated gateway hostname from the Pinata dashboard (Gateways tab).
-    // Accepts "fun-llama-300.mypinata.cloud" or a full https://.../ipfs/ URL.
-    gateway: process.env.PINATA_GATEWAY || "",
   },
   // Optional — enables validators.app score/rank on the Solana trust strip.
   validatorsAppToken: (process.env.VALIDATORS_APP_TOKEN || "").trim(),
