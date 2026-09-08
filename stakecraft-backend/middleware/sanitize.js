@@ -34,18 +34,16 @@ const stripOperators = (value, depth = 0) => {
   }
 
   if (isPlainObject(value)) {
-    // Null-prototype object: even if a pollution key slipped through, there is
-    // no prototype chain here for it to reach.
-    const cleaned = Object.create(null);
-    for (const [key, val] of Object.entries(value)) {
+    const entries = [];
+    for (const key of Object.keys(value)) {
       if (key.startsWith("$") || key.includes(".") || POLLUTION_KEYS.has(key)) {
         continue; // drop silently; legitimate clients never send these
       }
-      cleaned[key] = stripOperators(val, depth + 1);
+      entries.push([key, stripOperators(value[key], depth + 1)]);
     }
-    // Hand back a normal object so downstream code (Mongoose, express-validator)
-    // sees what it expects.
-    return Object.assign({}, cleaned);
+    // fromEntries does not assign onto Object.prototype, even if a bad key
+    // somehow survived the filter above.
+    return Object.fromEntries(entries);
   }
 
   return value;
@@ -87,6 +85,10 @@ const TEXT_FIELDS = [
   "imageAlt",
   "stakeCode",
   "username",
+  "question",
+  "answer",
+  "explanation",
+  "content",
 ];
 
 const stripTags = (input) =>
@@ -134,7 +136,7 @@ export const sanitizeContent = (req, res, next) => {
   }
 
   // Navigation targets must be a real link, so they get full validation.
-  for (const field of ["link", "url", "website"]) {
+  for (const field of ["link", "url", "website", "linkedin"]) {
     const value = req.body[field];
     if (typeof value === "string") {
       if (!isSafeLink(value)) {

@@ -1,4 +1,5 @@
 import Testnet from "../models/Testnet.js";
+import { asObjectId, eqNumber } from "../utils/objectId.js";
 
 export const createTestnetList = async (req, res) => {
   try {
@@ -6,7 +7,10 @@ export const createTestnetList = async (req, res) => {
 
     // Check for duplicate order
     if (order !== undefined && order !== null) {
-      const existingWithOrder = await Testnet.findOne({ order: order });
+      const orderFilter = eqNumber(order);
+      const existingWithOrder = orderFilter
+        ? await Testnet.findOne({ order: orderFilter })
+        : null;
 
       if (existingWithOrder) {
         return res.status(400).json({
@@ -57,7 +61,10 @@ export const getTestnetList = async (req, res) => {
 
 export const updateTestnetList = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = asObjectId(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, msg: "Invalid id" });
+    }
     const { title, description, image, order, isVisible } = req.body;
 
     // Check for duplicate order (only if order is being changed)
@@ -72,10 +79,13 @@ export const updateTestnetList = async (req, res) => {
       }
 
       if (order !== currentTestnet.order) {
-        const existingWithOrder = await Testnet.findOne({
-          order: order,
-          _id: { $ne: id }, // Exclude current item
-        });
+        const orderFilter = eqNumber(order);
+        const existingWithOrder = orderFilter
+          ? await Testnet.findOne({
+              order: orderFilter,
+              _id: { $ne: id },
+            })
+          : null;
 
         if (existingWithOrder) {
           return res.status(400).json({
@@ -123,7 +133,10 @@ export const updateTestnetList = async (req, res) => {
 
 export const deleteTestnetList = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = asObjectId(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, msg: "Invalid id" });
+    }
     const deletedTestnet = await Testnet.findByIdAndDelete(id);
 
     if (!deletedTestnet) {
@@ -159,9 +172,12 @@ export const updateTestnetPositions = async (req, res) => {
     }
 
     // Update each card's position
-    const updatePromises = positions.map(({ id, order }) =>
-      Testnet.findByIdAndUpdate(id, { order }, { new: true })
-    );
+    const updatePromises = positions.flatMap(({ id, order }) => {
+      const oid = asObjectId(id);
+      const orderFilter = eqNumber(order);
+      if (!oid || !orderFilter) return [];
+      return [Testnet.findByIdAndUpdate(oid, { order: orderFilter.$eq }, { new: true })];
+    });
 
     await Promise.all(updatePromises);
 
@@ -201,13 +217,18 @@ export const migrateToMainnet = async (req, res) => {
     const migratedNetworks = [];
     const errors = [];
 
-    for (const id of ids) {
+    for (const rawId of ids) {
       try {
+        const id = asObjectId(rawId);
+        if (!id) {
+          errors.push({ id: rawId, error: "Invalid id" });
+          continue;
+        }
         // Find the testnet network
         const testnetNetwork = await Testnet.findById(id);
 
         if (!testnetNetwork) {
-          errors.push({ id, error: "Network not found" });
+          errors.push({ id: rawId, error: "Network not found" });
           continue;
         }
 
@@ -237,12 +258,12 @@ export const migrateToMainnet = async (req, res) => {
         await Testnet.findByIdAndDelete(id);
 
         migratedNetworks.push({
-          originalId: id,
+          originalId: rawId,
           newId: newMainnet._id,
           title: testnetNetwork.title,
         });
       } catch (error) {
-        errors.push({ id, error: error.message });
+        errors.push({ id: rawId, error: error.message });
       }
     }
 

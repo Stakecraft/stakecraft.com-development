@@ -5,6 +5,7 @@ import App from './App.vue'
 import { routes } from './router/routes.js'
 import { clientOnlyRoutes } from './router/clientRoutes.js'
 import { ConfigProvider } from 'vant'
+import { safeHref } from './composables/useSeo.js'
 
 // Client-only routes must be in the initial router table. Adding them after
 // ViteSSG hydrates the homepage HTML for /notadmin leaves the app on `/`.
@@ -15,6 +16,7 @@ export const createApp = ViteSSG(
   { routes: allRoutes },
   ({ app, router, isClient }) => {
     app.use(ConfigProvider)
+    app.config.globalProperties.safeHref = safeHref
 
     if (isClient) {
       const target =

@@ -68,7 +68,7 @@
             <div class="network-links">
               <a
                 v-if="network.explorer"
-                :href="network.explorer"
+                :href="safeHref(network.explorer)"
                 target="_blank"
                 class="link-primary"
               >
@@ -76,7 +76,7 @@
               </a>
               <a
                 v-if="network.howToStake"
-                :href="network.howToStake"
+                :href="safeHref(network.howToStake)"
                 target="_blank"
                 class="link-primary"
               >
@@ -404,7 +404,7 @@
             <div class="network-links-bottom">
               <a
                 v-if="network.explorer"
-                :href="network.explorer"
+                :href="safeHref(network.explorer)"
                 target="_blank"
                 class="link-primary"
               >
@@ -412,7 +412,7 @@
               </a>
               <a
                 v-if="network.howToStake"
-                :href="network.howToStake"
+                :href="safeHref(network.howToStake)"
                 target="_blank"
                 class="link-primary"
               >

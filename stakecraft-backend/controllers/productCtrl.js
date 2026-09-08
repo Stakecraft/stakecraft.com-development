@@ -1,4 +1,5 @@
 import Product from "../models/Product.js";
+import { asObjectId } from "../utils/objectId.js";
 
 export const createProduct = async (req, res) => {
   try {
@@ -50,7 +51,10 @@ export const getProductList = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = asObjectId(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, msg: "Invalid id" });
+    }
     const { title, link, explanation, images, order, isActive } = req.body;
 
     const updateData = {
@@ -93,7 +97,10 @@ export const updateProduct = async (req, res) => {
 
 export const deleteProduct = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = asObjectId(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, msg: "Invalid id" });
+    }
     const deleted = await Product.findByIdAndDelete(id);
 
     if (!deleted) {

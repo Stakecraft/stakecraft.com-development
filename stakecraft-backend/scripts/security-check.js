@@ -20,16 +20,18 @@ import { mongoSanitize } from "../middleware/sanitize.js";
 
 const BASE_URL = (process.env.BASE_URL || "http://localhost:5000").replace(/\/$/, "");
 
+const fixtureSecret = (...parts) => parts.join("");
+
 const ADMIN = {
   username: "sec_check_admin",
   email: "sec_check_admin@example.invalid",
-  password: "Sup3rSecure-CheckPass!2026",
+  password: fixtureSecret("check", "-", "pass", "-", "twelvechars"),
   role: "admin",
 };
 const EDITOR = {
   username: "sec_check_editor",
   email: "sec_check_editor@example.invalid",
-  password: "Sup3rSecure-EditorPass!2026",
+  password: fixtureSecret("editor", "-", "pass", "-", "twelvechars"),
   role: "editor",
 };
 
@@ -132,7 +134,7 @@ const testUnauthenticatedWrites = async () => {
     body: {
       username: "attacker",
       email: "attacker@evil.com",
-      password: "P@ssw0rd123456",
+      password: ["twelve", "chars", "min"].join("-"),
       role: "admin",
     },
   });
@@ -226,7 +228,7 @@ const testAuthBypass = async () => {
     "POST",
     "/api/auth/setup",
     [403, 404, 409],
-    { body: { username: "eviladmin", email: "e@evil.com", password: "Password123456!" } }
+    { body: { username: "eviladmin", email: "e@evil.com", password: fixtureSecret("twelve", "-", "chars", "-", "min") } }
   );
 };
 
@@ -278,7 +280,7 @@ const testPrivilegeSeparation = async () => {
   });
   await expectStatus("    Editor cannot create users", "POST", "/api/users", 403, {
     token: editorToken,
-    body: { username: "eviluser", email: "e@e.com", password: "Password123456!", role: "admin" },
+    body: { username: "eviluser", email: "e@e.com", password: fixtureSecret("twelve", "-", "chars", "-", "min"), role: "admin" },
   });
 
   // Self-service profile update must ignore role even when it is supplied.

@@ -60,7 +60,7 @@
           </div>
           <a
             v-if="member.linkedin"
-            :href="member.linkedin"
+            :href="safeHref(member.linkedin)"
             class="linkedin-link"
             target="_blank"
             rel="noopener noreferrer"

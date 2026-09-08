@@ -45,8 +45,12 @@ router.post("/login", credentialRules, async (req, res) => {
     const { username, password } = req.body;
 
     // Both operands are guaranteed strings by the validation above.
+    // $eq pins the comparison so a leftover object cannot become an operator.
     const user = await User.findOne({
-      $or: [{ username }, { email: String(username).toLowerCase() }],
+      $or: [
+        { username: { $eq: username } },
+        { email: { $eq: String(username).toLowerCase() } },
+      ],
     });
 
     if (!user || !user.isActive) {

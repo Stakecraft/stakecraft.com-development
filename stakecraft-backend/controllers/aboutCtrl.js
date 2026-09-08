@@ -1,4 +1,5 @@
 import About from "../models/About.js";
+import { asObjectId } from "../utils/objectId.js";
 
 export const createAboutContent = async (req, res) => {
   try {
@@ -47,7 +48,10 @@ export const getAboutContent = async (req, res) => {
 
 export const updateAboutContent = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = asObjectId(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, msg: "Invalid id" });
+    }
     const { title, content } = req.body;
 
     const updateData = {
@@ -84,7 +88,10 @@ export const updateAboutContent = async (req, res) => {
 
 export const deleteAboutContent = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = asObjectId(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, msg: "Invalid id" });
+    }
     const deletedAboutContent = await About.findByIdAndDelete(id);
 
     if (!deletedAboutContent) {

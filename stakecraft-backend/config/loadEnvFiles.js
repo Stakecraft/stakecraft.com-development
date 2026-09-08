@@ -18,8 +18,19 @@ export const resolveNodeEnv = () => {
   return explicit || "development";
 };
 
+const ALLOWED_ENV_FILES = new Set([
+  ".env",
+  ".env.production",
+  ".env.development",
+  ".env.test",
+]);
+
 const applyFile = (cwd, filename) => {
-  const file = path.join(cwd, filename);
+  if (!ALLOWED_ENV_FILES.has(filename)) return false;
+  const root = path.resolve(cwd);
+  const file = path.resolve(root, filename);
+  const prefix = root.endsWith(path.sep) ? root : root + path.sep;
+  if (file !== root && !file.startsWith(prefix)) return false;
   if (!fs.existsSync(file)) return false;
   const parsed = dotenv.parse(fs.readFileSync(file));
   for (const [key, value] of Object.entries(parsed)) {
