@@ -1,5 +1,5 @@
 import Product from "../models/Product.js";
-import { asObjectId } from "../utils/objectId.js";
+import { asObjectId, updateBySafeId, deleteBySafeId } from "../utils/objectId.js";
 
 export const createProduct = async (req, res) => {
   try {
@@ -51,10 +51,6 @@ export const getProductList = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
   try {
-    const id = asObjectId(req.params.id);
-    if (!id) {
-      return res.status(400).json({ success: false, msg: "Invalid id" });
-    }
     const { title, link, explanation, images, order, isActive } = req.body;
 
     const updateData = {
@@ -68,10 +64,10 @@ export const updateProduct = async (req, res) => {
       ...(isActive !== undefined && { isActive }),
     };
 
-    const updated = await Product.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    });
+    if (!asObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, msg: "Invalid id" });
+    }
+    const updated = await updateBySafeId(Product, req.params.id, updateData);
 
     if (!updated) {
       return res.status(404).json({
@@ -97,11 +93,10 @@ export const updateProduct = async (req, res) => {
 
 export const deleteProduct = async (req, res) => {
   try {
-    const id = asObjectId(req.params.id);
-    if (!id) {
+    if (!asObjectId(req.params.id)) {
       return res.status(400).json({ success: false, msg: "Invalid id" });
     }
-    const deleted = await Product.findByIdAndDelete(id);
+    const deleted = await deleteBySafeId(Product, req.params.id);
 
     if (!deleted) {
       return res.status(404).json({

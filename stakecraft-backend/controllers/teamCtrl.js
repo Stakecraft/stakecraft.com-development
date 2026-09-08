@@ -1,5 +1,5 @@
 import Team from "../models/Team.js";
-import { asObjectId } from "../utils/objectId.js";
+import { asObjectId, updateBySafeId, deleteBySafeId } from "../utils/objectId.js";
 
 export function normalizeTags(tags) {
   if (!tags) return [];
@@ -65,20 +65,14 @@ export const getTeamMembers = async (req, res) => {
 
 export const updateTeamMember = async (req, res) => {
   try {
-    const id = asObjectId(req.params.id);
-    if (!id) {
-      return res.status(400).json({ success: false, msg: "Invalid id" });
-    }
     const updateData = buildTeamPayload(req.body);
 
-    const updatedTeamMember = await Team.findByIdAndUpdate(
-      id,
-      { $set: updateData },
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    if (!asObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, msg: "Invalid id" });
+    }
+    const updatedTeamMember = await updateBySafeId(Team, req.params.id, {
+      $set: updateData,
+    });
 
     if (!updatedTeamMember) {
       return res.status(404).json({
@@ -104,11 +98,10 @@ export const updateTeamMember = async (req, res) => {
 
 export const deleteTeamMember = async (req, res) => {
   try {
-    const id = asObjectId(req.params.id);
-    if (!id) {
+    if (!asObjectId(req.params.id)) {
       return res.status(400).json({ success: false, msg: "Invalid id" });
     }
-    const deletedTeamMember = await Team.findByIdAndDelete(id);
+    const deletedTeamMember = await deleteBySafeId(Team, req.params.id);
 
     if (!deletedTeamMember) {
       return res.status(404).json({

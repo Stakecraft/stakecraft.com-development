@@ -2,6 +2,14 @@ import Content from "../models/Content.js";
 import { body, validationResult } from "express-validator";
 import { deleteFile, ensureUploadsDir } from "../utils/upload.js";
 import { isSafeUrl, escapeRegex } from "../utils/urlValidation.js";
+import {
+  asObjectIds,
+  eqString,
+  findBySafeId,
+  findOneByTypeAndOrder,
+  updateBySafeId,
+  deleteBySafeId,
+} from "../utils/objectId.js";
 
 // Get all content with pagination and filtering
 export const getAllContent = async (req, res) => {
@@ -18,7 +26,7 @@ export const getAllContent = async (req, res) => {
 
     // Build filter object
     const filter = {};
-    if (type) filter.type = type;
+    if (typeof type === "string" && type) filter.type = eqString(type);
     if (isActive !== undefined) filter.isActive = isActive === "true";
     if (search) {
       const safeSearch = escapeRegex(search);
@@ -71,7 +79,7 @@ export const getContentByType = async (req, res) => {
     const { type } = req.params;
     const { isActive = "true" } = req.query;
 
-    const filter = { type };
+    const filter = typeof type === "string" ? { type: eqString(type) } : {};
     if (isActive !== "all") {
       filter.isActive = isActive === "true";
     }
@@ -99,7 +107,14 @@ export const getContentByType = async (req, res) => {
 // Get single content by ID
 export const getContentById = async (req, res) => {
   try {
-    const content = await Content.findById(req.params.id);
+    const contentQuery = findBySafeId(Content, req.params.id);
+    if (!contentQuery) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid content id",
+      });
+    }
+    const content = await contentQuery;
 
     if (!content) {
       return res.status(404).json({
@@ -160,11 +175,11 @@ export const createContent = async (req, res) => {
 
     // Check for duplicate order within the same type
     if (order !== undefined && order !== null) {
-      const existingWithOrder = await Content.findOne({
+      const existingWithOrder = await findOneByTypeAndOrder(
+        Content,
         type,
-        order: order,
-        isActive: true,
-      });
+        order
+      );
 
       if (existingWithOrder) {
         return res.status(400).json({
@@ -224,7 +239,14 @@ export const updateContent = async (req, res) => {
       });
     }
 
-    const content = await Content.findById(req.params.id);
+    const contentQuery = findBySafeId(Content, req.params.id);
+    if (!contentQuery) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid content id",
+      });
+    }
+    const content = await contentQuery;
     if (!content) {
       return res.status(404).json({
         success: false,
@@ -261,12 +283,12 @@ export const updateContent = async (req, res) => {
 
     // Check for duplicate order within the same type (only if order is being changed)
     if (order !== undefined && order !== content.order) {
-      const existingWithOrder = await Content.findOne({
-        type: content.type,
-        order: order,
-        isActive: true,
-        _id: { $ne: content._id }, // Exclude current item
-      });
+      const existingWithOrder = await findOneByTypeAndOrder(
+        Content,
+        content.type,
+        order,
+        content._id
+      );
 
       if (existingWithOrder) {
         return res.status(400).json({
@@ -310,7 +332,14 @@ export const updateContent = async (req, res) => {
 // Delete content
 export const deleteContent = async (req, res) => {
   try {
-    const content = await Content.findById(req.params.id);
+    const contentQuery = findBySafeId(Content, req.params.id);
+    if (!contentQuery) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid content id",
+      });
+    }
+    const content = await contentQuery;
 
     if (!content) {
       return res.status(404).json({
@@ -324,7 +353,7 @@ export const deleteContent = async (req, res) => {
       deleteFile(content.image.filename);
     }
 
-    await Content.findByIdAndDelete(req.params.id);
+    await deleteBySafeId(Content, content._id);
 
     res.status(200).json({
       success: true,
@@ -353,12 +382,9 @@ export const reorderContent = async (req, res) => {
     }
 
     // Update order for each item
-    const updatePromises = items.map((item, index) => {
-      return Content.findByIdAndUpdate(
-        item.id,
-        { order: index },
-        { new: true }
-      );
+    const updatePromises = items.flatMap((item, index) => {
+      const query = updateBySafeId(Content, item.id, { order: index });
+      return query ? [query] : [];
     });
 
     await Promise.all(updatePromises);
@@ -389,29 +415,37 @@ export const bulkOperation = async (req, res) => {
       });
     }
 
+    const objectIds = asObjectIds(ids);
+    if (!objectIds) {
+      return res.status(400).json({
+        success: false,
+        message: "IDs must be valid document ids",
+      });
+    }
+
     let result;
     switch (operation) {
       case "activate":
         result = await Content.updateMany(
-          { _id: { $in: ids } },
+          { _id: { $in: objectIds } },
           { isActive: true }
         );
         break;
       case "deactivate":
         result = await Content.updateMany(
-          { _id: { $in: ids } },
+          { _id: { $in: objectIds } },
           { isActive: false }
         );
         break;
       case "delete":
         // Get content to delete associated files
-        const contentToDelete = await Content.find({ _id: { $in: ids } });
+        const contentToDelete = await Content.find({ _id: { $in: objectIds } });
         for (const item of contentToDelete) {
           if (item.image && item.image.filename) {
             deleteFile(item.image.filename);
           }
         }
-        result = await Content.deleteMany({ _id: { $in: ids } });
+        result = await Content.deleteMany({ _id: { $in: objectIds } });
         break;
       default:
         return res.status(400).json({

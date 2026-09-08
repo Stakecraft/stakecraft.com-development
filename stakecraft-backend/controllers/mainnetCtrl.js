@@ -1,5 +1,12 @@
 import Mainnet from "../models/Mainnet.js";
-import { asObjectId, eqNumber } from "../utils/objectId.js";
+import {
+  asObjectId,
+  eqNumber,
+  findBySafeId,
+  findOneByOrder,
+  updateBySafeId,
+  deleteBySafeId,
+} from "../utils/objectId.js";
 
 export const createMainnetList = async (req, res) => {
   try {
@@ -16,10 +23,7 @@ export const createMainnetList = async (req, res) => {
 
     // Check for duplicate order
     if (order !== undefined && order !== null) {
-      const orderFilter = eqNumber(order);
-      const existingWithOrder = orderFilter
-        ? await Mainnet.findOne({ order: orderFilter })
-        : null;
+      const existingWithOrder = await findOneByOrder(Mainnet, order);
 
       if (existingWithOrder) {
         return res.status(400).json({
@@ -90,7 +94,7 @@ export const updateMainnetList = async (req, res) => {
 
     // Check for duplicate order (only if order is being changed)
     if (order !== undefined && order !== null) {
-      const currentMainnet = await Mainnet.findById(id);
+      const currentMainnet = await findBySafeId(Mainnet, id);
 
       if (!currentMainnet) {
         return res.status(404).json({
@@ -100,13 +104,7 @@ export const updateMainnetList = async (req, res) => {
       }
 
       if (order !== currentMainnet.order) {
-        const orderFilter = eqNumber(order);
-        const existingWithOrder = orderFilter
-          ? await Mainnet.findOne({
-              order: orderFilter,
-              _id: { $ne: id },
-            })
-          : null;
+        const existingWithOrder = await findOneByOrder(Mainnet, order, id);
 
         if (existingWithOrder) {
           return res.status(400).json({
@@ -128,10 +126,7 @@ export const updateMainnetList = async (req, res) => {
     if (order !== undefined) updateData.order = order;
     if (isVisible !== undefined) updateData.isVisible = isVisible;
 
-    const updatedMainnet = await Mainnet.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    });
+    const updatedMainnet = await updateBySafeId(Mainnet, id, updateData);
 
     if (!updatedMainnet) {
       return res.status(404).json({
@@ -161,7 +156,7 @@ export const deleteMainnetList = async (req, res) => {
     if (!id) {
       return res.status(400).json({ success: false, msg: "Invalid id" });
     }
-    const deletedMainnet = await Mainnet.findByIdAndDelete(id);
+    const deletedMainnet = await deleteBySafeId(Mainnet, id);
 
     if (!deletedMainnet) {
       return res.status(404).json({
@@ -200,7 +195,9 @@ export const updateMainnetPositions = async (req, res) => {
       const oid = asObjectId(id);
       const orderFilter = eqNumber(order);
       if (!oid || !orderFilter) return [];
-      return [Mainnet.findByIdAndUpdate(oid, { order: orderFilter.$eq }, { new: true })];
+      return [
+        updateBySafeId(Mainnet, oid, { order: orderFilter.$eq }),
+      ];
     });
 
     await Promise.all(updatePromises);
@@ -249,7 +246,7 @@ export const migrateToTestnet = async (req, res) => {
           continue;
         }
         // Find the mainnet network
-        const mainnetNetwork = await Mainnet.findById(id);
+        const mainnetNetwork = await findBySafeId(Mainnet, id);
 
         if (!mainnetNetwork) {
           errors.push({ id: rawId, error: "Network not found" });
@@ -276,7 +273,7 @@ export const migrateToTestnet = async (req, res) => {
         await newTestnet.save();
 
         // Delete from mainnet
-        await Mainnet.findByIdAndDelete(id);
+        await deleteBySafeId(Mainnet, id);
 
         migratedNetworks.push({
           originalId: rawId,

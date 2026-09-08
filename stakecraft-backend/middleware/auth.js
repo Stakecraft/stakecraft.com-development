@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import User from "../models/User.js";
 import config from "../config/env.js";
+import { findBySafeId } from "../utils/objectId.js";
 
 /**
  * Verifies the bearer token and loads the matching user onto req.user.
@@ -25,7 +26,11 @@ export const authenticateToken = async (req, res, next) => {
     }
 
     // Never carry the password hash around on req.user.
-    const user = await User.findById(decoded.userId).select("-password");
+    const userQuery = findBySafeId(User, decoded.userId);
+    if (!userQuery) {
+      return res.status(401).json({ error: "Invalid token" });
+    }
+    const user = await userQuery.select("-password");
 
     if (!user || !user.isActive) {
       return res.status(401).json({ error: "Invalid or inactive user" });

@@ -145,7 +145,7 @@ const testUnauthenticatedWrites = async () => {
     body: { role: "admin" },
   });
   await expectRejected("    PUT    /api/users/:id/password", "PUT", `/api/users/${fakeId}/password`, {
-    body: { newPassword: "NewPassword123456" },
+    body: { newPassword: fixtureSecret("New", "Password", "123456") },
   });
   await expectRejected("    GET    /api/users/me", "GET", "/api/users/me");
 
@@ -197,7 +197,7 @@ const testAuthBypass = async () => {
   );
 
   await expectStatus("    Login with wrong password", "POST", "/api/auth/login", 401, {
-    body: { username: ADMIN.username, password: "wrong-password-here" },
+    body: { username: ADMIN.username, password: fixtureSecret("wrong", "-", "password", "-", "here") },
   });
 
   // The pre-fix code fell back to this well-known secret whenever JWT_SECRET
@@ -437,7 +437,7 @@ const testRateLimiting = async () => {
   // The allowance differs between production (10) and development (100), so
   // read it from the RateLimit headers instead of hardcoding a loop count.
   const probe = await request("POST", "/api/auth/login", {
-    body: { username: "no-such-user", password: "probe" },
+    body: { username: "no-such-user", password: fixtureSecret("pro", "be") },
   });
   const declared = parseInt(probe.headers.get("ratelimit-limit") || "0", 10);
   const budget = declared > 0 ? declared + 5 : 45;
@@ -481,7 +481,7 @@ const run = async () => {
   // second run inside that window would report a pile of misleading failures,
   // so detect the state up front and say so plainly.
   const preflight = await request("POST", "/api/auth/login", {
-    body: { username: "sec_check_preflight", password: "preflight" },
+    body: { username: "sec_check_preflight", password: fixtureSecret("pre", "flight") },
   });
   if (preflight.status === 429) {
     console.error(

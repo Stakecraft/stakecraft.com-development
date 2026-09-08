@@ -36,6 +36,9 @@ export function useSeo(seo) {
       key: `jsonld-${i}`,
       type: 'application/ld+json',
       innerHTML: JSON.stringify(block)
+        .replace(/</g, '\\u003c')
+        .replace(/>/g, '\\u003e')
+        .replace(/&/g, '\\u0026')
     }))
   })
 }
