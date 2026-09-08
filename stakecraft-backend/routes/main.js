@@ -1,9 +1,5 @@
-import express from "express";
 import netRouter from "./mainnet.js";
 
-const app = express();
-const router = express.Router();
-
-app.use("/net", netRouter);
-
-export default router;
+// Kept as an alias of the mainnet router. Do not create a second Express
+// application here — Helmet and the rest of the stack live on server.js.
+export default netRouter;

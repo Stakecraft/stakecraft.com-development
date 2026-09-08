@@ -1,4 +1,5 @@
 import Partnership from "../models/Partnership.js";
+import { asObjectId } from "../utils/objectId.js";
 
 export const createPartnershipList = async (req, res) => {
   const { title, image, isVisible } = req.body;
@@ -30,7 +31,10 @@ export const getPartnershipList = async (req, res) => {
 
 export const updatePartnershipList = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = asObjectId(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, msg: "Invalid id" });
+    }
     const { title, image, isVisible } = req.body;
 
     const updateData = {};
@@ -71,7 +75,10 @@ export const updatePartnershipList = async (req, res) => {
 
 export const deletePartnershipList = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = asObjectId(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, msg: "Invalid id" });
+    }
     const deletedPartnership = await Partnership.findByIdAndDelete(id);
 
     if (!deletedPartnership) {

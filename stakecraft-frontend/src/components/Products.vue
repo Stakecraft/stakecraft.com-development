@@ -110,7 +110,7 @@
 
           <a
             v-if="modalProduct.link"
-            :href="modalProduct.link"
+            :href="safeHref(modalProduct.link)"
             class="project-modal-cta"
             target="_blank"
             rel="noopener noreferrer"

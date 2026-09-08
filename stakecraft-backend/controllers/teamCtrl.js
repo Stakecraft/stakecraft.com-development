@@ -1,4 +1,5 @@
 import Team from "../models/Team.js";
+import { asObjectId } from "../utils/objectId.js";
 
 export function normalizeTags(tags) {
   if (!tags) return [];
@@ -64,7 +65,10 @@ export const getTeamMembers = async (req, res) => {
 
 export const updateTeamMember = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = asObjectId(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, msg: "Invalid id" });
+    }
     const updateData = buildTeamPayload(req.body);
 
     const updatedTeamMember = await Team.findByIdAndUpdate(
@@ -100,7 +104,10 @@ export const updateTeamMember = async (req, res) => {
 
 export const deleteTeamMember = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = asObjectId(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, msg: "Invalid id" });
+    }
     const deletedTeamMember = await Team.findByIdAndDelete(id);
 
     if (!deletedTeamMember) {

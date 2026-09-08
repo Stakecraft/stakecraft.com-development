@@ -1,6 +1,7 @@
-import mongoose from "mongoose";
+import crypto from "crypto";
 import User from "../models/User.js";
 import { body, validationResult } from "express-validator";
+import { asObjectId, eqString } from "../utils/objectId.js";
 
 const MIN_PASSWORD_LENGTH = 12;
 
@@ -31,7 +32,18 @@ const failed = (res, action, error, status = 500) => {
   return res.status(status).json({ success: false, message: action });
 };
 
-const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+const isValidObjectId = (id) => Boolean(asObjectId(id));
+
+const passwordsEqual = (left, right) => {
+  const a = Buffer.from(String(left ?? ""), "utf8");
+  const b = Buffer.from(String(right ?? ""), "utf8");
+  const len = Math.max(a.length, b.length, 1);
+  const aPad = Buffer.alloc(len);
+  const bPad = Buffer.alloc(len);
+  a.copy(aPad);
+  b.copy(bPad);
+  return crypto.timingSafeEqual(aPad, bPad) && a.length === b.length;
+};
 
 // Get all users (admin only)
 export const getAllUsers = async (req, res) => {
@@ -54,7 +66,8 @@ export const getUserById = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid user id" });
     }
 
-    const user = await User.findById(req.params.id).select("-password");
+    const userId = asObjectId(req.params.id);
+    const user = await User.findById(userId).select("-password");
 
     if (!user) {
       return res.status(404).json({
@@ -81,7 +94,7 @@ export const createUser = async (req, res) => {
 
     // Check if user already exists
     const existingUser = await User.findOne({
-      $or: [{ email }, { username }],
+      $or: [{ email: eqString(email) }, { username: eqString(username) }],
     });
 
     if (existingUser) {
@@ -138,6 +151,7 @@ export const updateUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid user id" });
     }
 
+    const userId = asObjectId(req.params.id);
     const { username, email, role, isActive } = req.body;
 
     // Build the update from an explicit allow-list. Passing req.body straight
@@ -154,7 +168,7 @@ export const updateUser = async (req, res) => {
       updateData.role = role;
     }
 
-    const target = await User.findById(req.params.id);
+    const target = await User.findById(userId);
     if (!target) {
       return res.status(404).json({
         success: false,
@@ -194,7 +208,7 @@ export const updateUser = async (req, res) => {
       });
     }
 
-    const user = await User.findByIdAndUpdate(req.params.id, updateData, {
+    const user = await User.findByIdAndUpdate(userId, updateData, {
       new: true,
       runValidators: true,
     }).select("-password");
@@ -222,7 +236,8 @@ export const deleteUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid user id" });
     }
 
-    const target = await User.findById(req.params.id);
+    const userId = asObjectId(req.params.id);
+    const target = await User.findById(userId);
     if (!target) {
       return res.status(404).json({
         success: false,
@@ -274,9 +289,10 @@ export const changePassword = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid user id" });
     }
 
+    const userId = asObjectId(req.params.id);
     const { currentPassword, newPassword } = req.body;
 
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -298,7 +314,7 @@ export const changePassword = async (req, res) => {
         });
       }
 
-      if (currentPassword === newPassword) {
+      if (passwordsEqual(currentPassword, newPassword)) {
         return res.status(400).json({
           success: false,
           message: "New password must be different from the current password",
@@ -341,7 +357,8 @@ export const updateCurrentUser = async (req, res) => {
     if (username !== undefined) updateData.username = username;
     if (email !== undefined) updateData.email = email;
 
-    const user = await User.findByIdAndUpdate(req.user._id, updateData, {
+    const selfId = req.user._id;
+    const user = await User.findByIdAndUpdate(selfId, updateData, {
       new: true,
       runValidators: true,
     }).select("-password");

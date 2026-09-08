@@ -38,7 +38,7 @@
             <a
               v-if="network.explorer"
               class="explorerLink"
-              :href="network.explorer"
+              :href="safeHref(network.explorer)"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -61,7 +61,7 @@
             </a>
             <a
               class="howToStake"
-              :href="network.howToStake"
+              :href="safeHref(network.howToStake)"
               target="_blank"
               rel="noopener noreferrer"
               v-if="network.howToStake"

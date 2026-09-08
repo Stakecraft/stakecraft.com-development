@@ -1,4 +1,5 @@
 import Faq from "../models/Faq.js";
+import { asObjectId } from "../utils/objectId.js";
 
 export const createFaq = async (req, res) => {
   try {
@@ -47,7 +48,10 @@ export const getFaqs = async (req, res) => {
 
 export const updateFaq = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = asObjectId(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, msg: "Invalid id" });
+    }
     const { question, answer, order, isActive } = req.body;
 
     const updateData = {
@@ -86,7 +90,10 @@ export const updateFaq = async (req, res) => {
 
 export const deleteFaq = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = asObjectId(req.params.id);
+    if (!id) {
+      return res.status(400).json({ success: false, msg: "Invalid id" });
+    }
     const deletedFaq = await Faq.findByIdAndDelete(id);
 
     if (!deletedFaq) {

@@ -19,7 +19,7 @@
           <a
             v-if="page.explorer"
             class="ctaSecondary"
-            :href="page.explorer"
+            :href="safeHref(page.explorer)"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -86,7 +86,7 @@
           <a
             v-else-if="tab.action === 'external'"
             class="ctaSecondary"
-            :href="tab.url"
+            :href="safeHref(tab.url)"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -100,7 +100,7 @@
         <code class="validatorValue">{{ page.validator }}</code>
       </div>
       <p v-if="page.howToStake" class="guideLink">
-        <a :href="page.howToStake" target="_blank" rel="noopener noreferrer">
+        <a :href="safeHref(page.howToStake)" target="_blank" rel="noopener noreferrer">
           Read the full {{ page.networkName }} staking guide
         </a>
       </p>

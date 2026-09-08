@@ -15,7 +15,7 @@
       <h3>Upload Result:</h3>
       <p><strong>Hash:</strong> {{ uploadResult.hash }}</p>
       <p>
-        <strong>URL:</strong> <a :href="uploadResult.url" target="_blank">{{ uploadResult.url }}</a>
+        <strong>URL:</strong> <a :href="safeHref(uploadResult.url)" target="_blank">{{ uploadResult.url }}</a>
       </p>
       <div v-if="uploadResult.url" class="image-preview">
         <img :src="uploadResult.url" alt="Uploaded image" />

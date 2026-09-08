@@ -534,7 +534,7 @@
                   <td class="table-cell">
                     <a
                       v-if="p.link"
-                      :href="p.link"
+                      :href="safeHref(p.link)"
                       target="_blank"
                       rel="noopener noreferrer"
                       class="url-text"
@@ -703,7 +703,7 @@
                   <td class="table-cell">
                     <a
                       v-if="member.linkedin"
-                      :href="member.linkedin"
+                      :href="safeHref(member.linkedin)"
                       target="_blank"
                       rel="noopener noreferrer"
                       class="linkedin-cell-link"
