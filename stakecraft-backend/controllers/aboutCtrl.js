@@ -1,5 +1,5 @@
 import About from "../models/About.js";
-import { asObjectId } from "../utils/objectId.js";
+import { asObjectId, updateBySafeId, deleteBySafeId } from "../utils/objectId.js";
 
 export const createAboutContent = async (req, res) => {
   try {
@@ -48,10 +48,6 @@ export const getAboutContent = async (req, res) => {
 
 export const updateAboutContent = async (req, res) => {
   try {
-    const id = asObjectId(req.params.id);
-    if (!id) {
-      return res.status(400).json({ success: false, msg: "Invalid id" });
-    }
     const { title, content } = req.body;
 
     const updateData = {
@@ -59,10 +55,14 @@ export const updateAboutContent = async (req, res) => {
       content,
     };
 
-    const updatedAboutContent = await About.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    });
+    if (!asObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, msg: "Invalid id" });
+    }
+    const updatedAboutContent = await updateBySafeId(
+      About,
+      req.params.id,
+      updateData
+    );
 
     if (!updatedAboutContent) {
       return res.status(404).json({
@@ -88,11 +88,10 @@ export const updateAboutContent = async (req, res) => {
 
 export const deleteAboutContent = async (req, res) => {
   try {
-    const id = asObjectId(req.params.id);
-    if (!id) {
+    if (!asObjectId(req.params.id)) {
       return res.status(400).json({ success: false, msg: "Invalid id" });
     }
-    const deletedAboutContent = await About.findByIdAndDelete(id);
+    const deletedAboutContent = await deleteBySafeId(About, req.params.id);
 
     if (!deletedAboutContent) {
       return res.status(404).json({

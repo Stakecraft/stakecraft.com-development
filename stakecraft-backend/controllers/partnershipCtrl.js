@@ -1,5 +1,5 @@
 import Partnership from "../models/Partnership.js";
-import { asObjectId } from "../utils/objectId.js";
+import { asObjectId, updateBySafeId, deleteBySafeId } from "../utils/objectId.js";
 
 export const createPartnershipList = async (req, res) => {
   const { title, image, isVisible } = req.body;
@@ -31,10 +31,6 @@ export const getPartnershipList = async (req, res) => {
 
 export const updatePartnershipList = async (req, res) => {
   try {
-    const id = asObjectId(req.params.id);
-    if (!id) {
-      return res.status(400).json({ success: false, msg: "Invalid id" });
-    }
     const { title, image, isVisible } = req.body;
 
     const updateData = {};
@@ -42,13 +38,13 @@ export const updatePartnershipList = async (req, res) => {
     if (image !== undefined) updateData.image = image;
     if (isVisible !== undefined) updateData.isVisible = isVisible;
 
-    const updatedPartnership = await Partnership.findByIdAndUpdate(
-      id,
-      updateData,
-      {
-        new: true,
-        runValidators: true,
-      }
+    if (!asObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, msg: "Invalid id" });
+    }
+    const updatedPartnership = await updateBySafeId(
+      Partnership,
+      req.params.id,
+      updateData
     );
 
     if (!updatedPartnership) {
@@ -75,11 +71,10 @@ export const updatePartnershipList = async (req, res) => {
 
 export const deletePartnershipList = async (req, res) => {
   try {
-    const id = asObjectId(req.params.id);
-    if (!id) {
+    if (!asObjectId(req.params.id)) {
       return res.status(400).json({ success: false, msg: "Invalid id" });
     }
-    const deletedPartnership = await Partnership.findByIdAndDelete(id);
+    const deletedPartnership = await deleteBySafeId(Partnership, req.params.id);
 
     if (!deletedPartnership) {
       return res.status(404).json({

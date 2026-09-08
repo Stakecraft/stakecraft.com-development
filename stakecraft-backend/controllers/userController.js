@@ -1,7 +1,13 @@
 import crypto from "crypto";
 import User from "../models/User.js";
 import { body, validationResult } from "express-validator";
-import { asObjectId, eqString } from "../utils/objectId.js";
+import {
+  asObjectId,
+  findBySafeId,
+  findOneByEmailOrUsername,
+  updateBySafeId,
+  deleteBySafeId,
+} from "../utils/objectId.js";
 
 const MIN_PASSWORD_LENGTH = 12;
 
@@ -67,7 +73,7 @@ export const getUserById = async (req, res) => {
     }
 
     const userId = asObjectId(req.params.id);
-    const user = await User.findById(userId).select("-password");
+    const user = await findBySafeId(User, userId).select("-password");
 
     if (!user) {
       return res.status(404).json({
@@ -93,9 +99,7 @@ export const createUser = async (req, res) => {
     const { username, email, password, role } = req.body;
 
     // Check if user already exists
-    const existingUser = await User.findOne({
-      $or: [{ email: eqString(email) }, { username: eqString(username) }],
-    });
+    const existingUser = await findOneByEmailOrUsername(User, email, username);
 
     if (existingUser) {
       return res.status(400).json({
@@ -168,7 +172,7 @@ export const updateUser = async (req, res) => {
       updateData.role = role;
     }
 
-    const target = await User.findById(userId);
+    const target = await findBySafeId(User, userId);
     if (!target) {
       return res.status(404).json({
         success: false,
@@ -208,10 +212,10 @@ export const updateUser = async (req, res) => {
       });
     }
 
-    const user = await User.findByIdAndUpdate(userId, updateData, {
-      new: true,
-      runValidators: true,
-    }).select("-password");
+    const updated = await updateBySafeId(User, userId, updateData);
+    const user = updated
+      ? await findBySafeId(User, updated._id).select("-password")
+      : null;
 
     res.status(200).json({
       success: true,
@@ -237,7 +241,7 @@ export const deleteUser = async (req, res) => {
     }
 
     const userId = asObjectId(req.params.id);
-    const target = await User.findById(userId);
+    const target = await findBySafeId(User, userId);
     if (!target) {
       return res.status(404).json({
         success: false,
@@ -269,7 +273,7 @@ export const deleteUser = async (req, res) => {
       }
     }
 
-    await User.findByIdAndDelete(target._id);
+    await deleteBySafeId(User, target._id);
 
     res.status(200).json({
       success: true,
@@ -292,7 +296,7 @@ export const changePassword = async (req, res) => {
     const userId = asObjectId(req.params.id);
     const { currentPassword, newPassword } = req.body;
 
-    const user = await User.findById(userId);
+    const user = await findBySafeId(User, userId);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -337,7 +341,7 @@ export const changePassword = async (req, res) => {
 // Get current user profile
 export const getCurrentUser = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select("-password");
+    const user = await findBySafeId(User, req.user._id).select("-password");
 
     res.status(200).json({
       success: true,
@@ -358,10 +362,10 @@ export const updateCurrentUser = async (req, res) => {
     if (email !== undefined) updateData.email = email;
 
     const selfId = req.user._id;
-    const user = await User.findByIdAndUpdate(selfId, updateData, {
-      new: true,
-      runValidators: true,
-    }).select("-password");
+    const updated = await updateBySafeId(User, selfId, updateData);
+    const user = updated
+      ? await findBySafeId(User, updated._id).select("-password")
+      : null;
 
     res.status(200).json({
       success: true,

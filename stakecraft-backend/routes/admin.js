@@ -2,6 +2,7 @@ import express from "express";
 import { authenticateToken, requireAdmin } from "../middleware/auth.js";
 import Content from "../models/Content.js";
 import User from "../models/User.js";
+import { asObjectIds } from "../utils/objectId.js";
 
 const router = express.Router();
 
@@ -134,22 +135,27 @@ router.post(
         return res.status(400).json({ error: "Invalid request parameters" });
       }
 
+      const objectIds = asObjectIds(ids);
+      if (!objectIds) {
+        return res.status(400).json({ error: "IDs must be valid document ids" });
+      }
+
       let result;
       switch (action) {
         case "activate":
           result = await Content.updateMany(
-            { _id: { $in: ids } },
+            { _id: { $in: objectIds } },
             { isActive: true }
           );
           break;
         case "deactivate":
           result = await Content.updateMany(
-            { _id: { $in: ids } },
+            { _id: { $in: objectIds } },
             { isActive: false }
           );
           break;
         case "delete":
-          result = await Content.deleteMany({ _id: { $in: ids } });
+          result = await Content.deleteMany({ _id: { $in: objectIds } });
           break;
         default:
           return res.status(400).json({ error: "Invalid action" });

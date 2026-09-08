@@ -1,6 +1,5 @@
 import dotenv from "dotenv";
 import fs from "fs";
-import path from "path";
 
 /**
  * Same codebase for every host. Which secrets you get is decided only by
@@ -12,27 +11,37 @@ import path from "path";
  *
  * Non-empty process env (the unit file) always wins. Empty assignments like
  * PINATA_JWT= in one file do not hide a real value in the other.
+ *
+ * Each read uses a string literal so a tainted NODE_ENV cannot reach fs.
  */
 export const resolveNodeEnv = () => {
   const explicit = (process.env.NODE_ENV || "").trim();
   return explicit || "development";
 };
 
-const ALLOWED_ENV_FILES = new Set([
-  ".env",
-  ".env.production",
-  ".env.development",
-  ".env.test",
-]);
+const readLiteralEnv = (filename) => {
+  switch (filename) {
+    case ".env":
+      return fs.existsSync(".env") ? fs.readFileSync(".env") : null;
+    case ".env.production":
+      return fs.existsSync(".env.production")
+        ? fs.readFileSync(".env.production")
+        : null;
+    case ".env.development":
+      return fs.existsSync(".env.development")
+        ? fs.readFileSync(".env.development")
+        : null;
+    case ".env.test":
+      return fs.existsSync(".env.test") ? fs.readFileSync(".env.test") : null;
+    default:
+      return null;
+  }
+};
 
-const applyFile = (cwd, filename) => {
-  if (!ALLOWED_ENV_FILES.has(filename)) return false;
-  const root = path.resolve(cwd);
-  const file = path.resolve(root, filename);
-  const prefix = root.endsWith(path.sep) ? root : root + path.sep;
-  if (file !== root && !file.startsWith(prefix)) return false;
-  if (!fs.existsSync(file)) return false;
-  const parsed = dotenv.parse(fs.readFileSync(file));
+const applyFile = (filename) => {
+  const raw = readLiteralEnv(filename);
+  if (raw == null) return false;
+  const parsed = dotenv.parse(raw);
   for (const [key, value] of Object.entries(parsed)) {
     const incoming = String(value ?? "").trim();
     if (!incoming) continue;
@@ -44,13 +53,22 @@ const applyFile = (cwd, filename) => {
   return true;
 };
 
-export const loadEnvFiles = (cwd = process.cwd()) => {
+export const loadEnvFiles = () => {
   const nodeEnv = resolveNodeEnv();
   process.env.NODE_ENV = nodeEnv;
 
+  const overlay =
+    nodeEnv === "production"
+      ? ".env.production"
+      : nodeEnv === "test"
+        ? ".env.test"
+        : nodeEnv === "development"
+          ? ".env.development"
+          : null;
+
   const loaded = [];
-  if (applyFile(cwd, ".env")) loaded.push(".env");
-  if (applyFile(cwd, `.env.${nodeEnv}`)) loaded.push(`.env.${nodeEnv}`);
+  if (applyFile(".env")) loaded.push(".env");
+  if (overlay && applyFile(overlay)) loaded.push(overlay);
 
   if (nodeEnv !== "test") {
     console.log(

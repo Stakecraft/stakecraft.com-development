@@ -1,5 +1,5 @@
 import Faq from "../models/Faq.js";
-import { asObjectId } from "../utils/objectId.js";
+import { asObjectId, updateBySafeId, deleteBySafeId } from "../utils/objectId.js";
 
 export const createFaq = async (req, res) => {
   try {
@@ -48,10 +48,6 @@ export const getFaqs = async (req, res) => {
 
 export const updateFaq = async (req, res) => {
   try {
-    const id = asObjectId(req.params.id);
-    if (!id) {
-      return res.status(400).json({ success: false, msg: "Invalid id" });
-    }
     const { question, answer, order, isActive } = req.body;
 
     const updateData = {
@@ -61,10 +57,10 @@ export const updateFaq = async (req, res) => {
       isActive: isActive !== false,
     };
 
-    const updatedFaq = await Faq.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    });
+    if (!asObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, msg: "Invalid id" });
+    }
+    const updatedFaq = await updateBySafeId(Faq, req.params.id, updateData);
 
     if (!updatedFaq) {
       return res.status(404).json({
@@ -90,11 +86,10 @@ export const updateFaq = async (req, res) => {
 
 export const deleteFaq = async (req, res) => {
   try {
-    const id = asObjectId(req.params.id);
-    if (!id) {
+    if (!asObjectId(req.params.id)) {
       return res.status(400).json({ success: false, msg: "Invalid id" });
     }
-    const deletedFaq = await Faq.findByIdAndDelete(id);
+    const deletedFaq = await deleteBySafeId(Faq, req.params.id);
 
     if (!deletedFaq) {
       return res.status(404).json({
